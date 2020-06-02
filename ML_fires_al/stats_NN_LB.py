@@ -10,4 +10,4 @@ onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and 'comb' in
 
 combined_csv = pd.concat([pd.read_csv(f) for f in onlyfiles])
 
-i = 1
+i = 5
