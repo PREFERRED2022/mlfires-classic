@@ -1,145 +1,73 @@
 #!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
 
 import os
 from os import listdir
 from os.path import isfile, join
 import pandas as pd
-
-
-# In[2]:
-
+import re
 
 os.chdir('/home/sgirtsou/Documents/June2019/Comb_results')
 mypath = '/home/sgirtsou/Documents/June2019/Comb_results'
 
 
-# In[4]:
+ranges = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 
+
+def set_percents(field, stats_field, allstats):
+    sum = allstats[field].sum()
+    allstats[stats_field] = allstats[field]/sum
+
+def get_groups(name, fieldranges, conmbined_csv, ranges, filterfield=None, filter=None):
+    if filterfield:
+        combined_csv_filt = combined_csv[combined_csv[filterfield] == filter]
+    else:
+        combined_csv_filt = combined_csv
+    combined_cut = pd.cut(combined_csv_filt[fieldranges], ranges)
+    combined_cut = combined_cut.rename(name)
+    combined_csv_r = pd.concat([combined_csv_filt, combined_cut], axis=1)
+    groups = combined_csv_r.groupby(combined_cut).count()[fieldranges]
+    return groups
+
+
+groupfields = [{'field': 'Class_1_proba', 'name': 'NN'}, {'field': 'Class_1_proba_lb', 'name': 'LB'},
+               {'field': 'Comb_proba_1', 'name': 'Ensemble'}]
+
+
+# NN	fire_NN	event_NN
+# LB	fire_LB	event_LB
+# Ensemble	fire_Ensemble	event_Ensemble
+# NN prediction	NN act. fire	NN act. event
+# LB prediction	LB act. fire	LB act. event
+# Ensemble prediction	Ensemble act. fire	Ensemble act. event
 
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and 'comb' in f]
-combined_csv = pd.concat([pd.read_csv(f) for f in [onlyfiles[0]]])
 
-
-# In[5]:
-
-
-combined_csv.columns
-
-
-# In[6]:
-
-
-ranges = [0.0,0.2,0.4,0.6,0.8,1.0]
-
-
-# In[30]:
-
-
-combined_cut=pd.cut(combined_csv.Class_1_proba, ranges)
-
-
-# In[8]:
-
-
-combined_cut=combined_cut.rename("ranges")
-
-
-# In[9]:
-
-
-combined_csv_r=pd.concat([combined_csv,combined_cut],axis=1)
-
-
-# In[31]:
-
-
-combined_csv_r
-
-
-# In[43]:
-
-
-groups = combined_csv_r.groupby(combined_cut).count()['Class_1_proba']
-
-
-# In[44]:
-
-
-groups
-
-
-# In[52]:
-
-
-combined_cut_lb=pd.cut(combined_csv.Class_1_proba_lb, ranges)
-combined_cut_lb=combined_cut_lb.rename("ranges_lb")
-combined_csv_lb_r=pd.concat([combined_csv,combined_cut_lb],axis=1)
-
-
-# In[53]:
-
-
-groups_lb = combined_csv_r.groupby(combined_cut_lb).count()['Class_1_proba_lb']
-groups_lb
-
-
-# In[34]:
-
-
-combined_csv_fire=combined_csv[combined_csv["fire"]==1]
-combined_fire_cut=pd.cut(combined_csv_fire.Class_1_proba, ranges)
-combined_fire_cut=combined_fire_cut.rename("ranges_fire")
-
-
-# In[41]:
-
-
-combined_csv_fire_r=pd.concat([combined_csv_fire,combined_fire_cut],axis=1)
-
-
-# In[38]:
-
-
-groups_fire = combined_csv_fire_r.groupby(combined_fire_cut).count()
-
-
-# In[39]:
-
-
-allstats=pd.concat([groups["ranges"],groups_fire["ranges_fire"]],axis=1)
-type(allstats)
-
-
-# In[40]:
-
-
-s1=allstats["ranges"].sum()
-s2=allstats["ranges_fire"].sum()
-spc1=0
-spc2=0
-for index, row in allstats.iterrows():
-    #print(index,row["ranges"], row["ranges_fire"])
-    #print(g["ranges"])
-    pc1=row["ranges"]/s1
-    spc1+=pc1
-    pc2=row["ranges_fire"]/s2
-    spc2+=pc2
-    print("%s-%s : %3.2f %3.2f"%(index.left,index.right,pc1*100,pc2*100))
-#print("0.0-1.0 : %3.2f"%(spc*100))
-
-
-# In[37]:
-
-
-
-
-
-# In[ ]:
-
-
-
+for f in onlyfiles:
+    fdate = re.search('[0-9]{8}', f).group(0)
+    combined_csv = pd.read_csv(f)
+    allgroups = []
+    for gf in groupfields:
+        filt = gf['filter'] if 'filter' in gf else None
+        g = get_groups(gf['name'], gf['field'], combined_csv, ranges, filt).rename(gf['name'])
+        g_fire = get_groups(gf['name'], gf['field'], combined_csv, ranges, 'fire', 1).rename('fire_%s'%gf['name'])
+        g_event = get_groups(gf['name'], gf['field'], combined_csv, ranges, 'fire_id', 1).rename('event_%s'%gf['name'])
+        allgroups += [g, g_fire, g_event]
+
+    allstats = pd.concat(allgroups, axis=1)
+
+    for gf in groupfields:
+        set_percents(gf['name'], '%s prediction' % gf['name'], allstats)
+        set_percents('fire_%s' % gf['name'], '%s act. fire' % gf['name'], allstats)
+        set_percents('event_%s' % gf['name'], '%s act. event' % gf['name'], allstats)
+
+    statspath='/home/sgirtsou/Documents/June2019/stats/r%d'%(len(ranges)-1)
+    if not os.path.exists(statspath):
+        os.makedirs(statspath)
+    #allstats.to_csv(os.path.join(statspath,'stats_%s.csv'%fdate))
+
+    plotcols=[c for c in allstats.columns if 'prediction' in c or 'act' in c]
+    plotstats=allstats[plotcols]
+    #plotstats.plot.bar()
+    allstats.plot.bar()
+    i=1
 
