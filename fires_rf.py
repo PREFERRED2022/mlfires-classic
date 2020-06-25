@@ -50,10 +50,10 @@ X= df[['max_temp','min_temp', 'mean_temp', 'res_max', 'dir_max', 'dom_vel', 'dom
 Y = df["fire"]
 
 # training & testing data
-X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.10) #20% hold out for testing
+X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.10) #10% hold out for testing
 
 # initialize classifier
-rf = RandomForestClassifier(n_estimators=100, oob_score=True)
+rf = RandomForestClassifier(n_estimators=325, oob_score=True, bootstrap=True, criterion= 'entropy')
 
 #train the model
 rf.fit(X_train, y_train)
@@ -139,7 +139,7 @@ for file in onlyfiles:
         Y_pred_greece_proba_df = pd.DataFrame({'Class_0_proba_rf': Y_pred_greece_proba[:, 0], 'Class_1_proba_rf': Y_pred_greece_proba[:, 1]})
         df_results = pd.concat([df_greece, Y_pred_greece_df, Y_pred_greece_proba_df], axis=1)
 
-        df_results.to_csv('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire_results/RF_results/' + file[0:12] + '_rf.csv')
+        #df_results.to_csv('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire_results/RF_results/' + file[0:12] + '_rf.csv')
 
         #fireprobahigh = fireprobas[:,1][fireprobas[:,1]>0.4]
         #print(fireprobahigh)

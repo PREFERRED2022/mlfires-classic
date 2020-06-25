@@ -102,8 +102,8 @@ for a,b in zip(sorted(logitb.feature_importances_, reverse=True), l):
 #df_greece = df_greece.loc[df_greece['fire']==1]
 #X_greece = df_greece[['DEM', 'max_temp', 'dom_dir', 'dir_max', 'res_max']]
 
-os.chdir('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire_results/NN_results')
-mypath = '/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire_results/NN_results'
+os.chdir('/home/sgirtsou/Documents/June2019/NN_results')
+mypath = '/home/sgirtsou/Documents/June2019/NN_results'
 
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
@@ -121,7 +121,7 @@ for file in onlyfiles:
         print(report)
 
         conf_matrix = confusion_matrix(Y_pred_greece, Y_greece)
-        f = open('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire_results/confusion_matrix.csv', 'a')
+        f = open('/home/sgirtsou/Documents/June2019/LB_results/confusion_matrix.csv', 'a')
         np.savetxt(f, conf_matrix, delimiter=',', header=file[0:12]+'_lb', fmt='%f')
         f.close()
         print(conf_matrix)
@@ -130,7 +130,11 @@ for file in onlyfiles:
         #    print(logitb.predict_proba([X_greece.iloc[i]]))
         firerows = df_greece.loc[df_greece['fire']==1].index.tolist()
         nonfirerows = df_greece.loc[df_greece['fire']==0].index.tolist()
-        fireprobas = logitb.predict_proba(X_greece.loc[firerows])
+        try:
+            fireprobas = logitb.predict_proba(X_greece.loc[firerows])
+        except:
+            print('No fire predictions')
+
         nonfireprobas = logitb.predict_proba(X_greece.loc[nonfirerows])
 
 
@@ -140,7 +144,11 @@ for file in onlyfiles:
         Y_pred_greece_proba_df = pd.DataFrame({'Class_0_proba_lb': Y_pred_greece_proba[:, 0], 'Class_1_proba_lb': Y_pred_greece_proba[:, 1]})
         df_results = pd.concat([df_greece, Y_pred_greece_df, Y_pred_greece_proba_df], axis=1)
 
-        df_results.to_csv('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire_results/LB_results/' + file[0:12] + '_lb.csv')
+        if file.startswith('no'):
+            df_results.to_csv('/home/sgirtsou/Documents/June2019/LB_results/' + file[0:15] + '_lb.csv')
+        else:
+            df_results.to_csv('/home/sgirtsou/Documents/June2019/LB_results/' + file[0:12] + '_lb.csv')
+
 
         #fireprobahigh = fireprobas[:,1][fireprobas[:,1]>0.4]
         #print(fireprobahigh)

@@ -96,7 +96,7 @@ X_unnorm, y_int = df_part[['max_temp','min_temp', 'mean_temp', 'res_max', 'dir_m
 
 print(X_unnorm)
 
-str_classes = []
+str_classes = ['Corine']
 X_unnorm_int = index_string_values(X_unnorm, str_classes)
 print(X_unnorm_int)
 
@@ -151,7 +151,7 @@ es = EarlyStopping(monitor='loss', mode='min', patience = 20)
 log_dir = os.path.join('.\\logs\\s2')
 tb = TensorBoard(log_dir=log_dir, histogram_freq=0, write_graph=True, write_images=True, profile_batch = 100000000)
 #model.fit(X_train[:,1:], y_train, epochs=100, batch_size=1000, callbacks = [es, tb])
-model.fit(X_train, y_train, epochs=100, batch_size=1000, callbacks = [es, tb])
+model.fit(X_train, y_train, epochs=250, batch_size=1000, callbacks = [es, tb])
 
 # evaluate the model
 loss, acc = model.evaluate(X_test, y_test, verbose=0)
@@ -169,8 +169,8 @@ preds = np.argmax(model.predict(X_test), axis = 1)
 fp = np.where(preds - y_test == 1)
 fn = np.where(preds - y_test == -1)
 
-mypath = '/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire'
-os.chdir('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire')
+mypath = '/home/sgirtsou/Documents/June2019/datasets'
+os.chdir('/home/sgirtsou/Documents/June2019/datasets')
 
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
@@ -220,7 +220,7 @@ for file in onlyfiles:
         #print(report)
 
         conf_matrix = confusion_matrix(Y_pred_greece_cl, Y_greece.values)
-        f = open('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire_results/confusion_matrix.csv', 'a')
+        f = open('/home/sgirtsou/Documents/June2019/confusion_matrix.csv', 'a')
         np.savetxt(f,  conf_matrix, delimiter=',',header= file[0:12], fmt='%f')
         f.close()
         #np.savetxt("cm_"+file[0:12]+".csv", conf_matrix, delimiter=",")
@@ -257,5 +257,7 @@ for file in onlyfiles:
         #print(df_greece.shape)
 
         df_results = pd.concat([df_greece, Y_pred_greece_cl_df, Y_pred_greece_df], axis=1)
-
-        df_results.to_csv('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire_results/' + file[0:12] + '_res.csv')
+        if file.startswith('no'):
+            df_results.to_csv('/home/sgirtsou/Documents/June2019/NN_results/' + file[0:15] + '_res.csv')
+        else:
+            df_results.to_csv('/home/sgirtsou/Documents/June2019/NN_results/' + file[0:12] + '_res.csv')

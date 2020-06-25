@@ -96,7 +96,7 @@ X_unnorm, y_int = df_part[['max_temp','min_temp', 'mean_temp', 'res_max', 'dir_m
 
 print(X_unnorm)
 
-str_classes = []
+str_classes = ['Corine']
 X_unnorm_int = index_string_values(X_unnorm, str_classes)
 print(X_unnorm_int)
 
@@ -151,7 +151,7 @@ es = EarlyStopping(monitor='loss', mode='min', patience = 20)
 log_dir = os.path.join('.\\logs\\s2')
 tb = TensorBoard(log_dir=log_dir, histogram_freq=0, write_graph=True, write_images=True, profile_batch = 100000000)
 #model.fit(X_train[:,1:], y_train, epochs=100, batch_size=1000, callbacks = [es, tb])
-model.fit(X_train, y_train, epochs=100, batch_size=1000, callbacks = [es, tb])
+model.fit(X_train, y_train, epochs=250, batch_size=1000, callbacks = [es, tb])
 
 # evaluate the model
 loss, acc = model.evaluate(X_test, y_test, verbose=0)
@@ -169,93 +169,68 @@ preds = np.argmax(model.predict(X_test), axis = 1)
 fp = np.where(preds - y_test == 1)
 fn = np.where(preds - y_test == -1)
 
-mypath = '/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire'
-os.chdir('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire')
+mypath = '/home/sgirtsou/Documents/June2019/datasets'
+os.chdir('/home/sgirtsou/Documents/June2019/datasets')
 
-onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f)) and f.endswith('csv')]
 
 for file in onlyfiles:
-    if file.endswith('csv'):
-        df_greece = pd.read_csv(file)
-        print(file)
-        #df_greece = read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire/fire20190810.csv')
+    df_greece = pd.read_csv(file)
+    print(file)
 
-#        df_greece = df_greece.rename(columns ={'Unnamed: 0': 'idx','DEM_500m_w': 'DEM', 'Aspect_500': 'Aspect', 'Curvat_500':'Curvature'})
-#        print(df_greece.columns)
+    df_greece = df_greece.dropna()
 
-        df_greece = df_greece.dropna()
+    X_greece_unnorm = df_greece[['max_temp', 'min_temp', 'mean_temp', 'res_max',
+           'dir_max', 'dom_vel', 'dom_dir', 'rain_7days', 'Corine', 'DEM', 'Slope',
+           'Curvature', 'Aspect', 'ndvi']]
 
-        #X_greece = df_greece[['max_temp',
-        #       'min_temp', 'mean_temp', 'res_max', 'dir_max', 'dom_vel', 'dom_dir','DEM', 'Curvature','Aspect']]
-        #       'Aspect', 'x', 'y', 'fire']].copy()
-        X_greece_unnorm = df_greece[['max_temp', 'min_temp', 'mean_temp', 'res_max',
-               'dir_max', 'dom_vel', 'dom_dir', 'rain_7days', 'Corine', 'DEM', 'Slope',
-               'Curvature', 'Aspect', 'ndvi']]
+    Y_greece = df_greece[['fire']]
+    print('X_greece_unnorm.shape',X_greece_unnorm.shape)
 
-        Y_greece = df_greece[['fire']]
-        print('X_greece_unnorm.shape',X_greece_unnorm.shape)
-
-        str_classes = []
-        X_greeceunnorm_int = index_string_values(X_greece_unnorm, str_classes)
-        #print(X_greeceunnorm_int)
+    str_classes = ['Corine']
+    X_greeceunnorm_int = index_string_values(X_greece_unnorm, str_classes)
+    #print(X_greeceunnorm_int)
 
 
-        for c in X_greeceunnorm_int.columns:
-            X_greeceunnorm_int[c] = pd.to_numeric(X_greeceunnorm_int[c], errors='coerce')
+    for c in X_greeceunnorm_int.columns:
+        X_greeceunnorm_int[c] = pd.to_numeric(X_greeceunnorm_int[c], errors='coerce')
 
-        X_greece = normalize_dataset(X_greeceunnorm_int, 'std')
+    X_greece = normalize_dataset(X_greeceunnorm_int, 'std')
 
-        Y_pred_greece = model.predict(X_greece.values)
+    Y_pred_greece = model.predict(X_greece.values)
 
-        Y_pred_greece.shape
-        Y_pred_greece
+    Y_pred = (Y_pred_greece[:,1]>0.5).astype(int)
 
-        Y_pred = (Y_pred_greece[:,1]>0.5).astype(int)
+    #(Y_pred_greece_f[:,1]>0.7).sum()
 
-        #(Y_pred_greece_f[:,1]>0.7).sum()
+    Y_pred_greece_cl = model.predict_classes(X_greece.values)
 
-        Y_pred_greece_cl = model.predict_classes(X_greece.values)
+    report = classification_report(Y_greece.values, Y_pred_greece_cl)
+    #print(report)
 
-        report = classification_report(Y_greece.values, Y_pred_greece_cl)
-        #print(report)
+    conf_matrix = confusion_matrix(Y_pred_greece_cl, Y_greece.values)
+    f = open('/home/sgirtsou/Documents/June2019/confusion_matrix.csv', 'a')
+    np.savetxt(f,  conf_matrix, delimiter=',',header= file[0:12], fmt='%f')
+    f.close()
 
-        conf_matrix = confusion_matrix(Y_pred_greece_cl, Y_greece.values)
-        f = open('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire_results/confusion_matrix.csv', 'a')
-        np.savetxt(f,  conf_matrix, delimiter=',',header= file[0:12], fmt='%f')
-        f.close()
-        #np.savetxt("cm_"+file[0:12]+".csv", conf_matrix, delimiter=",")
-        #print(conf_matrix)
-        '''
-        fig = plt.figure()
-        plt.matshow(conf_matrix)
-        plt.title('Confusion Matrix_' + file[0:12])
-        plt.colorbar()
-        plt.ylabel('True Label')
-        plt.xlabel('Predicated Label')
-        plt.savefig('confusion_matrix'+ '.pdf')
-        '''
+    firerows = df_greece.loc[df_greece['fire']==1].index.tolist()
+    nonfirerows = df_greece.loc[df_greece['fire']==0].index.tolist()
 
-        firerows = df_greece.loc[df_greece['fire']==1].index.tolist()
-        nonfirerows = df_greece.loc[df_greece['fire']==0].index.tolist()
+    #Y_pred_greece_f = model.predict(X_greece.loc[firerows].values)
 
-        Y_pred_greece_f = model.predict(X_greece.loc[firerows].values)
+    #Y_pred_f = (Y_pred_greece_f[:,1]>0.5).astype(int)
 
-        Y_pred_f = (Y_pred_greece_f[:,1]>0.5).astype(int)
+    #Y_pred_greece_nf = model.predict(X_greece.loc[nonfirerows].values)
 
-        #print(Y_pred_f)
+    Y_pred_greece_cl_df = DataFrame({'Class_pred': Y_pred_greece_cl})
+    Y_pred_greece_df = DataFrame({'Class_0_proba': Y_pred_greece[:, 0], 'Class_1_proba': Y_pred_greece[:, 1]})
 
-        #print((Y_pred_greece_f[:,1]>0.9).sum())
+    df_results = pd.concat([df_greece, Y_pred_greece_cl_df, Y_pred_greece_df], axis=1)
+    if file.startswith('no'):
+        df_results.to_csv('/home/sgirtsou/Documents/June2019/NN_results/' + file[0:15] + '_res.csv')
+    else:
+        df_results.to_csv('/home/sgirtsou/Documents/June2019/NN_results/' + file[0:12] + '_res.csv')
 
-        Y_pred_greece_nf = model.predict(X_greece.loc[nonfirerows].values)
-
-        #print((Y_pred_greece_nf[:,1]>0.9).sum())
-
-        Y_pred_greece_cl_df = DataFrame({'Class_pred': Y_pred_greece_cl})
-        #print(Y_pred_greece_cl_df.shape)
-        Y_pred_greece_df = DataFrame({'Class_0_proba': Y_pred_greece[:, 0], 'Class_1_proba': Y_pred_greece[:, 1]})
-        #print(Y_pred_greece_df.shape)
-        #print(df_greece.shape)
-
-        df_results = pd.concat([df_greece, Y_pred_greece_cl_df, Y_pred_greece_df], axis=1)
-
-        df_results.to_csv('/home/sgirtsou/Documents/ML-dataset_newLU/csvs_withfire_results/' + file[0:12] + '_res.csv')
+    df_greece=None
+    X_greece_unnorm=None
+    X_greece=None
