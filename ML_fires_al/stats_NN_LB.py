@@ -5,17 +5,20 @@ from os import listdir
 from os.path import isfile, join
 import pandas as pd
 import re
+import matplotlib.pyplot as plt
 
 os.chdir('/home/sgirtsou/Documents/June2019/Comb_results')
 mypath = '/home/sgirtsou/Documents/June2019/Comb_results'
 
+#ranges = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+ranges = [0.0, 0.25, 0.5, 0.75, 1.0]
 
-ranges = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 
 
 def set_percents(field, stats_field, allstats):
     sum = allstats[field].sum()
-    allstats[stats_field] = allstats[field]/sum
+    allstats[stats_field] = allstats[field] / sum
+
 
 def get_groups(name, fieldranges, conmbined_csv, ranges, filterfield=None, filter=None):
     if filterfield:
@@ -31,7 +34,6 @@ def get_groups(name, fieldranges, conmbined_csv, ranges, filterfield=None, filte
 
 groupfields = [{'field': 'Class_1_proba', 'name': 'NN'}, {'field': 'Class_1_proba_lb', 'name': 'LB'},
                {'field': 'Comb_proba_1', 'name': 'Ensemble'}]
-
 
 # NN	fire_NN	event_NN
 # LB	fire_LB	event_LB
@@ -49,8 +51,9 @@ for f in onlyfiles:
     for gf in groupfields:
         filt = gf['filter'] if 'filter' in gf else None
         g = get_groups(gf['name'], gf['field'], combined_csv, ranges, filt).rename(gf['name'])
-        g_fire = get_groups(gf['name'], gf['field'], combined_csv, ranges, 'fire', 1).rename('fire_%s'%gf['name'])
-        g_event = get_groups(gf['name'], gf['field'], combined_csv, ranges, 'fire_id', 1).rename('event_%s'%gf['name'])
+        g_fire = get_groups(gf['name'], gf['field'], combined_csv, ranges, 'fire', 1).rename('fire_%s' % gf['name'])
+        g_event = get_groups(gf['name'], gf['field'], combined_csv, ranges, 'fire_id', 1).rename(
+            'event_%s' % gf['name'])
         allgroups += [g, g_fire, g_event]
 
     allstats = pd.concat(allgroups, axis=1)
@@ -60,14 +63,22 @@ for f in onlyfiles:
         set_percents('fire_%s' % gf['name'], '%s act. fire' % gf['name'], allstats)
         set_percents('event_%s' % gf['name'], '%s act. event' % gf['name'], allstats)
 
-    statspath='/home/sgirtsou/Documents/June2019/stats/r%d'%(len(ranges)-1)
+    statspath = '/home/sgirtsou/Documents/June2019/stats/r%d' % (len(ranges) - 1)
     if not os.path.exists(statspath):
         os.makedirs(statspath)
-    #allstats.to_csv(os.path.join(statspath,'stats_%s.csv'%fdate))
+    allstats.to_csv(os.path.join(statspath,'stats_%s.csv'%fdate))
 
-    plotcols=[c for c in allstats.columns if 'prediction' in c or 'act' in c]
-    plotstats=allstats[plotcols]
-    #plotstats.plot.bar()
-    allstats.plot.bar()
-    i=1
+    plotcols = [c for c in allstats.columns if 'prediction' in c or 'act' in c]
+    plotstats = allstats[plotcols]
+    plt.rc('xtick', labelsize=14)
+    ax1 = plotstats.plot.bar(figsize=(12, 8), fontsize=10, title='%s/%s/%s'%(fdate[6:8],fdate[4:6],fdate[0:4]))
+    #ax1.legend(loc=5, fontsize=10)
+    #ax1.set_ylabel('kw', fontdict={'fontsize': 24}, fontsize=16)
+    plt.rc('xtick', labelsize=14)
 
+    #plt.show()
+    plt.rc('xtick', labelsize=14)
+
+    plt.savefig(os.path.join(statspath, 'stats_%s.png' % fdate))
+    plt.close()
+    i = 1
