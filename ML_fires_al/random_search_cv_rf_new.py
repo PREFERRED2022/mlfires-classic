@@ -94,10 +94,34 @@ def hyperparameter_tune(base_model, parameters, kfold, X, y, groups):
     return optimal_model.best_params_, optimal_model.best_score_, optimal_model.cv_results_
 
 #df = pd.read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/training_dataset.csv')
-df = pd.read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/dataset_ndvi_lu.csv')
+#df = pd.read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/dataset_ndvi_lu.csv')
+df = pd.read_csv('/home/sgirtsou/PycharmProjects/ML/ML_fires_al/dataset_dummies.csv')
+
+df_part = df[['id','max_temp', 'min_temp', 'mean_temp', 'res_max', 'dom_vel', 'rain_7days', 'Near_dist', 'DEM', 'Slope',
+       'Curvature', 'Aspect','ndvi_new', 'evi','dir_max_1','dir_max_2', 'dir_max_3', 'dir_max_4', 'dir_max_5', 'dir_max_6',
+       'dir_max_7', 'dir_max_8', 'dom_dir_1', 'dom_dir_2', 'dom_dir_3','dom_dir_4', 'dom_dir_5', 'dom_dir_6', 'dom_dir_7', 'dom_dir_8',
+       'fclass_bridleway', 'fclass_footway', 'fclass_living_street','fclass_motorway', 'fclass_path', 'fclass_pedestrian', 'fclass_primary',
+       'fclass_residential', 'fclass_secondary', 'fclass_service','fclass_steps', 'fclass_tertiary', 'fclass_track',
+       'fclass_track_grade1', 'fclass_track_grade2', 'fclass_track_grade3','fclass_track_grade4', 'fclass_track_grade5', 'fclass_trunk',
+       'fclass_unclassified', 'fclass_unknown', 'Corine_111', 'Corine_112','Corine_121', 'Corine_122', 'Corine_123', 'Corine_131', 'Corine_132',
+       'Corine_133', 'Corine_142', 'Corine_211', 'Corine_212', 'Corine_213','Corine_221', 'Corine_222', 'Corine_223', 'Corine_231', 'Corine_241',
+       'Corine_242', 'Corine_243', 'Corine_311', 'Corine_312', 'Corine_313','Corine_321', 'Corine_322', 'Corine_323', 'Corine_324', 'Corine_331',
+       'Corine_332', 'Corine_333', 'Corine_334', 'Corine_411', 'Corine_421','Corine_511', 'Corine_512', 'Corine_523','fire']].copy()
+
+X_unnorm, y_int = df_part[['max_temp', 'min_temp', 'mean_temp', 'res_max', 'dom_vel', 'rain_7days', 'Near_dist', 'DEM', 'Slope',
+       'Curvature', 'Aspect','ndvi_new', 'evi','dir_max_1','dir_max_2', 'dir_max_3', 'dir_max_4', 'dir_max_5', 'dir_max_6',
+       'dir_max_7', 'dir_max_8', 'dom_dir_1', 'dom_dir_2', 'dom_dir_3','dom_dir_4', 'dom_dir_5', 'dom_dir_6', 'dom_dir_7', 'dom_dir_8',
+       'fclass_bridleway', 'fclass_footway', 'fclass_living_street','fclass_motorway', 'fclass_path', 'fclass_pedestrian', 'fclass_primary',
+       'fclass_residential', 'fclass_secondary', 'fclass_service','fclass_steps', 'fclass_tertiary', 'fclass_track',
+       'fclass_track_grade1', 'fclass_track_grade2', 'fclass_track_grade3','fclass_track_grade4', 'fclass_track_grade5', 'fclass_trunk',
+       'fclass_unclassified', 'fclass_unknown', 'Corine_111', 'Corine_112','Corine_121', 'Corine_122', 'Corine_123', 'Corine_131', 'Corine_132',
+       'Corine_133', 'Corine_142', 'Corine_211', 'Corine_212', 'Corine_213','Corine_221', 'Corine_222', 'Corine_223', 'Corine_231', 'Corine_241',
+       'Corine_242', 'Corine_243', 'Corine_311', 'Corine_312', 'Corine_313','Corine_321', 'Corine_322', 'Corine_323', 'Corine_324', 'Corine_331',
+       'Corine_332', 'Corine_333', 'Corine_334', 'Corine_411', 'Corine_421','Corine_511', 'Corine_512', 'Corine_523']], df_part['fire']
+
 
 print(df.columns)
-
+'''
 df.columns = ['id', 'firedate_x', 'max_temp', 'min_temp', 'mean_temp', 'res_max',
        'dir_max', 'dom_vel', 'dom_dir', 'rain_7days', 'Corine', 'Forest',
        'fire', 'firedate_g', 'firedate_y', 'tile', 'max_temp_y', 'DEM',
@@ -106,11 +130,13 @@ df.columns = ['id', 'firedate_x', 'max_temp', 'min_temp', 'mean_temp', 'res_max'
 df_part = df[
     ['id', 'max_temp', 'min_temp', 'mean_temp', 'res_max', 'dir_max', 'dom_vel', 'dom_dir', 'rain_7days', 'Corine',
      'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi', 'fire']]
+'''
 groups = df['firedate_g']
-
+'''
 X_unnorm, y_int = df_part[
                       ['max_temp', 'min_temp', 'mean_temp', 'res_max', 'dir_max', 'dom_vel', 'dom_dir', 'rain_7days',
                        'Corine', 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi']], df_part['fire']
+'''
 
 #categories to binary
 '''
@@ -133,14 +159,14 @@ groupskfold = groups.values
 rf = RandomForestClassifier(n_jobs=-1)
 depth = [4, 6, 8, 10, 12, 14, 16, 18, 20]
 depth.append(None)
-depth=[None]
+depth=[10, None]
 n_estimators = [50, 100, 150, 250, 350, 500, 750, 1000, 1500]#list(range(50, 501, 25))
-n_estimators = [500]
+n_estimators = [100, 500]
 min_samples_split = [2, 10, 50, 100, 200, 1000, 2000] #with numbers
-min_samples_split = [2]
-min_samples_leaf = [3000] #with numbers
+min_samples_split = [2, 2000]
+min_samples_leaf = [1, 3000] #with numbers
 max_features = list(range(1,X_.shape[1]))
-max_features = [12]
+max_features = [1, 12, X_.shape[1]]
 bootstrap = [True, False]
 bootstrap = [True]
 criterion = ["gini", "entropy"]

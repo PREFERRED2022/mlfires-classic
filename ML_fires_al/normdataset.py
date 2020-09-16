@@ -16,11 +16,14 @@ def normalize_dataset(X_unnorm_int, norm_type = None):
     X = DataFrame()
     for c in X_unnorm_int.columns:
         print(c)
-        dfmax = X_unnorm_int[c].max()
-        dfmin = X_unnorm_int[c].min()
-        dfmean = X_unnorm_int[c].mean()
-        dfstd = X_unnorm_int[c].std()
-        X[c] = X_unnorm_int.apply(lambda x: normalized_values(x[c],dfmax, dfmin,dfmean,dfstd, norm_type),axis=1)
+        if not 'bin' in c:
+            dfmax = X_unnorm_int[c].max()
+            dfmin = X_unnorm_int[c].min()
+            dfmean = X_unnorm_int[c].mean()
+            dfstd = X_unnorm_int[c].std()
+            X[c] = X_unnorm_int.apply(lambda x: normalized_values(x[c],dfmax, dfmin,dfmean,dfstd, norm_type),axis=1)
+        else:
+            print('binary are not normalized')
     return X
 
 

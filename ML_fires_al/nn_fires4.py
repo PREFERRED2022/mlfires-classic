@@ -148,7 +148,7 @@ es = EarlyStopping(monitor='loss', mode='min', patience = 20)
 # %reload_ext tensorboard
 # %tensorboard --logdir C:\Users\User\Documents\codeprojects\FFP\logs\1
 # file_writer = tensorflow.summary.FileWriter('C:\\Users\\User\\Documents\\codeprojects\\FFP\\logs\\', sess.graph)
-log_dir = os.path.join('.\\logs\\s2')
+log_dir = os.path.join('./logs')
 tb = TensorBoard(log_dir=log_dir, histogram_freq=0, write_graph=True, write_images=True, profile_batch = 100000000)
 #model.fit(X_train[:,1:], y_train, epochs=100, batch_size=1000, callbacks = [es, tb])
 model.fit(X_train, y_train, epochs=250, batch_size=1000, callbacks = [es, tb])

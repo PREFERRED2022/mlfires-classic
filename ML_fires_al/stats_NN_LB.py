@@ -67,9 +67,9 @@ os.chdir('/home/sgirtsou/Documents/June2019/Comb_results')
 mypath = '/home/sgirtsou/Documents/June2019/Comb_results'
 
 
-#ranges = [0.0, 0.25, 0.5, 0.75, 1.0] #4 ranges
+ranges = [0.0, 0.25, 0.5, 0.75, 1.0] #4 ranges
 #ranges = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0] #5 ranges
-ranges = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] #10 ranges
+#ranges = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] #10 ranges
 
 # NN	fire_NN	event_NN
 # LB	fire_LB	event_LB
