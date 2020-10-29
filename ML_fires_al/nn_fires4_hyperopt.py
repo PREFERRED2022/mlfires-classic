@@ -20,6 +20,8 @@ import os
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, precision_score, f1_score, recall_score
 import time
+import json
+import space
 
 num_folds = 10
 # kf = KFold(n_splits=num_folds, shuffle=True)
@@ -80,8 +82,6 @@ def prepare_dataset(df, X_columns, y_columns):
     X = normdataset.normalize_dataset(X_unnorm)
     y = y_int
     groupspd = df['firedate_g']
-
-
 
     return X, y, groupspd
 
@@ -218,29 +218,31 @@ def nnfit(params, cv=kf, X=X, y=y, groups=groups):
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-
+'''
 space = {'n_internal_layers': hp.choice('n_internal_layers',
             [
-                #(0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50, 70])}),
-                (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50])}),
+                #(0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50])}),
 
                 #(0, {'layer_1_0_nodes': hp.quniform('layer_1_0_nodes', 10, 310, 50)}),
                 #(1, {'layer_1_1_nodes': hp.quniform('layer_1_1_nodes', 10, 310, 50), 'layer_2_1_nodes': hp.quniform('layer_2_1_nodes', 10, 310, 50)}),
                 #(2, {'layer_1_2_nodes': hp.quniform('layer_1_2_nodes', 10, 310, 50), 'layer_2_2_nodes': hp.quniform('layer_2_2_nodes', 10, 310, 50),
                 #     'layer_3_2_nodes': hp.quniform('layer_3_2_nodes', 10, 310, 50)})
-                # (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50])}),
 
-                #(0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [500, 1000])}),
-                #(1, {'layer_1_1_nodes': hp.choice('layer_1_1_nodes', [500, 1000]),
-                #     'layer_2_1_nodes': hp.choice('layer_2_1_nodes', [500, 1000])}),
-                #(2, {'layer_1_2_nodes': hp.choice('layer_1_2_nodes', [500, 1000]),
-                #     'layer_2_2_nodes': hp.choice('layer_2_2_nodes', [500, 1000]),
-                #     'layer_3_2_nodes': hp.choice('layer_3_2_nodes', [500, 1000])}),'''
+                (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [500, 1000])}),
+                (1, {'layer_1_1_nodes': hp.choice('layer_1_1_nodes', [500, 1000]),
+                     'layer_2_1_nodes': hp.choice('layer_2_1_nodes', [500, 1000])}),
+                (2, {'layer_1_2_nodes': hp.choice('layer_1_2_nodes', [500, 1000]),
+                     'layer_2_2_nodes': hp.choice('layer_2_2_nodes', [500, 1000]),
+                     'layer_3_2_nodes': hp.choice('layer_3_2_nodes', [500, 1000])}),
             ]
             ),
          'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
          }
 
+with open('space.json','w') as json_file:
+     json.dump(space, json_file)
+'''
+space = space.create_space()
 trials = Trials()
 
 best = fmin(fn=nnfit,  # function to optimize
