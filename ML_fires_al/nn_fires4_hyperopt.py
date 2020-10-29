@@ -108,7 +108,7 @@ def load_dataset():
     y_ = y.values
     groups = groupspd.values
 
-    drop_all0_features(featdf)
+    #drop_all0_features(featdf)
 
     return X_, y_, groups
 
@@ -164,8 +164,8 @@ def nnfit(params, cv=kf, X=X, y=y, groups=groups):
         model = create_NN_model(params, X)
         es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
         start_time = time.time()
-        res = model.fit(X_train, y_train, batch_size=512, epochs=2000, verbose=0, validation_data=(X_val, y_val),
-                        callbacks=[es])#, class_weight=params['class_weights'])
+        res = model.fit(X_train, y_train, batch_size=512, epochs=2000, verbose=0, validation_data=(X_val, y_val),\
+                        callbacks=[es], class_weight=params['class_weights'])
         print("Fit time (min): %s"%((time.time() - start_time)/60.0))
         es_epochs = len(res.history['loss'])
         #print("epochs run: %d" % es_epochs)
@@ -218,37 +218,13 @@ def nnfit(params, cv=kf, X=X, y=y, groups=groups):
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-'''
-space = {'n_internal_layers': hp.choice('n_internal_layers',
-            [
-                #(0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50])}),
-
-                #(0, {'layer_1_0_nodes': hp.quniform('layer_1_0_nodes', 10, 310, 50)}),
-                #(1, {'layer_1_1_nodes': hp.quniform('layer_1_1_nodes', 10, 310, 50), 'layer_2_1_nodes': hp.quniform('layer_2_1_nodes', 10, 310, 50)}),
-                #(2, {'layer_1_2_nodes': hp.quniform('layer_1_2_nodes', 10, 310, 50), 'layer_2_2_nodes': hp.quniform('layer_2_2_nodes', 10, 310, 50),
-                #     'layer_3_2_nodes': hp.quniform('layer_3_2_nodes', 10, 310, 50)})
-
-                (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [500, 1000])}),
-                (1, {'layer_1_1_nodes': hp.choice('layer_1_1_nodes', [500, 1000]),
-                     'layer_2_1_nodes': hp.choice('layer_2_1_nodes', [500, 1000])}),
-                (2, {'layer_1_2_nodes': hp.choice('layer_1_2_nodes', [500, 1000]),
-                     'layer_2_2_nodes': hp.choice('layer_2_2_nodes', [500, 1000]),
-                     'layer_3_2_nodes': hp.choice('layer_3_2_nodes', [500, 1000])}),
-            ]
-            ),
-         'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
-         }
-
-with open('space.json','w') as json_file:
-     json.dump(space, json_file)
-'''
 space = space.create_space()
 trials = Trials()
 
 best = fmin(fn=nnfit,  # function to optimize
             space=space,
             algo=tpe.suggest,  # optimization algorithm, hyperotp will select its parameters automatically
-            max_evals=1,  # maximum number of iterations
+            max_evals=20,  # maximum number of iterations
             trials=trials,  # logging
             rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility
             )
