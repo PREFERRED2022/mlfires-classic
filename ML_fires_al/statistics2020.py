@@ -74,7 +74,7 @@ print(dffires['Dateonly'].unique())
 print("All dates from fire brigade: %d"%alldates)
 
 start_date = datetime.strptime('20200801', '%Y%m%d')
-#start_date = datetime.strptime('20200904', '%Y%m%d')
+start_date = datetime.strptime('20200904', '%Y%m%d')
 
 start_date = start_date - timedelta(days=1)
 curdate = start_date
@@ -82,6 +82,12 @@ FP=0
 all=0
 allpredicted = 0
 alldfjoined = pd.DataFrame()
+statcols = ['Corine', 'DEM', 'Slope', 'Aspect', 'Curvature', 'ndvi', 'max_temp', 'min_temp', 'mean_temp',
+            'rain_7days', 'res_max', 'dir_max', 'dom_vel', 'dom_dir']
+statscols_all = [c+'_sum' for c in statcols] + [c+'_min' for c in statcols] + [c+'_max' for c in statcols]
+statspreds = pd.DataFrame()#columns=statscols_all)
+
+
 while curdate<datetime.now():
     curdate = curdate + timedelta(days=1)
     curdatest = curdate.strftime('%Y%m%d')
@@ -110,7 +116,17 @@ while curdate<datetime.now():
         dffiresdate = dffiresdate[dffiresdate['id'].notnull()]
 
     dfpreds = pd.read_csv(predfile)
-    dfpredssum = dfpreds.sum(axis=0, skipna=True)
+
+    # min val average for all predictions
+    newvals = {}
+    for statcol in statcols:
+        newvals[statcol+'_sum'] = dfpreds[statcol].sum()
+        newvals[statcol+'_cnt'] = dfpreds[statcol].count()
+        newvals[statcol+'_min'] = dfpreds[statcol].min()
+        newvals[statcol+'_max'] = dfpreds[statcol].max()
+        dfnv = pd.DataFrame(newvals, index=[0])
+    statspreds = pd.concat([statspreds,dfnv])
+
     dfjoined = dfpreds.join(dffiresdate.set_index('id'), on='id')#,how='inner')
     dfjoinedinner = dfpreds.join(dffiresdate.set_index('id'), on='id',how='inner')
     all+=len(dfjoinedinner)
@@ -125,6 +141,17 @@ while curdate<datetime.now():
 
 print('processing all stats')
 
+colsavg = [c for c in statspreds.columns if c[-4:]=='_sum']
+colscnt = [c for c in statspreds.columns if c[-4:]=='_cnt']
+colsmin = [c for c in statspreds.columns if c[-4:]=='_min']
+colsmax = [c for c in statspreds.columns if c[-4:]=='_max']
+statspreds[colsavg].sum().to_frame().T
+avg = statspreds[colsavg].sum()/statspreds[colscnt].sum()
+
+
+alldfjoined = alldfjoined.append(statspreds[colsavg].sum(), ignore_index = True)
+alldfjoined = alldfjoined.append(statspreds[colsmin].min(), ignore_index = True)
+alldfjoined = alldfjoined.append(statspreds[colsmax].max(), ignore_index = True)
 alldfjoined.to_csv(os.path.join(allstatspath, 'allfirefeatures.csv'))
 '''
 for statsrange in statsrangelist:

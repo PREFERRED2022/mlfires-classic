@@ -23,6 +23,7 @@ def normalize_dataset(X_unnorm_int, norm_type = None):
             dfstd = X_unnorm_int[c].std()
             X[c] = X_unnorm_int.apply(lambda x: normalized_values(x[c],dfmax, dfmin,dfmean,dfstd, norm_type),axis=1)
         else:
+            X[c] = X_unnorm_int[c]
             print('binary are not normalized')
     return X
 
