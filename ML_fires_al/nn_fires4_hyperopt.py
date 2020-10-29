@@ -19,6 +19,7 @@ from tensorflow import summary
 import os
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, precision_score, f1_score, recall_score
+import time
 
 num_folds = 10
 # kf = KFold(n_splits=num_folds, shuffle=True)
@@ -154,15 +155,18 @@ def nnfit(params, cv=kf, X=X, y=y, groups=groups):
     for train_index, test_index in cv.split(X, y, groups):
         cnt += 1
         print("Fitting Fold %d" % cnt)
+        start_time = time.time()
         # print("TRAIN:", train_index, "TEST:", test_index)
         X_train, X_val = X[train_index], X[test_index]
         y_train, y_val = y[train_index], y[test_index]
         y_val = y_val[:,0]
         y_train = y_train[:,0]
         model = create_NN_model(params, X)
-        es = EarlyStopping(monitor='loss', patience=50, min_delta=0.002)
+        es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
+        start_time = time.time()
         res = model.fit(X_train, y_train, batch_size=512, epochs=2000, verbose=0, validation_data=(X_val, y_val),
                         callbacks=[es])#, class_weight=params['class_weights'])
+        print("Fit time (min): %s"%((time.time() - start_time)/60.0))
         es_epochs = len(res.history['loss'])
         #print("epochs run: %d" % es_epochs)
 
@@ -217,19 +221,21 @@ def nnfit(params, cv=kf, X=X, y=y, groups=groups):
 
 space = {'n_internal_layers': hp.choice('n_internal_layers',
             [
-                #(0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50])}),
+                #(0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50, 70])}),
+                (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50])}),
+
                 #(0, {'layer_1_0_nodes': hp.quniform('layer_1_0_nodes', 10, 310, 50)}),
                 #(1, {'layer_1_1_nodes': hp.quniform('layer_1_1_nodes', 10, 310, 50), 'layer_2_1_nodes': hp.quniform('layer_2_1_nodes', 10, 310, 50)}),
                 #(2, {'layer_1_2_nodes': hp.quniform('layer_1_2_nodes', 10, 310, 50), 'layer_2_2_nodes': hp.quniform('layer_2_2_nodes', 10, 310, 50),
                 #     'layer_3_2_nodes': hp.quniform('layer_3_2_nodes', 10, 310, 50)})
                 # (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50])}),
 
-                (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [500, 1000])}),
-                (1, {'layer_1_1_nodes': hp.choice('layer_1_1_nodes', [500, 1000]),
-                     'layer_2_1_nodes': hp.choice('layer_2_1_nodes', [500, 1000])}),
-                (2, {'layer_1_2_nodes': hp.choice('layer_1_2_nodes', [500, 1000]),
-                     'layer_2_2_nodes': hp.choice('layer_2_2_nodes', [500, 1000]),
-                     'layer_3_2_nodes': hp.choice('layer_3_2_nodes', [500, 1000])}),
+                #(0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [500, 1000])}),
+                #(1, {'layer_1_1_nodes': hp.choice('layer_1_1_nodes', [500, 1000]),
+                #     'layer_2_1_nodes': hp.choice('layer_2_1_nodes', [500, 1000])}),
+                #(2, {'layer_1_2_nodes': hp.choice('layer_1_2_nodes', [500, 1000]),
+                #     'layer_2_2_nodes': hp.choice('layer_2_2_nodes', [500, 1000]),
+                #     'layer_3_2_nodes': hp.choice('layer_3_2_nodes', [500, 1000])}),'''
             ]
             ),
          'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
