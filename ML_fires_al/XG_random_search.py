@@ -16,7 +16,7 @@ def hyperparameter_tune(base_model, parameters, kfold, X, Y):
     k = StratifiedKFold(n_splits=kfold, shuffle=True)
     metrics = ['precision', 'recall', 'f1']
 
-    optimal_model = RandomizedSearchCV(base_model, parameters,scoring=metrics, n_iter=100, cv=k, verbose=1,refit='recall', return_train_score=True)
+    optimal_model = RandomizedSearchCV(base_model, parameters,scoring=metrics, n_iter=1, cv=k, verbose=1,refit='recall', return_train_score=True)
     optimal_model.fit(X, Y)
 
     return optimal_model.best_params_, optimal_model.best_score_, optimal_model.cv_results_
@@ -56,7 +56,8 @@ parameters = {
     'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1],
     'alpha' : [0, 1, 10, 20, 40, 60, 80, 100],
     'gamma' : [0, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
-    'lambda' : range(1, 22, 1)
+    'lambda' : range(1, 22, 1),
+    'class_weight': [{0:4,1:6},{0:3,1:7},{0:2,1:8},{0:1,1:9}]
 }
 
 best_scores = []
@@ -79,6 +80,7 @@ for i in folds:
     df_results = pd.DataFrame.from_dict(full_scores)
     df_results['folds'] = int(i)
     df_results.to_csv('/home/sgirtsou/Documents/GridSearchCV/XG/split'+str(i)+'_shuffle.csv')
+
     '''
     df1 = df_results[columns_sel]
     df_no_split_cols = [c for c in df_results.columns if 'split' not in c]

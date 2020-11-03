@@ -16,7 +16,9 @@ def create_space():
                          'layer_3_2_nodes': hp.choice('layer_3_2_nodes', [500, 1000])}),
                 ]
                 ),
-             'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
+             #'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
+             'class_weights': hp.choice('class_weights', [{0:1, 1:5}, {0:1, 1:10}, {0:1, 1:50}, {0:1, 1:1}, {0:10, 1:1},])
+
              }
     '''
     space = {'n_internal_layers': hp.choice('n_internal_layers',
