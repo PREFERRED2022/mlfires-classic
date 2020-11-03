@@ -68,8 +68,9 @@ def prepare_dataset(df, X_columns, y_columns):
     Xbindirmax.columns = dmaxcols
 
     Xbincorine = pd.get_dummies(X_unnorm['Corine'])
-    corcols = ['bin' + str(c) for c in Xbincorine.columns]
+    corcols = ['binCOR' + str(c) for c in Xbincorine.columns]
     Xbincorine.columns = corcols
+
     X_unnorm = pd.concat([X_unnorm, Xbindomdir, Xbindirmax, Xbincorine], axis=1)
     del X_unnorm['Corine']
     del X_unnorm['dom_dir']
@@ -104,16 +105,14 @@ def load_dataset():
         X = featdf[X_columns_new]
         y = featdf[y_columns]
         groupspd = featdf['firedate_g']
-    X_ = X.values
-    y_ = y.values
-    groups = groupspd.values
+
 
     #drop_all0_features(featdf)
 
-    return X_, y_, groups
+    return X, y, groupspd
 
 
-X, y, groups = load_dataset()
+X_pd, y_pd, groups_pd = load_dataset()
 
 
 def create_NN_model(params, X):
@@ -139,7 +138,7 @@ def create_NN_model(params, X):
     return model
 
 
-def nnfit(params, cv=kf, X=X, y=y, groups=groups):
+def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
     # the function gets a set of variable parameters in "param"
     '''
     params = {'n_internal_layers': params['n_internal_layers'][0],
@@ -152,6 +151,14 @@ def nnfit(params, cv=kf, X=X, y=y, groups=groups):
     metrics = []
     cnt = 0
     print("NN params : %s" % params)
+
+    if params['feature_drop']:
+        X_pd=X_pd.drop(columns=[c for c in X_pd.columns if params['feature_drop'] in c])
+
+    X = X_pd.values
+    y = y_pd.values
+    groups = groups_pd.values
+
     for train_index, test_index in cv.split(X, y, groups):
         cnt += 1
         print("Fitting Fold %d" % cnt)
@@ -162,7 +169,7 @@ def nnfit(params, cv=kf, X=X, y=y, groups=groups):
         y_val = y_val[:,0]
         y_train = y_train[:,0]
         model = create_NN_model(params, X)
-        es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
+        es = EarlyStopping(monitor='loss', patience=20, min_delta=0.002)
         start_time = time.time()
         res = model.fit(X_train, y_train, batch_size=512, epochs=2000, verbose=0, validation_data=(X_val, y_val),\
                         callbacks=[es], class_weight=params['class_weights'])
