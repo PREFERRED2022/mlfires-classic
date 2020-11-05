@@ -40,41 +40,43 @@ def drop_all0_features(df):
             else:
                 print("%s not exists (size : %d)"%(c, len(u)))
 
-def prepare_dataset(df, X_columns, y_columns):
+def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col):
     # df = read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/training_dataset.csv')
     df = df.dropna()
-    df.columns = ['id', 'firedate_x', 'max_temp', 'min_temp', 'mean_temp', 'res_max',
-                  'dir_max', 'dom_vel', 'dom_dir', 'rain_7days', 'Corine', 'Forest',
-                  'fire', 'firedate_g', 'firedate_y', 'tile', 'max_temp_y', 'DEM',
-                  'Slope', 'Curvature', 'Aspect', 'image', 'ndvi']
-    df_part = df[
-        ['id', 'max_temp', 'min_temp', 'mean_temp', 'res_max', 'dir_max', 'dom_vel', 'dom_dir', 'rain_7days', 'Corine',
-         'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi', 'fire']]
+    #df.columns = ['id', 'firedate_x', 'max_temp', 'min_temp', 'mean_temp', 'res_max',
+    #              'dir_max', 'dom_vel', 'dom_dir', 'rain_7days', 'Corine', 'Forest',
+    #              'fire', 'firedate_g', 'firedate_y', 'tile', 'max_temp_y', 'DEM',
+    #              'Slope', 'Curvature', 'Aspect', 'image', 'ndvi']
+    #df_part = df[
+    #    ['id', 'max_temp', 'min_temp', 'mean_temp', 'res_max', 'dir_max', 'dom_vel', 'dom_dir', 'rain_7days', 'Corine',
+    #     'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi', 'fire']]
 
-    X_unnorm, y_int = df_part[X_columns], df_part[y_columns]
+    X_unnorm, y_int = df[X_columns], df[y_columns]
 
     # categories to binary
-    Xbindomdir = pd.get_dummies(X_unnorm['dom_dir'].round())
-    del Xbindomdir[0]
+    Xbindomdir = pd.get_dummies(X_unnorm[domdir_col].round())
+    if 0 in Xbindomdir.columns:
+        del Xbindomdir[0]
     ddircols = []
     for i in range(1, 9):
         ddircols.append('binDDIR_%d' % i)
     Xbindomdir.columns = ddircols
-    Xbindirmax = pd.get_dummies(X_unnorm['dir_max'].round())
-    del Xbindirmax[0]
+    Xbindirmax = pd.get_dummies(X_unnorm[dirmax_col].round())
+    if 0 in Xbindirmax.columns:
+        del Xbindirmax[0]
     dmaxcols = []
     for i in range(1, 9):
         dmaxcols.append('binMDIR_%d' % i)
     Xbindirmax.columns = dmaxcols
 
-    Xbincorine = pd.get_dummies(X_unnorm['Corine'])
+    Xbincorine = pd.get_dummies(X_unnorm[corine_col])
     corcols = ['binCOR' + str(c) for c in Xbincorine.columns]
     Xbincorine.columns = corcols
 
     X_unnorm = pd.concat([X_unnorm, Xbindomdir, Xbindirmax, Xbincorine], axis=1)
-    del X_unnorm['Corine']
-    del X_unnorm['dom_dir']
-    del X_unnorm['dir_max']
+    del X_unnorm[corine_col]
+    del X_unnorm[domdir_col]
+    del X_unnorm[dirmax_col]
 
     #str_classes = ['Corine']
     #X_unnorm_int = normdataset.index_string_values(X_unnorm, str_classes)
@@ -82,29 +84,39 @@ def prepare_dataset(df, X_columns, y_columns):
 
     X = normdataset.normalize_dataset(X_unnorm)
     y = y_int
-    groupspd = df['firedate_g']
+    groupspd = df[firedate_col]
 
     return X, y, groupspd
 
 # load the dataset
 def load_dataset():
     dsetfolder = 'data/'
+    #dsfile = 'dataset_ndvi_lu.csv'
+    dsfile = 'dataset_1_10.csv'
     X_columns = ['max_temp', 'min_temp', 'mean_temp', 'res_max', 'dir_max', 'dom_vel', 'dom_dir',
                  'rain_7days',
                  'Corine', 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi']
     y_columns = ['fire']
     dsreadyfile = 'dataset_nn_ready.csv'
     if not os.path.exists(os.path.join(dsetfolder,dsreadyfile)):
-        df = pd.read_csv(os.path.join(dsetfolder, 'dataset_ndvi_lu.csv'))
-        X, y, groupspd = prepare_dataset(df, X_columns, y_columns)
+        df = pd.read_csv(os.path.join(dsetfolder, dsfile))
+        X_columns_upper = [c.upper() for c in X_columns]
+        newcols = [c for c in df.columns if c.upper() in X_columns_upper or any([cX in c.upper() for cX in X_columns_upper])]
+        X_columns = newcols
+        corine_col = [c for c in df.columns if 'Corine'.upper() in c.upper()][0]
+        dirmax_col = [c for c in df.columns if 'dir_max'.upper() in c.upper()][0]
+        domdir_col = [c for c in df.columns if 'dom_dir'.upper() in c.upper()][0]
+        firedate_col = [c for c in df.columns if 'firedate'.upper() in c.upper()][0]
+        X, y, groupspd = prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col)
         featdf = pd.concat([X, y, groupspd], axis=1)
         featdf[[c for c in featdf.columns if 'Unnamed' not in c]].to_csv(os.path.join(dsetfolder, dsreadyfile))
     else:
         featdf = pd.read_csv(os.path.join(dsetfolder, dsreadyfile))
-        X_columns_new = [c for c in featdf.columns if c not in ['fire','firedate_g'] and 'Unnamed' not in c]
+        firedate_col = [c for c in featdf.columns if 'firedate'.upper() in c.upper()][0]
+        X_columns_new = [c for c in featdf.columns if c not in [firedate_col] and 'Unnamed' not in c]
         X = featdf[X_columns_new]
         y = featdf[y_columns]
-        groupspd = featdf['firedate_g']
+        groupspd = featdf[firedate_col]
 
 
     #drop_all0_features(featdf)
@@ -169,10 +181,10 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         y_val = y_val[:,0]
         y_train = y_train[:,0]
         model = create_NN_model(params, X)
-        es = EarlyStopping(monitor='loss', patience=20, min_delta=0.002)
+        es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
         start_time = time.time()
-        res = model.fit(X_train, y_train, batch_size=512, epochs=2000, verbose=0, validation_data=(X_val, y_val),\
-                        callbacks=[es], class_weight=params['class_weights'])
+        res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, validation_data=(X_val, y_val),\
+                        callbacks=[es])#, class_weight=params['class_weights'])
         print("Fit time (min): %s"%((time.time() - start_time)/60.0))
         es_epochs = len(res.history['loss'])
         #print("epochs run: %d" % es_epochs)
@@ -225,13 +237,13 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-space = space.create_space()
+space, max_trials, max_epochs = space.create_space()
 trials = Trials()
 
 best = fmin(fn=nnfit,  # function to optimize
             space=space,
             algo=tpe.suggest,  # optimization algorithm, hyperotp will select its parameters automatically
-            max_evals=20,  # maximum number of iterations
+            max_evals=max_trials,  # maximum number of iterations
             trials=trials,  # logging
             rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility
             )

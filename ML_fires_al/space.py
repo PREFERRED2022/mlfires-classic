@@ -8,7 +8,7 @@ def create_space():
                     #(2, {'layer_1_2_nodes': hp.quniform('layer_1_2_nodes', 10, 310, 50), 'layer_2_2_nodes': hp.quniform('layer_2_2_nodes', 10, 310, 50),
                     #     'layer_3_2_nodes': hp.quniform('layer_3_2_nodes', 10, 310, 50)})
 
-                    (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50, 500])}),
+                    (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50])}),
                     #(1, {'layer_1_1_nodes': hp.choice('layer_1_1_nodes', [500, 1000]),
                     #     'layer_2_1_nodes': hp.choice('layer_2_1_nodes', [500, 1000])}),
                     #(2, {'layer_1_2_nodes': hp.choice('layer_1_2_nodes', [500, 1000]),
@@ -17,8 +17,10 @@ def create_space():
                 ]
                 ),
              #'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
-             'class_weights': hp.choice('class_weights', [{0:1, 1:5}, {0:1, 1:10}, {0:1, 1:50}, {0:1, 1:1}]),
-             'feature_drop': hp.choice('feature_drop',['bin','DIR','COR'])
+             #'class_weights': hp.choice('class_weights', [{0:1, 1:5}, {0:1, 1:10}, {0:1, 1:50}, {0:1, 1:1}]),
+             'class_weights': hp.choice('class_weights', [{0:1, 1:1}]),
+             'feature_drop': hp.choice('feature_drop',['','bin','DIR','COR'])
+             #'feature_drop': hp.choice('feature_drop', ['bin'])
              }
     '''
     space = {'n_internal_layers': hp.choice('n_internal_layers',
@@ -28,4 +30,6 @@ def create_space():
              'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
              }
     '''
-    return space
+    max_trials = 5
+    max_epochs =2000
+    return space, max_trials, max_epochs

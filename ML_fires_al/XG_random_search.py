@@ -1,20 +1,10 @@
-import numpy as np
 import pandas as pd
-import gc
-import os
-from pathlib import Path
-from ast import literal_eval
 from sklearn.model_selection import train_test_split, StratifiedKFold, RandomizedSearchCV
-from sklearn.neural_network import MLPClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 from xgboost import XGBClassifier
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import precision_recall_fscore_support
 
 def hyperparameter_tune(base_model, parameters, kfold, X, Y):
-    k = StratifiedKFold(n_splits=kfold, shuffle=True)
-    metrics = ['precision', 'recall', 'f1']
+    k = StratifiedKFold(n_splits=kfold, shuffle=False)
+    metrics = ['precision', 'recall', 'f1', 'roc_auc']
 
     optimal_model = RandomizedSearchCV(base_model, parameters,scoring=metrics, n_iter=1, cv=k, verbose=1,refit='recall', return_train_score=True)
     optimal_model.fit(X, Y)
@@ -57,7 +47,7 @@ parameters = {
     'alpha' : [0, 1, 10, 20, 40, 60, 80, 100],
     'gamma' : [0, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
     'lambda' : range(1, 22, 1),
-    'class_weight': [{0:4,1:6},{0:3,1:7},{0:2,1:8},{0:1,1:9}]
+    'scale_pos_weight': [6,7,8,9]
 }
 
 best_scores = []
@@ -79,7 +69,12 @@ for i in folds:
 
     df_results = pd.DataFrame.from_dict(full_scores)
     df_results['folds'] = int(i)
-    df_results.to_csv('/home/sgirtsou/Documents/GridSearchCV/XG/split'+str(i)+'_shuffle.csv')
+    df_results.to_csv('/home/sgirtsou/Documents/GridSearchCV/XG/split'+str(i)+'_withauc.csv')
+    df_short = df_results[['mean_train_precision','std_train_precision','mean_test_precision','std_test_precision',
+                           'mean_train_recall','std_train_recall','mean_test_recall','std_test_recall','mean_train_f1',
+                           'std_train_f1','mean_test_f1','std_test_f1', 'mean_test_roc_auc', 'std_test_roc_auc',
+                           'mean_train_roc_auc','std_train_roc_auc','params','folds']]
+    df_short.to_csv('/home/sgirtsou/Documents/GridSearchCV/XG/split'+str(i)+'_withauc_sh.csv')
 
     '''
     df1 = df_results[columns_sel]
