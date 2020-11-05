@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split, KFold, GroupKFold
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
-from tensorflow.keras.metrics import AUC
+import tensorflow.keras.metrics
 from tensorflow.keras.utils import to_categorical
 import numpy as np
 from pandas import concat
@@ -113,7 +113,7 @@ def load_dataset():
     else:
         featdf = pd.read_csv(os.path.join(dsetfolder, dsreadyfile))
         firedate_col = [c for c in featdf.columns if 'firedate'.upper() in c.upper()][0]
-        X_columns_new = [c for c in featdf.columns if c not in [firedate_col] and 'Unnamed' not in c]
+        X_columns_new = [c for c in featdf.columns if c not in [firedate_col,'fire'] and 'Unnamed' not in c]
         X = featdf[X_columns_new]
         y = featdf[y_columns]
         groupspd = featdf[firedate_col]
@@ -145,7 +145,14 @@ def create_NN_model(params, X):
     from tensorflow.keras.optimizers import Adam
 
     adam = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, amsgrad=False)
-    model.compile(optimizer=adam, loss='sparse_categorical_crossentropy', metrics=['accuracy'])  # , AUC(multi_label=False)])
+
+    if params['metric'] == 'accuracy':
+        metrics = ['accuracy']
+    elif params['metric'] == 'sparse':
+        metrics = [tensorflow.metrics.SparseCategoricalAccuracy()]
+    #elif params['metric'] == 'tn':
+        #metrics = [tensorflow.metrics.TrueNegatives(),tensorflow.metrics.TruePositives()]
+    model.compile(optimizer=adam, loss='sparse_categorical_crossentropy', metrics=metrics)  # , AUC(multi_label=False)])
 
     return model
 
@@ -184,12 +191,13 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
         start_time = time.time()
         res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, validation_data=(X_val, y_val),\
-                        callbacks=[es])#, class_weight=params['class_weights'])
+                        callbacks=[es], class_weight=params['class_weights'])
         print("Fit time (min): %s"%((time.time() - start_time)/60.0))
+        start_time = time.time()
         es_epochs = len(res.history['loss'])
         #print("epochs run: %d" % es_epochs)
 
-        aucmetric = AUC()
+        aucmetric = tensorflow.metrics.AUC()
 
         '''validation set metrics'''
         loss_test, acc_test = model.evaluate(X_val, y_val, batch_size=512, verbose=0)
@@ -202,6 +210,8 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         prec_test = precision_score(y_val, y_pred)
         rec_test = recall_score(y_val, y_pred)
         f1_test = f1_score(y_val, y_pred)
+        print("Validation metrics time (min): %s"%((time.time() - start_time)/60.0))
+        start_time = time.time()
 
         '''training set metrics'''
         loss_train, acc_train = model.evaluate(X_train, y_train, batch_size=512, verbose=0)
@@ -213,13 +223,15 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         prec_train = precision_score(y_train, y_pred)
         rec_train = recall_score(y_train, y_pred)
         f1_train = f1_score(y_train, y_pred)
+        print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
+
         metrics.append(
             {'loss val.': loss_test, 'loss train': loss_train, 'accuracy val.': acc_test, 'accuracy train': acc_train,
              'precision val.': prec_test, 'precision train': prec_train, 'recall val.': rec_test,
              'recall train': rec_train,
              'f1-score val.': f1_test, 'f1-score train': f1_train, 'auc val.': auc_val,
              'auc train.': auc_train, 'early stop epochs': es_epochs})
-        print(metrics[-1])
+        #print(metrics[-1])
 
     mean_metrics = {}
     for m in metrics[0]:

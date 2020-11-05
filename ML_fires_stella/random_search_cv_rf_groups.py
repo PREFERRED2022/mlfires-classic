@@ -154,7 +154,7 @@ folds = [10]#range(2, 8)
 
 columns_sel = ['mean_test_acc','std_test_acc', 'mean_train_acc', 'std_train_acc','mean_test_AUC','std_test_AUC', 'mean_train_AUC', 'std_train_AUC',
                'mean_test_prec','std_test_prec','mean_train_prec','std_train_prec', 'mean_test_rec','std_test_rec',
-               'mean_train_rec','std_train_rec', 'mean_test_f_score','std_test_f_score', 'mean_train_f_score','std_train_f_score'
+               'mean_train_rec','std_train_rec', 'mean_test_f_score','std_test_f_score', 'mean_train_f_score','std_train_f_score',
                 'params','folds']
 
 results = pd.DataFrame(columns=columns_sel)
@@ -165,10 +165,10 @@ for i in folds:
 
     df_results = pd.DataFrame.from_dict(full_scores)
     df_results['folds'] = int(i)
+    df_results.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion.csv')
+
     df1 = df_results[columns_sel]
     #df_no_split_cols = [c for c in df_results.columns if 'split' not in c]
-
-    df_results.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion.csv')
     df1.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion_sh.csv')
 
     results = pd.concat([results, df1])

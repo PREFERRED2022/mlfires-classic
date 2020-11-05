@@ -18,8 +18,12 @@ def create_space():
                 ),
              #'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
              #'class_weights': hp.choice('class_weights', [{0:1, 1:5}, {0:1, 1:10}, {0:1, 1:50}, {0:1, 1:1}]),
-             'class_weights': hp.choice('class_weights', [{0:1, 1:1}]),
-             'feature_drop': hp.choice('feature_drop',['','bin','DIR','COR'])
+             'class_weights': hp.choice('class_weights', [{0:1, 1:1}, {0:1, 1:50}]),
+             #'feature_drop': hp.choice('feature_drop',['','bin','DIR','COR']),
+             'feature_drop': hp.choice('feature_drop', ['DIR']),
+             'metric': hp.choice('metric',['accuracy', 'sparse'])
+             #'metric': hp.choice('metric', ['tn'])
+
              #'feature_drop': hp.choice('feature_drop', ['bin'])
              }
     '''
@@ -30,6 +34,6 @@ def create_space():
              'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
              }
     '''
-    max_trials = 5
+    max_trials = 10
     max_epochs =2000
     return space, max_trials, max_epochs
