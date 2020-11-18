@@ -18,11 +18,12 @@ def create_space():
                 ),
              #'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
              #'class_weights': hp.choice('class_weights', [{0:1, 1:5}, {0:1, 1:10}, {0:1, 1:50}, {0:1, 1:1}]),
-             'class_weights': hp.choice('class_weights', [{0:1, 1:1}, {0:1, 1:50}]),
+             'class_weights': hp.choice('class_weights', [{0:1, 1:1}, {0:2,1:3}, {0:3,1:7}, {0:1,1:4}, {0:1,1:9}, {0:1, 1:25}, {0:1, 1:50}, {0:1, 1:100} , {0:1, 1:200}]),
              #'feature_drop': hp.choice('feature_drop',['','bin','DIR','COR']),
-             'feature_drop': hp.choice('feature_drop', ['DIR']),
-             'metric': hp.choice('metric',['accuracy', 'sparse'])
+             'feature_drop': hp.choice('feature_drop', ['']),
+             #'metric': hp.choice('metric',['accuracy', 'sparse'])
              #'metric': hp.choice('metric', ['tn'])
+             'metric': hp.choice('metric',['accuracy'])
 
              #'feature_drop': hp.choice('feature_drop', ['bin'])
              }
@@ -34,6 +35,8 @@ def create_space():
              'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
              }
     '''
-    max_trials = 10
-    max_epochs =2000
-    return space, max_trials, max_epochs
+    max_trials = 1
+    max_epochs = 50
+    dsfile = 'dataset_1_10.csv'
+    return dsfile, space, max_trials, max_epochs
+

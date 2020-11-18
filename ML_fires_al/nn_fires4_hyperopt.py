@@ -53,6 +53,8 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
 
     X_unnorm, y_int = df[X_columns], df[y_columns]
 
+    # convert corine to level 2
+    X_unnorm[corine_col] = X_unnorm[corine_col]//10
     # categories to binary
     Xbindomdir = pd.get_dummies(X_unnorm[domdir_col].round())
     if 0 in Xbindomdir.columns:
@@ -92,13 +94,13 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
 def load_dataset():
     dsetfolder = 'data/'
     #dsfile = 'dataset_ndvi_lu.csv'
-    dsfile = 'dataset_1_10.csv'
     X_columns = ['max_temp', 'min_temp', 'mean_temp', 'res_max', 'dir_max', 'dom_vel', 'dom_dir',
                  'rain_7days',
                  'Corine', 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi']
     y_columns = ['fire']
-    dsreadyfile = 'dataset_nn_ready.csv'
-    if not os.path.exists(os.path.join(dsetfolder,dsreadyfile)):
+    dsreadysuffix = 'nn_ready.csv'
+    dsready = dsfile[-4:]+dsreadysuffix+".csv"
+    if not os.path.exists(os.path.join(dsetfolder, dsready)):
         df = pd.read_csv(os.path.join(dsetfolder, dsfile))
         X_columns_upper = [c.upper() for c in X_columns]
         newcols = [c for c in df.columns if c.upper() in X_columns_upper or any([cX in c.upper() for cX in X_columns_upper])]
@@ -109,9 +111,9 @@ def load_dataset():
         firedate_col = [c for c in df.columns if 'firedate'.upper() in c.upper()][0]
         X, y, groupspd = prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col)
         featdf = pd.concat([X, y, groupspd], axis=1)
-        featdf[[c for c in featdf.columns if 'Unnamed' not in c]].to_csv(os.path.join(dsetfolder, dsreadyfile))
+        featdf[[c for c in featdf.columns if 'Unnamed' not in c]].to_csv(os.path.join(dsetfolder, dsready))
     else:
-        featdf = pd.read_csv(os.path.join(dsetfolder, dsreadyfile))
+        featdf = pd.read_csv(os.path.join(dsetfolder, dsready))
         firedate_col = [c for c in featdf.columns if 'firedate'.upper() in c.upper()][0]
         X_columns_new = [c for c in featdf.columns if c not in [firedate_col,'fire'] and 'Unnamed' not in c]
         X = featdf[X_columns_new]
@@ -123,7 +125,7 @@ def load_dataset():
 
     return X, y, groupspd
 
-
+dsfile, space, max_trials, max_epochs = space.create_space()
 X_pd, y_pd, groups_pd = load_dataset()
 
 
@@ -156,7 +158,6 @@ def create_NN_model(params, X):
 
     return model
 
-
 def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
     # the function gets a set of variable parameters in "param"
     '''
@@ -181,7 +182,7 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
     for train_index, test_index in cv.split(X, y, groups):
         cnt += 1
         print("Fitting Fold %d" % cnt)
-        start_time = time.time()
+        start_fold_time = time.time()
         # print("TRAIN:", train_index, "TEST:", test_index)
         X_train, X_val = X[train_index], X[test_index]
         y_train, y_val = y[train_index], y[test_index]
@@ -192,6 +193,7 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         start_time = time.time()
         res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, validation_data=(X_val, y_val),\
                         callbacks=[es], class_weight=params['class_weights'])
+
         print("Fit time (min): %s"%((time.time() - start_time)/60.0))
         start_time = time.time()
         es_epochs = len(res.history['loss'])
@@ -207,9 +209,18 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         aucmetric.update_state(y_val, y_scores[:,1])
         auc_val = float(aucmetric.result())
 
-        prec_test = precision_score(y_val, y_pred)
-        rec_test = recall_score(y_val, y_pred)
-        f1_test = f1_score(y_val, y_pred)
+        acc_1_test = accuracy_score(y_val, y_pred)
+        acc_0_test = accuracy_score(1 - y_val, 1 - y_pred)
+
+        prec_1_test = precision_score(y_val, y_pred)
+        prec_0_test = precision_score(1 - y_val, 1 - y_pred)
+
+        rec_1_test = recall_score(y_val, y_pred)
+        rec_0_test = recall_score(1 - y_val, 1 - y_pred)
+
+        f1_1_test = f1_score(y_val, y_pred)
+        f1_0_test = f1_score(1 - y_val, 1 - y_pred)
+
         print("Validation metrics time (min): %s"%((time.time() - start_time)/60.0))
         start_time = time.time()
 
@@ -220,17 +231,29 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         aucmetric.update_state(y_train, y_scores[:,1])
         auc_train = float(aucmetric.result())
 
-        prec_train = precision_score(y_train, y_pred)
-        rec_train = recall_score(y_train, y_pred)
-        f1_train = f1_score(y_train, y_pred)
+        acc_1_train = accuracy_score(y_train, y_pred)
+        acc_0_train = accuracy_score(1-y_train, 1-y_pred)
+
+        prec_1_train = precision_score(y_train, y_pred)
+        prec_0_train = precision_score(1-y_train, 1-y_pred)
+
+        rec_1_train = recall_score(y_train, y_pred)
+        rec_0_train = recall_score(1-y_train, 1-y_pred)
+
+        f1_1_train = f1_score(y_train, y_pred)
+        f1_0_train = f1_score(1-y_train, 1-y_pred)
+
         print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
 
         metrics.append(
-            {'loss val.': loss_test, 'loss train': loss_train, 'accuracy val.': acc_test, 'accuracy train': acc_train,
-             'precision val.': prec_test, 'precision train': prec_train, 'recall val.': rec_test,
-             'recall train': rec_train,
-             'f1-score val.': f1_test, 'f1-score train': f1_train, 'auc val.': auc_val,
-             'auc train.': auc_train, 'early stop epochs': es_epochs})
+            {'loss val.': loss_test, 'loss train': loss_train, 'accuracy val.': acc_1_test, 'accuracy train': acc_1_train,
+             'precision 1 val.': prec_1_test, 'precision 1 train': prec_1_train, 'recall 1 val.': rec_1_test,
+             'recall 1 train': rec_1_train,'f1-score 1 val.': f1_1_test, 'f1-score 1 train': f1_1_train,
+             'accuracy 0 val.': acc_0_test, 'accuracy 0 train': acc_0_train,
+             'precision 0 val.': prec_0_test, 'precision 0 train': prec_0_train, 'recall 0 val.': rec_0_test,
+             'recall 0 train': rec_0_train, 'f1-score 0 val.': f1_0_test, 'f1-score 0 train': f1_0_train,
+             'auc val.': auc_val,
+             'auc train.': auc_train, 'early stop epochs': es_epochs, 'fit time':  (time.time() - start_fold_time)/60.0})
         #print(metrics[-1])
 
     mean_metrics = {}
@@ -249,7 +272,6 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-space, max_trials, max_epochs = space.create_space()
 trials = Trials()
 
 best = fmin(fn=nnfit,  # function to optimize

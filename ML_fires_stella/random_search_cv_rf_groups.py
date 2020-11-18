@@ -93,28 +93,26 @@ def hyperparameter_tune(base_model, parameters, kfold, X, y, groups):
 
 #df = pd.read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/training_dataset.csv')
 #df = pd.read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/dataset_ndvi_lu.csv')
-df = pd.read_csv('/home/sgirtsou/PycharmProjects/ML/ML_fires_al/dataset_dummies.csv')
+#df = pd.read_csv('/home/sgirtsou/PycharmProjects/ML/ML_fires_al/dataset_dummies.csv')
+#df = pd.read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/dataset_corine_level2_onehotenc.csv')
+df = pd.read_csv('/home/sgirtsou/Documents/dataset_120/dataset_1_10_corine_level2_onehotenc.csv')
 
-df_part = df[['id','max_temp', 'min_temp', 'mean_temp', 'res_max', 'dom_vel', 'rain_7days', 'DEM', 'Slope',
-       'Curvature', 'Aspect','ndvi_new', 'evi','dir_max_1','dir_max_2', 'dir_max_3', 'dir_max_4', 'dir_max_5', 'dir_max_6',
+df_part = df[['id','max_temp', 'min_temp', 'mean_temp', 'res_max', 'dom_vel', 'rain_7days', 'dem', 'slope',
+       'curvature', 'aspect','ndvi_new', 'evi','dir_max_1','dir_max_2', 'dir_max_3', 'dir_max_4', 'dir_max_5', 'dir_max_6',
        'dir_max_7', 'dir_max_8', 'dom_dir_1', 'dom_dir_2', 'dom_dir_3','dom_dir_4', 'dom_dir_5', 'dom_dir_6', 'dom_dir_7', 'dom_dir_8',
-        'Corine_111', 'Corine_112','Corine_121', 'Corine_122', 'Corine_123', 'Corine_131', 'Corine_132',
-       'Corine_133', 'Corine_142', 'Corine_211', 'Corine_212', 'Corine_213','Corine_221', 'Corine_222', 'Corine_223', 'Corine_231', 'Corine_241',
-       'Corine_242', 'Corine_243', 'Corine_311', 'Corine_312', 'Corine_313','Corine_321', 'Corine_322', 'Corine_323', 'Corine_324', 'Corine_331',
-       'Corine_332', 'Corine_333', 'Corine_334', 'Corine_411', 'Corine_421','Corine_511', 'Corine_512', 'Corine_523','fire']].copy()
+       'corine_2_11', 'corine_2_12', 'corine_2_13', 'corine_2_14','corine_2_21', 'corine_2_22', 'corine_2_23', 'corine_2_24',
+       'corine_2_31', 'corine_2_32', 'corine_2_33', 'corine_2_41','corine_2_42', 'corine_2_51', 'corine_2_52','fire']].copy()
 
-X_unnorm, y_int = df_part[['max_temp', 'min_temp', 'mean_temp', 'res_max', 'dom_vel', 'rain_7days', 'DEM', 'Slope',
-       'Curvature', 'Aspect','ndvi_new', 'evi','dir_max_1','dir_max_2', 'dir_max_3', 'dir_max_4', 'dir_max_5', 'dir_max_6',
+X_unnorm, y_int = df_part[['max_temp', 'min_temp', 'mean_temp', 'res_max', 'dom_vel', 'rain_7days', 'dem', 'slope',
+       'curvature', 'aspect','ndvi_new', 'evi','dir_max_1','dir_max_2', 'dir_max_3', 'dir_max_4', 'dir_max_5', 'dir_max_6',
        'dir_max_7', 'dir_max_8', 'dom_dir_1', 'dom_dir_2', 'dom_dir_3','dom_dir_4', 'dom_dir_5', 'dom_dir_6', 'dom_dir_7', 'dom_dir_8',
-       'Corine_111', 'Corine_112','Corine_121', 'Corine_122', 'Corine_123', 'Corine_131', 'Corine_132',
-       'Corine_133', 'Corine_142', 'Corine_211', 'Corine_212', 'Corine_213','Corine_221', 'Corine_222', 'Corine_223', 'Corine_231', 'Corine_241',
-       'Corine_242', 'Corine_243', 'Corine_311', 'Corine_312', 'Corine_313','Corine_321', 'Corine_322', 'Corine_323', 'Corine_324', 'Corine_331',
-       'Corine_332', 'Corine_333', 'Corine_334', 'Corine_411', 'Corine_421','Corine_511', 'Corine_512', 'Corine_523']], df_part['fire']
+       'corine_2_11', 'corine_2_12', 'corine_2_13', 'corine_2_14','corine_2_21', 'corine_2_22', 'corine_2_23', 'corine_2_24',
+       'corine_2_31', 'corine_2_32', 'corine_2_33', 'corine_2_41','corine_2_42', 'corine_2_51', 'corine_2_52']], df_part['fire']
 
 
 print(df.columns)
 
-groups = df['firedate_g']
+groups = df['firedate']
 
 #X = normalize_dataset(X_unnorm, 'std')
 y = y_int
@@ -132,7 +130,7 @@ min_samples_leaf = [1, 10,30,40,50,100,120,150] #with numbers
 max_features = list(range(1,X_.shape[1]))
 bootstrap = [True, False]
 criterion = ["gini", "entropy"]
-class_weights = [{0:4,1:6},{0:3,1:7},{0:2,1:8},{0:1,1:9}]
+class_weights = [{0:1,1:5},{0:1,1:10},{0:1,1:25},{0:1,1:50}, {0:1,1:100}, {0:1,1:200}]
 
 
 lots_of_parameters = {
@@ -161,20 +159,23 @@ results = pd.DataFrame(columns=columns_sel)
 
 for i in folds:
     print("\ncv = ", i)
+    start = time.time()
     best_params, best_score, full_scores = hyperparameter_tune(rf, lots_of_parameters, i, X_, y_, groupskfold)
 
     df_results = pd.DataFrame.from_dict(full_scores)
     df_results['folds'] = int(i)
-    df_results.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion.csv')
+    #df_results.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion.csv')
 
     df1 = df_results[columns_sel]
     #df_no_split_cols = [c for c in df_results.columns if 'split' not in c]
-    df1.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion_sh.csv')
+    #df1.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion_sh.csv')
 
     results = pd.concat([results, df1])
 
     best_scores.append(best_score)
     best_parameters.append(best_params)
-
+    end = time.time()
+    dur = end-start
+    print(dur)
 #results.to_csv('/home/sgirtsou/Documents/GridSearchCV/random_search2/rscv_total.csv')
 i = 1
