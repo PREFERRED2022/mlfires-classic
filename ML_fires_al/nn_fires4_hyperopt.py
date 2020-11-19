@@ -53,32 +53,41 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
 
     X_unnorm, y_int = df[X_columns], df[y_columns]
 
-    # convert corine to level 2
-    X_unnorm[corine_col] = X_unnorm[corine_col]//10
     # categories to binary
-    Xbindomdir = pd.get_dummies(X_unnorm[domdir_col].round())
-    if 0 in Xbindomdir.columns:
-        del Xbindomdir[0]
-    ddircols = []
-    for i in range(1, 9):
-        ddircols.append('binDDIR_%d' % i)
-    Xbindomdir.columns = ddircols
-    Xbindirmax = pd.get_dummies(X_unnorm[dirmax_col].round())
-    if 0 in Xbindirmax.columns:
-        del Xbindirmax[0]
-    dmaxcols = []
-    for i in range(1, 9):
-        dmaxcols.append('binMDIR_%d' % i)
-    Xbindirmax.columns = dmaxcols
+    if domdir_col:
+        Xbindomdir = pd.get_dummies(X_unnorm[domdir_col].round())
+        if 0 in Xbindomdir.columns:
+            del Xbindomdir[0]
+        ddircols = []
+        for i in range(1, 9):
+            ddircols.append('bin_dom_dir_%d' % i)
+        Xbindomdir.columns = ddircols
+        del X_unnorm[domdir_col]
+        X_unnorm = pd.concat([X_unnorm, Xbindomdir], axis = 1)
 
-    Xbincorine = pd.get_dummies(X_unnorm[corine_col])
-    corcols = ['binCOR' + str(c) for c in Xbincorine.columns]
-    Xbincorine.columns = corcols
+    if dirmax_col:
+        Xbindirmax = pd.get_dummies(X_unnorm[dirmax_col].round())
+        if 0 in Xbindirmax.columns:
+            del Xbindirmax[0]
+        dmaxcols = []
+        for i in range(1, 9):
+            dmaxcols.append('bin_dir_max_%d' % i)
+        Xbindirmax.columns = dmaxcols
+        del X_unnorm[dirmax_col]
+        X_unnorm = pd.concat([X_unnorm, Xbindirmax], axis = 1)
 
-    X_unnorm = pd.concat([X_unnorm, Xbindomdir, Xbindirmax, Xbincorine], axis=1)
-    del X_unnorm[corine_col]
-    del X_unnorm[domdir_col]
-    del X_unnorm[dirmax_col]
+    if corine_col:
+        # convert corine level
+        corine2 = X_unnorm[corine_col].copy() // 10
+        del X_unnorm[corine_col]
+        #X_unnorm.rename(columns={corine_col: 'corine_orig'})
+        X_unnorm = pd.concat([X_unnorm, corine2], axis=1)
+
+        Xbincorine = pd.get_dummies(X_unnorm[corine_col])
+        corcols = ['bin_corine_' + str(c) for c in Xbincorine.columns]
+        Xbincorine.columns = corcols
+        del X_unnorm[corine_col]
+        X_unnorm = pd.concat([X_unnorm, Xbincorine], axis = 1)
 
     #str_classes = ['Corine']
     #X_unnorm_int = normdataset.index_string_values(X_unnorm, str_classes)
@@ -90,25 +99,50 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
 
     return X, y, groupspd
 
+def check_categorical(df, checkcol, newcols):
+    cat_cols = [c for c in df.columns if checkcol.upper() in c.upper()]
+    if any([c.upper() == checkcol.upper() for c in cat_cols]) and len(cat_cols) > 1:
+        cat_col = [c for c in df.columns if checkcol.upper() == c.upper()][0]
+        deletecolumns = []
+        for c in newcols:
+            if (c.upper() != checkcol.upper() and checkcol.upper() in c.upper()):
+                deletecolumns.append(c)
+        for c in deletecolumns:
+            newcols.remove(c)
+    elif any([c.upper() == checkcol.upper() for c in cat_cols]) and len(cat_cols) == 1:
+        cat_col = [c for c in df.columns if checkcol.upper() == c.upper()][0]
+    elif not any([c.upper() == checkcol.upper() for c in cat_cols]) and len(cat_cols) == 1:
+        cat_col = [c for c in df.columns if checkcol.upper() == c.upper()][0]
+    elif not any([c.upper() == checkcol.upper() for c in cat_cols]) and len(cat_cols) > 1:
+        cat_col = None
+    else:
+        cat_col = None
+    return cat_col, newcols
+
 # load the dataset
 def load_dataset():
     dsetfolder = 'data/'
     #dsfile = 'dataset_ndvi_lu.csv'
-    X_columns = ['max_temp', 'min_temp', 'mean_temp', 'res_max', 'dir_max', 'dom_vel', 'dom_dir',
+    domdircheck = 'dom_dir'
+    dirmaxcheck = 'dir_max'
+    corinecheck = 'Corine'
+    firedatecheck = 'firedate'
+    X_columns = ['max_temp', 'min_temp', 'mean_temp', 'res_max', dirmaxcheck, 'dom_vel', domdircheck,
                  'rain_7days',
-                 'Corine', 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi']
+                 corinecheck, 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi']
     y_columns = ['fire']
-    dsreadysuffix = 'nn_ready.csv'
-    dsready = dsfile[-4:]+dsreadysuffix+".csv"
+    dsreadysuffix = '_nn_ready'
+    dsready = dsfile[:-4]+dsreadysuffix+".csv"
     if not os.path.exists(os.path.join(dsetfolder, dsready)):
         df = pd.read_csv(os.path.join(dsetfolder, dsfile))
         X_columns_upper = [c.upper() for c in X_columns]
         newcols = [c for c in df.columns if c.upper() in X_columns_upper or any([cX in c.upper() for cX in X_columns_upper])]
         X_columns = newcols
-        corine_col = [c for c in df.columns if 'Corine'.upper() in c.upper()][0]
-        dirmax_col = [c for c in df.columns if 'dir_max'.upper() in c.upper()][0]
-        domdir_col = [c for c in df.columns if 'dom_dir'.upper() in c.upper()][0]
-        firedate_col = [c for c in df.columns if 'firedate'.upper() in c.upper()][0]
+        corine_col, newcols = check_categorical(df, corinecheck, newcols)
+        dirmax_col, newcols = check_categorical(df, dirmaxcheck, newcols)
+        domdir_col, newcols = check_categorical(df, domdircheck, newcols)
+
+        firedate_col = [c for c in df.columns if firedatecheck.upper() in c.upper()][0]
         X, y, groupspd = prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col)
         featdf = pd.concat([X, y, groupspd], axis=1)
         featdf[[c for c in featdf.columns if 'Unnamed' not in c]].to_csv(os.path.join(dsetfolder, dsready))
@@ -244,6 +278,7 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         f1_0_train = f1_score(1-y_train, 1-y_pred)
 
         print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
+        print("Recall 1 : %s, Recall 0 : %s" % (rec_1_test,rec_0_test))
 
         metrics.append(
             {'loss val.': loss_test, 'loss train': loss_train, 'accuracy val.': acc_1_test, 'accuracy train': acc_1_train,
