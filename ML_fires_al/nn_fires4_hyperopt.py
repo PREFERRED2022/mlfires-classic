@@ -286,24 +286,26 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
         print("Recall 1 : %s, Recall 0 : %s" % (rec_1_test,rec_0_test))
 
+        recall1st = 'recall 1 val.'
         metrics.append(
             {'loss val.': loss_test, 'loss train': loss_train, 'accuracy val.': acc_1_test, 'accuracy train': acc_1_train,
-             'precision 1 val.': prec_1_test, 'precision 1 train': prec_1_train, 'recall 1 val.': rec_1_test,
+             'precision 1 val.': prec_1_test, 'precision 1 train': prec_1_train, recall1st : rec_1_test,
              'recall 1 train': rec_1_train,'f1-score 1 val.': f1_1_test, 'f1-score 1 train': f1_1_train,
              'accuracy 0 val.': acc_0_test, 'accuracy 0 train': acc_0_train,
              'precision 0 val.': prec_0_test, 'precision 0 train': prec_0_train, 'recall 0 val.': rec_0_test,
              'recall 0 train': rec_0_train, 'f1-score 0 val.': f1_0_test, 'f1-score 0 train': f1_0_train,
              'auc val.': auc_val,
              'auc train.': auc_train, 'early stop epochs': es_epochs, 'fit time':  (time.time() - start_fold_time)/60.0})
+
         #print(metrics[-1])
 
     mean_metrics = {}
     for m in metrics[0]:
         mean_metrics[m] = sum(item.get(m, 0) for item in metrics) / len(metrics)
-    print('Mean recall (on test) : %s' % mean_metrics['recall val.'])
+    print('Mean recall (on test) : %s' % mean_metrics[recall1st])
 
     return {
-        'loss': -mean_metrics['recall val.'],
+        'loss': -mean_metrics[recall1st],
         'status': STATUS_OK,
         # -- store other results like this
         # 'eval_time': time.time(),
