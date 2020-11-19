@@ -36,7 +36,7 @@ def create_space():
              }
     '''
     max_trials = 1
-    max_epochs = 50
+    max_epochs = 1
     dsfile = 'dataset_1_10_corine_level2_onehotenc.csv'
     return dsfile, space, max_trials, max_epochs
 

@@ -135,7 +135,7 @@ def load_dataset():
     firedatecheck = 'firedate'
     X_columns = ['max_temp', 'min_temp', 'mean_temp', 'res_max', dirmaxcheck, 'dom_vel', domdircheck,
                  'rain_7days',
-                 corinecheck, 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi']
+                 corinecheck, 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi', 'evi']
     y_columns = ['fire']
     dsreadysuffix = '_nn_ready'
     dsready = dsfile[:-4]+dsreadysuffix+".csv"
@@ -219,6 +219,7 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
     y = y_pd.values
     groups = groups_pd.values
 
+    start_folds = time.time()
     for train_index, test_index in cv.split(X, y, groups):
         cnt += 1
         print("Fitting Fold %d" % cnt)
@@ -295,13 +296,14 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
              'precision 0 val.': prec_0_test, 'precision 0 train': prec_0_train, 'recall 0 val.': rec_0_test,
              'recall 0 train': rec_0_train, 'f1-score 0 val.': f1_0_test, 'f1-score 0 train': f1_0_train,
              'auc val.': auc_val,
-             'auc train.': auc_train, 'early stop epochs': es_epochs, 'fit time':  (time.time() - start_fold_time)/60.0})
+             'auc train.': auc_train, 'early stop epochs': es_epochs, } )#'fit time':  (time.time() - start_fold_time)/60.0})
 
         #print(metrics[-1])
 
     mean_metrics = {}
     for m in metrics[0]:
         mean_metrics[m] = sum(item.get(m, 0) for item in metrics) / len(metrics)
+    mean_metrics["fit time (min)"] = (time.time() - start_folds)/60.0
     print('Mean recall (on test) : %s' % mean_metrics[recall1st])
 
     return {
