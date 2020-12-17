@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split, KFold, GroupKFold
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
+from tensorflow.keras import models
 import tensorflow.keras.metrics
 from tensorflow.keras.utils import to_categorical
 import numpy as np
@@ -24,11 +25,6 @@ import json
 import space_test
 import re
 from datetime import datetime
-
-num_folds = 10
-# kf = KFold(n_splits=num_folds, shuffle=True)
-kf = GroupKFold(n_splits=num_folds)
-random_state = 42
 
 def drop_all0_features(df):
     for c in df.columns:
@@ -157,7 +153,10 @@ def npconv(obj):
     elif isinstance(obj, datetime):
         return obj.__str__()
 
-
+def create_unnorm_datefile(dsetfolder, dfchunk, cols, y_columns, dsready, dsunnormsuffix, setdate):
+    fileunnorm = os.path.join(dsetfolder, "%s%s_%s%s" % (os.path.basename(dsready), dsunnormsuffix, setdate, ".csv"))
+    if not os.path.exists(fileunnorm):
+        pd.concat([dfchunk[cols], dfchunk[y_columns]], axis=1).to_csv(fileunnorm)
 
 # load the dataset
 def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
@@ -179,15 +178,13 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
     dsready = dsfile[:-4]+dsreadysuffix
     dsfile = os.path.join(dsetfolder, dsfile) if not os.path.dirname(dsfile) else dsfile
     dsetfolder = os.path.join(os.path.dirname(dsfile),'ready')
-    chunksize = 3.8 * 10 ** 5  # about 1 day
+    chunksize = 3.75 * 10 ** 5  # about 1 day
     cnt = 0
-    df1 = pd.read_csv(dsfile, nrows=1)
-    X_columns_upper = [c.upper() for c in X_columns]
-    #newcols = [c for c in df1.columns if c.upper() in X_columns_upper or any([cX in c.upper() for cX in X_columns_upper])]
-    #newcols, corine_col, dirmax_col, domdir_col = fix_categorical(df1, [corinecheck, dirmaxcheck, domdircheck], newcols)
+    df1 = pd.read_csv(dsfile, nrows=1 )
     firedate_col = [c for c in df1.columns if firedatecheck.upper() in c.upper()][0]
-    for dfchunk in pd.read_csv(dsfile, chunksize=chunksize):
+    for dfchunk in pd.read_csv(dsfile, chunksize=chunksize, dtype ={ firedate_col: 'str'}):
         firstdate = dfchunk[firedate_col].head(1).item() if perdate else ""
+        print("df first date: %s shape: %s" % (firstdate, dfchunk.shape))
         newcols, corine_col, dirmax_col, domdir_col = fix_categorical(dfchunk, [corinecheck, dirmaxcheck, domdircheck], X_columns, drop_columns)
         if os.path.exists(os.path.join(dsetfolder, "%s_%s%s"%(os.path.basename(dsready),firstdate,".csv"))):
             print('Date: %s' % firstdate)
@@ -197,12 +194,16 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
         if cnt == 0 and perdate:
             dfchunk = dfchunk.loc[dfchunk[firedate_col] == firstdate]
             dfrest = dfchunk.loc[dfchunk[firedate_col] != firstdate]
-        elif perdate:
-            firstdate = dfrest[firedate_col].head(1).item()
+        elif perdate and dfrest.size > 0:
+            alldates = dfrest[firedate_col].unique()
+            if alldates.size>1:
+                print('more than one dates %s'%alldates)
+            firstdate = alldates[alldates.size-1]
+            #firstdate = dfrest[firedate_col].head(1).item()
             dftemp = pd.concat([dfrest.loc[dfrest[firedate_col] == firstdate], dfchunk.loc[dfchunk[firedate_col] == firstdate]])
             dfrest = dfchunk.loc[dfchunk[firedate_col] != firstdate]
             dfchunk = dftemp
-        else:
+        elif not perdate:
             firstdate=""
         print('Date: %s'%firstdate)
 
@@ -210,32 +211,31 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
 
         dfchunk = dfchunk.dropna()
         print("df date: %s shape: %s" % (firstdate, dfchunk.shape))
-        dfchunk = dfchunk[~dfchunk.isin(['--']).any(axis=1)]
+        dfchunk = dfchunk[(dfchunk != '--').all(axis=1)]
         print("drop -- : %s"%(dfchunk.shape[0]))
         dfchunk = dfchunk[(dfchunk != -1000).all(axis=1)]
         print("drop -1000 : %s"%(dfchunk.shape[0]))
-        fileunnorm = os.path.join(dsetfolder, "%s%s_%s%s" % (os.path.basename(dsready), dsunnormsuffix, firstdate, ".csv"))
-        #if not os.path.exists(fileunnorm):
-        #    pd.concat([df[newcols], df[y_columns]], axis=1).to_csv(fileunnorm)
+        create_unnorm_datefile(dsetfolder, dfchunk, [firedate_col]+newcols, y_columns, dsready, dsunnormsuffix, firstdate)
         if not calcstats is None:
             updatestats(dfchunk, calcstats, newcols)
         else:
             X, y, groupspd = prepare_dataset(dfchunk, newcols, y_columns, firedate_col, corine_col, domdir_col, dirmax_col, statfname)
-            featdf = pd.concat([X, y], axis=1)
+            featdf = pd.concat([X, y, groupspd], axis=1)
             featdf = featdf[[c for c in featdf.columns if 'Unnamed' not in c]]
             featdf.to_csv(os.path.join(dsetfolder, "%s_%s%s"%(os.path.basename(dsready),firstdate,".csv")))
     if calcstats:
         return calcstats
-    flist = [fn for fn in os.listdir(dsetfolder) if dsready in fn and dsunnormsuffix not in fn]
+    flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn]
     for dsready in flist:
         featdf = pd.read_csv(os.path.join(dsetfolder, dsready))
-        #firedate_col = [c for c in featdf.columns if 'firedate'.upper() in c.upper()][0]
-        #X_columns_new = [c for c in featdf.columns if c not in [firedate_col,'fire'] and 'Unnamed' not in c]
-        X_columns_new = [c for c in featdf.columns if c not in y_columns and 'Unnamed' not in c]
+        firedate_col = [c for c in featdf.columns if firedate_col.upper() in c.upper()][0]
+        firstdate = featdf[firedate_col].head(1).item()
+        X_columns_new = [c for c in featdf.columns if c not in [firedate_col,'fire'] and 'Unnamed' not in c]
+        #X_columns_new = [c for c in featdf.columns if c not in y_columns and 'Unnamed' not in c]
         X = featdf[X_columns_new]
         y = featdf[y_columns]
         #groupspd = featdf[firedate_col]
-        yield X, y
+        yield X, y, firstdate
 
     #return X, y, groupspd
 
@@ -269,10 +269,18 @@ def create_NN_model(params, X):
 
     return model
 
-def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, y_pd_tst = None):
+def cmvals(y_true, y_pred):
+    cm = confusion_matrix(y_true, y_pred)
+    tn = cm[0, 0]
+    fp = cm[0, 1]
+    fn = cm[1, 0]
+    tp = cm[1, 1]
+    return tn, fp, fn, tp
+
+def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, y_pd_tst = None, testdate = None, metrics = None):
 
     modelfolder = 'models'
-    metrics = []
+
     cnt = 0
     print("NN params : %s" % params)
 
@@ -281,12 +289,13 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
 
     modelfname = "".join([c for c in json.dumps(params) if re.match(r'\w', c)])
 
+    aucmetric = tensorflow.metrics.AUC()
+
     if X_pd_tr is not None and y_pd_tr is not None and not os.path.exists(os.path.join(modelfolder, modelfname)):
         X_train = X_pd_tr.values
         y_train = y_pd_tr.values
 
         print("Fitting ...")
-        start_fold_time = time.time()
         # print("TRAIN:", train_index, "TEST:", test_index)
         y_train = y_train[:,0]
         model = create_NN_model(params, X_train)
@@ -300,9 +309,26 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
         es_epochs = len(res.history['loss'])
         model.save(os.path.join(modelfolder,modelfname))
 
-    #print("epochs run: %d" % es_epochs)
+        '''training set metrics'''
+        '''
+        loss_train, acc_train = model.evaluate(X_train, y_train, batch_size=512, verbose=0)
+        y_pred = model.predict_classes(X_train)
+        y_scores = model.predict(X_train)
+        aucmetric.update_state(y_train, y_scores[:,1])
+        auc_train = float(aucmetric.result())
 
-    aucmetric = tensorflow.metrics.AUC()
+        acc_1_train = accuracy_score(y_train, y_pred)
+        acc_0_train = accuracy_score(1-y_train, 1-y_pred)
+
+        prec_1_train = precision_score(y_train, y_pred)
+        prec_0_train = precision_score(1-y_train, 1-y_pred)
+
+        rec_1_train = recall_score(y_train, y_pred)
+        rec_0_train = recall_score(1-y_train, 1-y_pred)
+
+        f1_1_train = f1_score(y_train, y_pred)
+        f1_0_train = f1_score(1-y_train, 1-y_pred)
+        '''
 
     '''test set metrics'''
 
@@ -313,13 +339,16 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
         print('No test data')
         return
 
-    model.load(os.path.join(modelfolder, modelfname))
+    start_time = time.time()
+
+    model = models.load_model(os.path.join(modelfolder, modelfname))
 
     X_test = X_pd_tst.values
     y_test = y_pd_tst.values
+    y_test = y_test[:, 0]
 
     start_predict = time.time()
-    loss_test, acc_test = model.evaluate(X_test, y_test, batch_size=512, verbose=0)
+    #loss_test, acc_test = model.evaluate(X_test, y_test, batch_size=512, verbose=0)
     y_pred = model.predict_classes(X_test)
     y_scores = model.predict(X_test)
 
@@ -338,60 +367,21 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
     f1_1_test = f1_score(y_test, y_pred)
     f1_0_test = f1_score(1 - y_test, 1 - y_pred)
 
-    print("Validation metrics time (min): %s"%((time.time() - start_time)/60.0))
-    start_time = time.time()
+    tn1, fp1, fn1, tp1 = cmvals(y_test, y_pred)
+    tn0, fp0, fn0, tp0 = cmvals(1-y_test, 1-y_pred)
 
-    '''training set metrics'''
-    loss_train, acc_train = model.evaluate(X_train, y_train, batch_size=512, verbose=0)
-    y_pred = model.predict_classes(X_train)
-    y_scores = model.predict(X_train)
-    aucmetric.update_state(y_train, y_scores[:,1])
-    auc_train = float(aucmetric.result())
+    print("Test metrics time (min): %s"%((time.time() - start_predict)/60.0))
+    print("Recall 1 : %s, Recall 0 : %s" % (rec_1_test, rec_0_test))
 
-    acc_1_train = accuracy_score(y_train, y_pred)
-    acc_0_train = accuracy_score(1-y_train, 1-y_pred)
-
-    prec_1_train = precision_score(y_train, y_pred)
-    prec_0_train = precision_score(1-y_train, 1-y_pred)
-
-    rec_1_train = recall_score(y_train, y_pred)
-    rec_0_train = recall_score(1-y_train, 1-y_pred)
-
-    f1_1_train = f1_score(y_train, y_pred)
-    f1_0_train = f1_score(1-y_train, 1-y_pred)
-
-    print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
-    print("Recall 1 : %s, Recall 0 : %s" % (rec_1_test,rec_0_test))
-
-    recall1st = 'recall 1 val.'
-    metrics.append(
-        {'loss val.': loss_test, 'loss train': loss_train, 'accuracy val.': acc_1_test, 'accuracy train': acc_1_train,
-         'precision 1 val.': prec_1_test, 'precision 1 train': prec_1_train, recall1st : rec_1_test,
-         'recall 1 train': rec_1_train,'f1-score 1 val.': f1_1_test, 'f1-score 1 train': f1_1_train,
-         'accuracy 0 val.': acc_0_test, 'accuracy 0 train': acc_0_train,
-         'precision 0 val.': prec_0_test, 'precision 0 train': prec_0_train, 'recall 0 val.': rec_0_test,
-         'recall 0 train': rec_0_train, 'f1-score 0 val.': f1_0_test, 'f1-score 0 train': f1_0_train,
-         'auc val.': auc_val,
-         'auc train.': auc_train, 'early stop epochs': es_epochs, } )#'fit time':  (time.time() - start_fold_time)/60.0})
-
-    #print(metrics[-1])
-
-    mean_metrics = {}
-    for m in metrics[0]:
-        mean_metrics[m] = sum(item.get(m, 0) for item in metrics) / len(metrics)
-    mean_metrics["fit time (min)"] = (time.time() - start_predict)/60.0
-    print('Mean recall (on test) : %s' % mean_metrics[recall1st])
-
-    return {
-        'loss': -mean_metrics[recall1st],
-        'status': STATUS_OK,
-        # -- store other results like this
-        # 'eval_time': time.time(),
-        'metrics': mean_metrics,
-        # -- attachments are handled differently
-        # 'attachments':
-        #    {'time_module': pickle.dumps(time.time)}
-    }
+    testdate = 'metrics' if not testdate else testdate
+    if metrics is not None:
+        metrics.append({'date' : testdate,
+             'accuracy test': acc_1_test, 'precision 1 test': prec_1_test, 'recall 1 test' : rec_1_test,
+             'f1-score 1 test': f1_1_test, 'True Negative 1': tn1, 'False Positive 1': fp1, 'False Negative 1': fn1,'True Positive 1': tp1,
+             'accuracy 0 test': acc_0_test,'precision 0 test': prec_0_test, 'recall 0 test': rec_0_test,
+              'f1-score 0 test': f1_0_test,'auc test': auc_val,
+             'True Negative 0': tn1, 'False Positive 0': fp1, 'False Negative 0': fn1, 'True Positive 0': tp1,
+             'predict time':  (time.time() - start_time)/60.0 })
 
 def calcminmaxstats(dstestfiles, statfname):
     if not os.path.exists(os.path.join('stats', 'featurestats.json')):
@@ -399,14 +389,14 @@ def calcminmaxstats(dstestfiles, statfname):
     else:
         with open(statfname, 'r') as statfile:
             stats = json.loads(statfile.read())
+    for X_pd, y_pd, tdate in load_datasets(dstrainfile, statfname=statfname):
+        i=1
     for dstestfile in dstestfiles:
-        for X_pd, y_pd in load_datasets(dstestfile, calcstats = stats):
+        for X_pd, y_pd, tdate in load_datasets(dstestfile, calcstats = stats):
             i=1
     with open(os.path.join('stats','featurestats.json'),'w') as statfile:
         statfile.write(json.dumps(stats, default=npconv))
     return stats
-
-trials = Trials()
 
 dstestfiles, dstrainfile, space, max_epochs = space_test.create_space()
 
@@ -418,23 +408,17 @@ else:
     with open(os.path.join('stats', 'featurestats.json'), 'r') as statfile:
         stats = json.loads(statfile.read())
 
-for X_pd, y_pd in load_datasets(dstrainfile, statfname = statfname):
+for X_pd, y_pd, tdate in load_datasets(dstrainfile, statfname = statfname):
     nn_fit_and_predict(space, X_pd_tr = X_pd, y_pd_tr = y_pd, X_pd_tst = None, y_pd_tst = None)
 
 for dstestfile in dstestfiles:
-    for X_pd, y_pd in load_datasets(dstestfile, perdate=True, statfname = statfname):
-        nn_fit_and_predict(space, X_pd_tr = None, y_pd_tr = None, X_pd_tst = X_pd, y_pd_tst = y_pd)
+    metrics = []
+    for X_pd, y_pd, tdate in load_datasets(dstestfile, perdate=True, statfname = statfname):
+        nn_fit_and_predict(space, X_pd_tr = None, y_pd_tr = None, X_pd_tst = X_pd, y_pd_tst = y_pd, testdate = tdate, metrics = metrics)
+    pdmetrics = pd.DataFrame(metrics)
 
-'''
-pd_opt = pd.DataFrame(columns=list(trials.trials[0]['result']['metrics'].keys()))
-for t in trials:
-    pdrow = t['result']['metrics']
-    pdrow['params'] = str(t['misc']['vals'])
-    pd_opt = pd_opt.append(pdrow, ignore_index=True)
-
-hyp_res_base = '_results_'
+res_base = 'results/test_results_'
 cnt = 1
-while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
+while os.path.exists('%s%d.csv' % (res_base, cnt)):
     cnt += 1
-pd_opt.to_csv('%s%d.csv' % (hyp_res_base, cnt))
-'''
+pdmetrics.to_csv('%s%d.csv' % (res_base, cnt))

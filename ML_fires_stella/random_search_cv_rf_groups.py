@@ -5,9 +5,8 @@ from sklearn.model_selection import train_test_split, StratifiedKFold, KFold, cr
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_validate
 from sklearn.metrics import make_scorer, confusion_matrix
-from sklearn.metrics import accuracy_score
-from sklearn import feature_selection
 import time
+from sklearn.metrics import precision_score, make_scorer,recall_score,f1_score,roc_auc_score
 import warnings
 import csv
 
@@ -58,19 +57,25 @@ def hyperparameter_tune(base_model, parameters, kfold, X, y, groups):
     #k = KFold(n_splits=kfold, shuffle=True)
     k = GroupKFold(n_splits=kfold)
 
-    scoring_st = {'acc': 'accuracy',
-                  'AUC': 'roc_auc',
-                  'prec': 'precision',
-                  'rec': 'recall',
-                  'f_score': 'f1'
-    }
+    prec_1 = make_scorer(precision_score, pos_label=1)
+    rec_1 = make_scorer(recall_score, pos_label=1)
+    f1_1 = make_scorer(f1_score, pos_label=1)
+    roc = make_scorer(roc_auc_score)
+
+    prec_0 = make_scorer(precision_score, pos_label=0)
+    rec_0 = make_scorer(recall_score, pos_label=0)
+    f1_0 = make_scorer(f1_score, pos_label=0)
+
+    scoring_st = {'prec_1': prec_1, 'rec_1': rec_1, 'f1_1': f1_1, 'roc': roc, 'prec_0': prec_0, 'rec_0': rec_0,
+               'f1_0': f1_0}
+
     optimal_model = RandomizedSearchCV(base_model,
                                        param_distributions=parameters,
-                                       n_iter=200,
+                                       n_iter=10,
                                        cv=k,
                                        scoring = scoring_st,
                                        n_jobs=6,
-                                       refit='rec',
+                                       refit='rec_1',
                                        return_train_score=True)
                                        #random_state=SEED)
 
@@ -130,7 +135,7 @@ min_samples_leaf = [1, 10,30,40,50,100,120,150] #with numbers
 max_features = list(range(1,X_.shape[1]))
 bootstrap = [True, False]
 criterion = ["gini", "entropy"]
-class_weights = [{0:1,1:5},{0:1,1:10},{0:1,1:25},{0:1,1:50}, {0:1,1:100}, {0:1,1:200}]
+class_weights = [{0:1,1:300},{0:1,1:400},{0:1,1:500},{0:1,1:1000}]
 
 
 lots_of_parameters = {
@@ -166,11 +171,10 @@ for i in folds:
     df_results['folds'] = int(i)
     #df_results.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion.csv')
 
-    df1 = df_results[columns_sel]
+    df_short = df_results.filter(regex="mean|std|params")
+    df_short.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_dataset_1_10_noshufflestrictcriterion_weights.csv ')
     #df_no_split_cols = [c for c in df_results.columns if 'split' not in c]
     #df1.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion_sh.csv')
-
-    results = pd.concat([results, df1])
 
     best_scores.append(best_score)
     best_parameters.append(best_params)
