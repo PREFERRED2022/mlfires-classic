@@ -38,6 +38,7 @@ def normalize_dataset(df, norm_type = None, aggrfile = None):
     arglist = []
     plist = []
     for c in df.columns:
+        dfcfloat = df[c].astype('float64')
         print("Normalize column:%s"%c)
         if not 'bin' in c:
             if not aggrs is None:
@@ -53,11 +54,11 @@ def normalize_dataset(df, norm_type = None, aggrfile = None):
                 dfmean = aggrs[c]['mean'] if 'mean' in aggrs[c] else None
                 dfstd = aggrs[c]['std'] if 'std' in aggrs[c] else None
             else:
-                dfmax = df[c].max()
-                dfmin = df[c].min()
-                dfmean = df[c].mean()
-                dfstd = df[c].std()
-            X[c] = df.apply(lambda x: normalized_values(x[c], dfmax, dfmin, dfmean, dfstd, norm_type), axis=1)
+                dfmax = dfcfloat.max()
+                dfmin = dfcfloat.min()
+                dfmean = dfcfloat.mean()
+                dfstd = dfcfloat.std()
+            X[c] = dfcfloat.apply(lambda x: normalized_values(x, dfmax, dfmin, dfmean, dfstd, norm_type))#, axis=1)
             dataset_sanity_check(X[[c]])
             #arglist.append((X, df, c, dfmax, dfmin, dfmean, dfstd, norm_type))
             #p = multiprocessing.Process(target=apply_norm, args=(X, df, c, dfmax, dfmin, dfmean, dfstd, norm_type))

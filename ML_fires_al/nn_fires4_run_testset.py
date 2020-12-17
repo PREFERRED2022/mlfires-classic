@@ -79,7 +79,7 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
 
     if corine_col:
         # convert corine level
-        corine2 = X_unnorm[corine_col].copy() // 10
+        corine2 = X_unnorm[corine_col].copy().astype('int32') // 10
         del X_unnorm[corine_col]
         #X_unnorm.rename(columns={corine_col: 'corine_orig'})
         X_unnorm = pd.concat([X_unnorm, corine2], axis=1)
@@ -416,9 +416,9 @@ for dstestfile in dstestfiles:
     for X_pd, y_pd, tdate in load_datasets(dstestfile, perdate=True, statfname = statfname):
         nn_fit_and_predict(space, X_pd_tr = None, y_pd_tr = None, X_pd_tst = X_pd, y_pd_tst = y_pd, testdate = tdate, metrics = metrics)
     pdmetrics = pd.DataFrame(metrics)
+    res_base = 'results/test_results_'+os.path.basename(dstestfile)
+    cnt = 1
+    while os.path.exists('%s%d.csv' % (res_base, cnt)):
+        cnt += 1
+    pdmetrics.to_csv('%s%d.csv' % (res_base, cnt))
 
-res_base = 'results/test_results_'
-cnt = 1
-while os.path.exists('%s%d.csv' % (res_base, cnt)):
-    cnt += 1
-pdmetrics.to_csv('%s%d.csv' % (res_base, cnt))
