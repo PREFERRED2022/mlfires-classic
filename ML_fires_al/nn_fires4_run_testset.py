@@ -436,8 +436,8 @@ else:
 for X_pd, y_pd, tdate in load_datasets(dstrainfile, statfname = statfname):
     nn_fit_and_predict(space, X_pd_tr = X_pd, y_pd_tr = y_pd, X_pd_tst = None, y_pd_tst = None)
 
-allfilemetrics = pd.DataFrame()
 
+allfilemetrics = None
 for dstestfile in dstestfiles:
     metrics = []
     dsetfolder, dsreadysuffix, dsunnormsuffix, dsfile, dsetfolder, dsready = filenames(dstestfile)
@@ -445,6 +445,7 @@ for dstestfile in dstestfiles:
     for X_pd, y_pd, tdate in load_datasets(dstestfile, perdate=True, statfname = statfname):
         y_scores = nn_fit_and_predict(space, X_pd_tr = None, y_pd_tr = None, X_pd_tst = X_pd, y_pd_tst = y_pd, testdate = tdate, metrics = metrics)
         if y_scores is not None:
+            month = str(tdate)[:6]
             fn = os.path.join(dsetfolder,[f for f in flist if str(tdate) in f][0])
             scores = pd.Series(y_scores[:,1], name = 'scores')
             featdf = pd.read_csv(fn)
@@ -455,6 +456,8 @@ for dstestfile in dstestfiles:
             featdf.to_csv(fn)
 
     pdmetrics = pd.DataFrame(metrics)
+    if allfilemetrics is None:
+        allfilemetrics = pd.DataFrame(columns=pdmetrics.columns)
     pdmetrics = pdmetrics.append(pd.Series(name = 'sums'))
     sumscols = [ 'True Negative 1', 'False Positive 1', 'False Negative 1', 'True Positive 1',\
                  'True Negative 0', 'False Positive 0', 'False Negative 0', 'True Positive 0', 'predict time']
@@ -469,7 +472,7 @@ for dstestfile in dstestfiles:
     pdmetrics['recall 0 test']['sums'] = recall(pdmetrics['True Positive 0']['sums'],pdmetrics['False Negative 0']['sums'])
     pdmetrics['f1-score 1 test']['sums'] = f1(pdmetrics['True Positive 1']['sums'], pdmetrics['False Positive 1']['sums'], pdmetrics['False Negative 1']['sums'])
     pdmetrics['f1-score 0 test']['sums'] = f1(pdmetrics['True Positive 0']['sums'], pdmetrics['False Positive 0']['sums'], pdmetrics['False Negative 0']['sums'])
-
+    pdmetrics['date']['sums'] = month
     res_pref = 'results/test_results_'
     res_base = res_pref+os.path.basename(dstestfile)[:-4]
     cnt = 1
