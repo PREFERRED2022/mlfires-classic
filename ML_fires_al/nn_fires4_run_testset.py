@@ -158,9 +158,18 @@ def create_unnorm_datefile(dsetfolder, dfchunk, cols, y_columns, dsready, dsunno
     if not os.path.exists(fileunnorm):
         pd.concat([dfchunk[cols], dfchunk[y_columns]], axis=1).to_csv(fileunnorm)
 
+def filenames(dsfile):
+    dsetfolder = 'data/'
+    dsreadysuffix = '_ready'
+    dsunnormsuffix = '_unnorm'
+    dsready = dsfile[:-4] + dsreadysuffix
+    dsfile = os.path.join(dsetfolder, dsfile) if not os.path.dirname(dsfile) else dsfile
+    dsetfolder = os.path.join(os.path.dirname(dsfile), 'ready')
+    return dsetfolder, dsreadysuffix, dsunnormsuffix, dsfile, dsetfolder, dsready
+
 # load the dataset
 def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
-    dsetfolder = 'data/'
+    dsetfolder, dsreadysuffix, dsunnormsuffix, dsfile, dsetfolder, dsready = filenames(dsfile)
     domdircheck = 'dom_dir'
     dirmaxcheck = 'dir_max'
     corinecheck = 'Corine'
@@ -173,11 +182,6 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
     #             corinecheck, 'Slope', 'DEM', 'Curvature', 'Aspect', 'evi']
     drop_columns = ['-1000']
     y_columns = ['fire']
-    dsreadysuffix = '_ready'
-    dsunnormsuffix = '_unnorm'
-    dsready = dsfile[:-4]+dsreadysuffix
-    dsfile = os.path.join(dsetfolder, dsfile) if not os.path.dirname(dsfile) else dsfile
-    dsetfolder = os.path.join(os.path.dirname(dsfile),'ready')
     chunksize = 3.75 * 10 ** 5  # about 1 day
     cnt = 0
     df1 = pd.read_csv(dsfile, nrows=1 )
@@ -192,8 +196,8 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
             cnt += 1
             continue
         if cnt == 0 and perdate:
-            dfchunk = dfchunk.loc[dfchunk[firedate_col] == firstdate]
             dfrest = dfchunk.loc[dfchunk[firedate_col] != firstdate]
+            dfchunk = dfchunk.loc[dfchunk[firedate_col] == firstdate]
         elif perdate and dfrest.size > 0:
             alldates = dfrest[firedate_col].unique()
             if alldates.size>1:
@@ -225,12 +229,12 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
             featdf.to_csv(os.path.join(dsetfolder, "%s_%s%s"%(os.path.basename(dsready),firstdate,".csv")))
     if calcstats:
         return calcstats
-    flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn]
+    flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn and "~" not in fn]
     for dsready in flist:
         featdf = pd.read_csv(os.path.join(dsetfolder, dsready))
         firedate_col = [c for c in featdf.columns if firedate_col.upper() in c.upper()][0]
         firstdate = featdf[firedate_col].head(1).item()
-        X_columns_new = [c for c in featdf.columns if c not in [firedate_col,'fire'] and 'Unnamed' not in c]
+        X_columns_new = [c for c in featdf.columns if c not in [firedate_col]+y_columns+['scores'] and 'Unnamed' not in c]
         #X_columns_new = [c for c in featdf.columns if c not in y_columns and 'Unnamed' not in c]
         X = featdf[X_columns_new]
         y = featdf[y_columns]
@@ -294,6 +298,7 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
     if X_pd_tr is not None and y_pd_tr is not None and not os.path.exists(os.path.join(modelfolder, modelfname)):
         X_train = X_pd_tr.values
         y_train = y_pd_tr.values
+        y_scores = None
 
         print("Fitting ...")
         # print("TRAIN:", train_index, "TEST:", test_index)
@@ -380,8 +385,10 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
              'f1-score 1 test': f1_1_test, 'True Negative 1': tn1, 'False Positive 1': fp1, 'False Negative 1': fn1,'True Positive 1': tp1,
              'accuracy 0 test': acc_0_test,'precision 0 test': prec_0_test, 'recall 0 test': rec_0_test,
               'f1-score 0 test': f1_0_test,'auc test': auc_val,
-             'True Negative 0': tn1, 'False Positive 0': fp1, 'False Negative 0': fn1, 'True Positive 0': tp1,
+             'True Negative 0': tn0, 'False Positive 0': fp0, 'False Negative 0': fn0, 'True Positive 0': tp0,
              'predict time':  (time.time() - start_time)/60.0 })
+
+    return y_scores
 
 def calcminmaxstats(dstestfiles, statfname):
     if not os.path.exists(os.path.join('stats', 'featurestats.json')):
@@ -398,6 +405,19 @@ def calcminmaxstats(dstestfiles, statfname):
         statfile.write(json.dumps(stats, default=npconv))
     return stats
 
+def recall(tp,fn):
+    return tp/(tp+fn)
+
+def precision(tp,fp):
+    return tp/(tp+fp)
+
+def accuracy(tp,tn, fp, fn):
+    return (tp+tn)/(tp+fp+fp+fn)
+
+def f1(tp,fp,fn):
+    return 2*recall(tp,fn)*precision(tp,fp)/(recall(tp,fn)+precision(tp,fp))
+
+
 dstestfiles, dstrainfile, space, max_epochs = space_test.create_space()
 
 statfname = os.path.join('stats', 'featurestats.json')
@@ -413,12 +433,37 @@ for X_pd, y_pd, tdate in load_datasets(dstrainfile, statfname = statfname):
 
 for dstestfile in dstestfiles:
     metrics = []
+    dsetfolder, dsreadysuffix, dsunnormsuffix, dsfile, dsetfolder, dsready = filenames(dstestfile)
+    flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn]
     for X_pd, y_pd, tdate in load_datasets(dstestfile, perdate=True, statfname = statfname):
-        nn_fit_and_predict(space, X_pd_tr = None, y_pd_tr = None, X_pd_tst = X_pd, y_pd_tst = y_pd, testdate = tdate, metrics = metrics)
-    pdmetrics = pd.DataFrame(metrics)
-    res_base = 'results/test_results_'+os.path.basename(dstestfile)
-    cnt = 1
-    while os.path.exists('%s%d.csv' % (res_base, cnt)):
-        cnt += 1
-    pdmetrics.to_csv('%s%d.csv' % (res_base, cnt))
+        y_scores = nn_fit_and_predict(space, X_pd_tr = None, y_pd_tr = None, X_pd_tst = X_pd, y_pd_tst = y_pd, testdate = tdate, metrics = metrics)
+        if y_scores is not None:
+            fn = os.path.join(dsetfolder,[f for f in flist if str(tdate) in f][0])
+            scores = pd.Series(y_scores[:,1], name = 'scores')
+            featdf = pd.read_csv(fn)
+            if 'scores' in featdf.columns:
+                featdf.drop(['scores'], axis=1)
+            featdf = pd.concat([featdf, scores], axis=1)
+            featdf.to_csv(fn)
 
+    pdmetrics = pd.DataFrame(metrics)
+    pdmetrics = pdmetrics.append(pd.Series(name = 'sums'))
+    sumscols = [ 'True Negative 1', 'False Positive 1', 'False Negative 1', 'True Positive 1',\
+                 'True Negative 0', 'False Positive 0', 'False Negative 0', 'True Positive 0', 'predict time']
+    for c in sumscols:
+        pdmetrics[c]['sums'] = pdmetrics[c].sum()
+
+    pdmetrics['accuracy test']['sums'] = accuracy(pdmetrics['True Positive 1']['sums'],pdmetrics['True Negative 1']['sums'],\
+                                                  pdmetrics['False Positive 1']['sums'], pdmetrics['False Negative 1']['sums'])
+    pdmetrics['precision 1 test']['sums'] = precision(pdmetrics['True Positive 1']['sums'], pdmetrics['False Positive 1']['sums'])
+    pdmetrics['precision 0 test']['sums'] = precision(pdmetrics['True Positive 0']['sums'], pdmetrics['False Positive 0']['sums'])
+    pdmetrics['recall 1 test']['sums'] = recall(pdmetrics['True Positive 1']['sums'],pdmetrics['False Negative 1']['sums'])
+    pdmetrics['recall 0 test']['sums'] = recall(pdmetrics['True Positive 0']['sums'],pdmetrics['False Negative 0']['sums'])
+    pdmetrics['f1-score 1 test']['sums'] = f1(pdmetrics['True Positive 1']['sums'], pdmetrics['False Positive 1']['sums'], pdmetrics['False Negative 1']['sums'])
+    pdmetrics['f1-score 0 test']['sums'] = f1(pdmetrics['True Positive 0']['sums'], pdmetrics['False Positive 0']['sums'], pdmetrics['False Negative 0']['sums'])
+
+    res_base = 'results/test_results_'+os.path.basename(dstestfile)[:-4]
+    cnt = 1
+    while os.path.exists('%s_%d.csv' % (res_base, cnt)):
+        cnt += 1
+    pdmetrics.to_csv('%s_%d.csv' % (res_base, cnt))
