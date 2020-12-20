@@ -191,7 +191,7 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
         print("df first date: %s shape: %s" % (firstdate, dfchunk.shape))
         newcols, corine_col, dirmax_col, domdir_col = fix_categorical(dfchunk, [corinecheck, dirmaxcheck, domdircheck], X_columns, drop_columns)
         if os.path.exists(os.path.join(dsetfolder, "%s_%s%s"%(os.path.basename(dsready),firstdate,".csv"))):
-            print('Date: %s' % firstdate)
+            print('Date: %s normalized exists' % firstdate)
             dfrest = dfchunk.loc[dfchunk[firedate_col] != firstdate]
             cnt += 1
             continue
@@ -234,7 +234,7 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
         featdf = pd.read_csv(os.path.join(dsetfolder, dsready))
         firedate_col = [c for c in featdf.columns if firedate_col.upper() in c.upper()][0]
         firstdate = featdf[firedate_col].head(1).item()
-        X_columns_new = [c for c in featdf.columns if c not in [firedate_col]+y_columns+['scores'] and 'Unnamed' not in c]
+        X_columns_new = [c for c in featdf.columns if c not in [firedate_col]+y_columns+[c for c in featdf.columns if 'scores' in c] and 'Unnamed' not in c]
         #X_columns_new = [c for c in featdf.columns if c not in y_columns and 'Unnamed' not in c]
         X = featdf[X_columns_new]
         y = featdf[y_columns]
@@ -288,14 +288,15 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
     cnt = 0
     print("NN params : %s" % params)
 
-    if params['feature_drop']:
-        X_pd_tr=X_pd_tr.drop(columns=[c for c in X_pd_tr.columns if params['feature_drop'] in c])
 
     modelfname = "".join([c for c in json.dumps(params) if re.match(r'\w', c)])
 
     aucmetric = tensorflow.metrics.AUC()
 
     if X_pd_tr is not None and y_pd_tr is not None and not os.path.exists(os.path.join(modelfolder, modelfname)):
+        if params['feature_drop']:
+            X_pd_tr = X_pd_tr.drop(columns=[c for c in X_pd_tr.columns if params['feature_drop'] in c])
+
         X_train = X_pd_tr.values
         y_train = y_pd_tr.values
         y_scores = None
@@ -347,6 +348,10 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
     start_time = time.time()
 
     model = models.load_model(os.path.join(modelfolder, modelfname))
+    model = models.load_model(os.path.join(modelfolder, modelfname))
+
+    if params['feature_drop']:
+        X_pd_tst = X_pd_tst.drop(columns=[c for c in X_pd_tst.columns if params['feature_drop'] in c])
 
     X_test = X_pd_tst.values
     y_test = y_pd_tst.values
@@ -441,8 +446,9 @@ for dstestfile in dstestfiles:
             fn = os.path.join(dsetfolder,[f for f in flist if str(tdate) in f][0])
             scores = pd.Series(y_scores[:,1], name = 'scores')
             featdf = pd.read_csv(fn)
-            if 'scores' in featdf.columns:
-                featdf.drop(['scores'], axis=1)
+            score_cols = [c for c in featdf.columns if 'scores' in c]
+            if score_cols is not None and len(score_cols)>0 in featdf.columns:
+                featdf.drop(score_cols, axis=1)
             featdf = pd.concat([featdf, scores], axis=1)
             featdf.to_csv(fn)
 

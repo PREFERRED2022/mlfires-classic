@@ -2,7 +2,9 @@ from hyperopt import hp
 import os
 
 def create_space():
-    space = {'n_internal_layers': [0, {'layer_1_0_nodes': 50}], 'class_weights': {0:3,1:7}, 'feature_drop':'', 'metric': 'accuracy' }
+    #space = {'n_internal_layers': [0, {'layer_1_0_nodes': 50}], 'class_weights': {0:3,1:7}, 'feature_drop':'', 'metric': 'accuracy' }
+    space = {'n_internal_layers': [0, {'layer_1_0_nodes': 50}], 'class_weights': {0:2,1:3}, 'feature_drop':'_dir_', 'metric': 'accuracy' }
+
     max_epochs = 2000
     #dsfile = 'dataset_1_10_corine_level2_onehotenc.csv'
     dsfile = 'dataset_corine_level2_onehotenc.csv'
