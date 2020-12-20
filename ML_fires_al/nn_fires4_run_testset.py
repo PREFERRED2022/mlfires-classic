@@ -168,7 +168,7 @@ def filenames(dsfile):
     return dsetfolder, dsreadysuffix, dsunnormsuffix, dsfile, dsetfolder, dsready
 
 # load the dataset
-def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
+def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None, checkunnorm = True):
     dsetfolder, dsreadysuffix, dsunnormsuffix, dsfile, dsetfolder, dsready = filenames(dsfile)
     domdircheck = 'dom_dir'
     dirmaxcheck = 'dir_max'
@@ -186,49 +186,50 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None):
     cnt = 0
     df1 = pd.read_csv(dsfile, nrows=1 )
     firedate_col = [c for c in df1.columns if firedatecheck.upper() in c.upper()][0]
-    for dfchunk in pd.read_csv(dsfile, chunksize=chunksize, dtype ={ firedate_col: 'str'}):
-        firstdate = dfchunk[firedate_col].head(1).item() if perdate else ""
-        print("df first date: %s shape: %s" % (firstdate, dfchunk.shape))
-        newcols, corine_col, dirmax_col, domdir_col = fix_categorical(dfchunk, [corinecheck, dirmaxcheck, domdircheck], X_columns, drop_columns)
-        if os.path.exists(os.path.join(dsetfolder, "%s_%s%s"%(os.path.basename(dsready),firstdate,".csv"))):
-            print('Date: %s normalized exists' % firstdate)
-            dfrest = dfchunk.loc[dfchunk[firedate_col] != firstdate]
+    if checkunnorm:
+        for dfchunk in pd.read_csv(dsfile, chunksize=chunksize, dtype ={ firedate_col: 'str'}):
+            firstdate = dfchunk[firedate_col].head(1).item() if perdate else ""
+            print("df first date: %s shape: %s" % (firstdate, dfchunk.shape))
+            newcols, corine_col, dirmax_col, domdir_col = fix_categorical(dfchunk, [corinecheck, dirmaxcheck, domdircheck], X_columns, drop_columns)
+            if os.path.exists(os.path.join(dsetfolder, "%s_%s%s"%(os.path.basename(dsready),firstdate,".csv"))):
+                print('Date: %s normalized exists' % firstdate)
+                dfrest = dfchunk.loc[dfchunk[firedate_col] != firstdate]
+                cnt += 1
+                continue
+            if cnt == 0 and perdate:
+                dfrest = dfchunk.loc[dfchunk[firedate_col] != firstdate]
+                dfchunk = dfchunk.loc[dfchunk[firedate_col] == firstdate]
+            elif perdate and dfrest.size > 0:
+                alldates = dfrest[firedate_col].unique()
+                if alldates.size>1:
+                    print('more than one dates %s'%alldates)
+                firstdate = alldates[alldates.size-1]
+                #firstdate = dfrest[firedate_col].head(1).item()
+                dftemp = pd.concat([dfrest.loc[dfrest[firedate_col] == firstdate], dfchunk.loc[dfchunk[firedate_col] == firstdate]])
+                dfrest = dfchunk.loc[dfchunk[firedate_col] != firstdate]
+                dfchunk = dftemp
+            elif not perdate:
+                firstdate=""
+            print('Date: %s'%firstdate)
+
             cnt += 1
-            continue
-        if cnt == 0 and perdate:
-            dfrest = dfchunk.loc[dfchunk[firedate_col] != firstdate]
-            dfchunk = dfchunk.loc[dfchunk[firedate_col] == firstdate]
-        elif perdate and dfrest.size > 0:
-            alldates = dfrest[firedate_col].unique()
-            if alldates.size>1:
-                print('more than one dates %s'%alldates)
-            firstdate = alldates[alldates.size-1]
-            #firstdate = dfrest[firedate_col].head(1).item()
-            dftemp = pd.concat([dfrest.loc[dfrest[firedate_col] == firstdate], dfchunk.loc[dfchunk[firedate_col] == firstdate]])
-            dfrest = dfchunk.loc[dfchunk[firedate_col] != firstdate]
-            dfchunk = dftemp
-        elif not perdate:
-            firstdate=""
-        print('Date: %s'%firstdate)
 
-        cnt += 1
-
-        dfchunk = dfchunk.dropna()
-        print("df date: %s shape: %s" % (firstdate, dfchunk.shape))
-        dfchunk = dfchunk[(dfchunk != '--').all(axis=1)]
-        print("drop -- : %s"%(dfchunk.shape[0]))
-        dfchunk = dfchunk[(dfchunk != -1000).all(axis=1)]
-        print("drop -1000 : %s"%(dfchunk.shape[0]))
-        create_unnorm_datefile(dsetfolder, dfchunk, [firedate_col]+newcols, y_columns, dsready, dsunnormsuffix, firstdate)
-        if not calcstats is None:
-            updatestats(dfchunk, calcstats, newcols)
-        else:
-            X, y, groupspd = prepare_dataset(dfchunk, newcols, y_columns, firedate_col, corine_col, domdir_col, dirmax_col, statfname)
-            featdf = pd.concat([X, y, groupspd], axis=1)
-            featdf = featdf[[c for c in featdf.columns if 'Unnamed' not in c]]
-            featdf.to_csv(os.path.join(dsetfolder, "%s_%s%s"%(os.path.basename(dsready),firstdate,".csv")))
-    if calcstats:
-        return calcstats
+            dfchunk = dfchunk.dropna()
+            print("df date: %s shape: %s" % (firstdate, dfchunk.shape))
+            dfchunk = dfchunk[(dfchunk != '--').all(axis=1)]
+            print("drop -- : %s"%(dfchunk.shape[0]))
+            dfchunk = dfchunk[(dfchunk != -1000).all(axis=1)]
+            print("drop -1000 : %s"%(dfchunk.shape[0]))
+            create_unnorm_datefile(dsetfolder, dfchunk, [firedate_col]+newcols, y_columns, dsready, dsunnormsuffix, firstdate)
+            if not calcstats is None:
+                updatestats(dfchunk, calcstats, newcols)
+            else:
+                X, y, groupspd = prepare_dataset(dfchunk, newcols, y_columns, firedate_col, corine_col, domdir_col, dirmax_col, statfname)
+                featdf = pd.concat([X, y, groupspd], axis=1)
+                featdf = featdf[[c for c in featdf.columns if 'Unnamed' not in c]]
+                featdf.to_csv(os.path.join(dsetfolder, "%s_%s%s"%(os.path.basename(dsready),firstdate,".csv")))
+        if calcstats:
+            return calcstats
     flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn and "~" not in fn]
     for dsready in flist:
         featdf = pd.read_csv(os.path.join(dsetfolder, dsready))
@@ -294,8 +295,8 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
     aucmetric = tensorflow.metrics.AUC()
 
     if X_pd_tr is not None and y_pd_tr is not None and not os.path.exists(os.path.join(modelfolder, modelfname)):
-        if params['feature_drop']:
-            X_pd_tr = X_pd_tr.drop(columns=[c for c in X_pd_tr.columns if params['feature_drop'] in c])
+        if len(params['feature_drop'])>0:
+            X_pd_tr = X_pd_tr.drop(columns=[c for c in X_pd_tr.columns if any(fd in c for fd in params['feature_drop'])])
 
         X_train = X_pd_tr.values
         y_train = y_pd_tr.values
@@ -350,8 +351,10 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
     model = models.load_model(os.path.join(modelfolder, modelfname))
     model = models.load_model(os.path.join(modelfolder, modelfname))
 
-    if params['feature_drop']:
-        X_pd_tst = X_pd_tst.drop(columns=[c for c in X_pd_tst.columns if params['feature_drop'] in c])
+    #if params['feature_drop']:
+    #    X_pd_tst = X_pd_tst.drop(columns=[c for c in X_pd_tst.columns if params['feature_drop'] in c])
+    if len(params['feature_drop']) > 0:
+        X_pd_tst = X_pd_tst.drop(columns=[c for c in X_pd_tst.columns if any(fd in c for fd in params['feature_drop'])])
 
     X_test = X_pd_tst.values
     y_test = y_pd_tst.values
@@ -423,7 +426,7 @@ def f1(tp,fp,fn):
     return 2*recall(tp,fn)*precision(tp,fp)/(recall(tp,fn)+precision(tp,fp))
 
 
-dstestfiles, dstrainfile, space, max_epochs = space_test.create_space()
+dstestfiles, dstrainfile, space, max_epochs, checkunnorm, savescores = space_test.create_space()
 
 statfname = os.path.join('stats', 'featurestats.json')
 
@@ -442,10 +445,10 @@ for dstestfile in dstestfiles:
     metrics = []
     dsetfolder, dsreadysuffix, dsunnormsuffix, dsfile, dsetfolder, dsready = filenames(dstestfile)
     flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn]
-    for X_pd, y_pd, tdate in load_datasets(dstestfile, perdate=True, statfname = statfname):
+    for X_pd, y_pd, tdate in load_datasets(dstestfile, perdate=True, statfname = statfname, checkunnorm = checkunnorm):
         y_scores = nn_fit_and_predict(space, X_pd_tr = None, y_pd_tr = None, X_pd_tst = X_pd, y_pd_tst = y_pd, testdate = tdate, metrics = metrics)
-        if y_scores is not None:
-            month = str(tdate)[:6]
+        month = str(tdate)[:6]
+        if y_scores is not None and savescores:
             fn = os.path.join(dsetfolder,[f for f in flist if str(tdate) in f][0])
             scores = pd.Series(y_scores[:,1], name = 'scores')
             featdf = pd.read_csv(fn)
