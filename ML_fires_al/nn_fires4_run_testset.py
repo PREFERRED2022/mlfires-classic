@@ -436,6 +436,8 @@ else:
 for X_pd, y_pd, tdate in load_datasets(dstrainfile, statfname = statfname):
     nn_fit_and_predict(space, X_pd_tr = X_pd, y_pd_tr = y_pd, X_pd_tst = None, y_pd_tst = None)
 
+allfilemetrics = pd.DataFrame()
+
 for dstestfile in dstestfiles:
     metrics = []
     dsetfolder, dsreadysuffix, dsunnormsuffix, dsfile, dsetfolder, dsready = filenames(dstestfile)
@@ -468,8 +470,13 @@ for dstestfile in dstestfiles:
     pdmetrics['f1-score 1 test']['sums'] = f1(pdmetrics['True Positive 1']['sums'], pdmetrics['False Positive 1']['sums'], pdmetrics['False Negative 1']['sums'])
     pdmetrics['f1-score 0 test']['sums'] = f1(pdmetrics['True Positive 0']['sums'], pdmetrics['False Positive 0']['sums'], pdmetrics['False Negative 0']['sums'])
 
-    res_base = 'results/test_results_'+os.path.basename(dstestfile)[:-4]
+    res_pref = 'results/test_results_'
+    res_base = res_pref+os.path.basename(dstestfile)[:-4]
     cnt = 1
     while os.path.exists('%s_%d.csv' % (res_base, cnt)):
         cnt += 1
     pdmetrics.to_csv('%s_%d.csv' % (res_base, cnt))
+    allfilemetrics = allfilemetrics.append(pdmetrics.loc['sums'].to_dict(), ignore_index=True)
+
+modelfname = "".join([ch for ch in json.dumps(space) if re.match(r'\w', ch)])
+allfilemetrics.to_csv('%s_%d.csv' % (res_pref+modelfname, cnt))
