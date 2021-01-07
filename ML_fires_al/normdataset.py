@@ -39,8 +39,8 @@ def normalize_dataset(df, norm_type = None, aggrfile = None):
     plist = []
     for c in df.columns:
         dfcfloat = df[c].astype('float64')
-        print("Normalize column:%s"%c)
         if not 'bin' in c:
+            print("Normalize column:%s" % c)
             if not aggrs is None:
                 if not c in aggrs:
                     incol = [cl for cl in aggrs if cl.upper() in c.upper() or c.upper() in cl.upper()]
@@ -67,7 +67,7 @@ def normalize_dataset(df, norm_type = None, aggrfile = None):
 
         else:
             X[c] = df[c]
-            print('binary are not normalized')
+            #print('binary are not normalized')
 
         #while(any(p.is_alive() for p in plist)):
         #    time.sleep(5)

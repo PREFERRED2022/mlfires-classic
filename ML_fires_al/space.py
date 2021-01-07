@@ -37,7 +37,7 @@ def create_space():
              }
     '''
     max_trials = 1
-    max_epochs = 1
+    max_epochs = 2000
     #dsfile = 'dataset_1_10_corine_level2_onehotenc.csv'
     #dsfile = 'dataset_corine_level2_onehotenc.csv'
     testsets = {'balanced':'dataset_corine_level2_onehotenc.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}

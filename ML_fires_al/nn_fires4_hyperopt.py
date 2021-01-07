@@ -3,6 +3,7 @@ from hyperopt import Trials, fmin, tpe, hp, STATUS_OK
 from pandas import read_csv
 from sklearn.model_selection import train_test_split, KFold, GroupKFold
 from sklearn.preprocessing import LabelEncoder
+import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 import tensorflow.keras.metrics
@@ -43,16 +44,7 @@ def drop_all0_features(df):
                 print("%s not exists (size : %d)"%(c, len(u)))
 
 def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col):
-    # df = read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/training_dataset.csv')
     df = df.dropna()
-    #df.columns = ['id', 'firedate_x', 'max_temp', 'min_temp', 'mean_temp', 'res_max',
-    #              'dir_max', 'dom_vel', 'dom_dir', 'rain_7days', 'Corine', 'Forest',
-    #              'fire', 'firedate_g', 'firedate_y', 'tile', 'max_temp_y', 'DEM',
-    #              'Slope', 'Curvature', 'Aspect', 'image', 'ndvi']
-    #df_part = df[
-    #    ['id', 'max_temp', 'min_temp', 'mean_temp', 'res_max', 'dir_max', 'dom_vel', 'dom_dir', 'rain_7days', 'Corine',
-    #     'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi', 'fire']]
-
     X_unnorm, y_int = df[X_columns], df[y_columns]
 
     # categories to binary
@@ -91,11 +83,7 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
         del X_unnorm[corine_col]
         X_unnorm = pd.concat([X_unnorm, Xbincorine], axis = 1)
 
-    #str_classes = ['Corine']
-    #X_unnorm_int = normdataset.index_string_values(X_unnorm, str_classes)
-    #X = normdataset.normalize_dataset(X_unnorm_int, 'std')
-
-    X = normdataset.normalize_dataset(X_unnorm)
+    X = normdataset.normalize_dataset(X_unnorm, aggrfile='stats/featurestats.json')
     y = y_int
     groupspd = df[firedate_col]
 
@@ -277,83 +265,88 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
         model = create_NN_model(params, X)
         es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
         start_time = time.time()
-        res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, validation_data=(X_val, y_val),\
-                        callbacks=[es], class_weight=params['class_weights'])
+        with tf.Session(config=tf.ConfigProto(
+                device_count={"CPU": n_cpus},
+                inter_op_parallelism_threads=n_cpus,
+                intra_op_parallelism_threads=1,
+        )) as sess:
+            res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, validation_data=(X_val, y_val),\
+                            callbacks=[es], class_weight=params['class_weights'])
 
-        print("Fit time (min): %s"%((time.time() - start_time)/60.0))
-        start_time = time.time()
-        es_epochs = len(res.history['loss'])
-        #print("epochs run: %d" % es_epochs)
+            print("Fit time (min): %s"%((time.time() - start_time)/60.0))
+            start_time = time.time()
+            es_epochs = len(res.history['loss'])
+            #print("epochs run: %d" % es_epochs)
 
-        aucmetric = tensorflow.metrics.AUC()
+            aucmetric = tensorflow.metrics.AUC()
 
-        '''validation set metrics'''
-        #loss_test, acc_test = model.evaluate(X_val, y_val, batch_size=512, verbose=0)
-        #y_pred = model.predict_classes(X_val)
-        '''
-        y_scores = model.predict(X_val)
-        predict_class = lambda p: int(round(p))
-        predict_class_v = np.vectorize(predict_class)
-        y_pred = predict_class_v(y_scores[:, 1])
+            '''validation set metrics'''
+            #loss_test, acc_test = model.evaluate(X_val, y_val, batch_size=512, verbose=0)
+            #y_pred = model.predict_classes(X_val)
+            '''
+            y_scores = model.predict(X_val)
+            predict_class = lambda p: int(round(p))
+            predict_class_v = np.vectorize(predict_class)
+            y_pred = predict_class_v(y_scores[:, 1])
+    
+            aucmetric.update_state(y_val, y_scores[:,1])
+            auc_val = float(aucmetric.result())
+    
+            acc_1_test = accuracy_score(y_val, y_pred)
+            acc_0_test = accuracy_score(1 - y_val, 1 - y_pred)
+    
+            prec_1_test = precision_score(y_val, y_pred)
+            prec_0_test = precision_score(1 - y_val, 1 - y_pred)
+    
+            rec_1_test = recall_score(y_val, y_pred)
+            rec_0_test = recall_score(1 - y_val, 1 - y_pred)
+    
+            f1_1_test = f1_score(y_val, y_pred)
+            f1_0_test = f1_score(1 - y_val, 1 - y_pred)
+    
+            hybrid1_test = hybridrecall(2, 1, rec_1_test, rec_0_test)
+            hybrid2_test = hybridrecall(5, 1, rec_1_test, rec_0_test)
+            '''
 
-        aucmetric.update_state(y_val, y_scores[:,1])
-        auc_val = float(aucmetric.result())
+            auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test \
+                = calc_metrics(model, X_val, y_val, aucmetric, False)
 
-        acc_1_test = accuracy_score(y_val, y_pred)
-        acc_0_test = accuracy_score(1 - y_val, 1 - y_pred)
+            print("Validation metrics time (min): %s"%((time.time() - start_time)/60.0))
+            start_time = time.time()
 
-        prec_1_test = precision_score(y_val, y_pred)
-        prec_0_test = precision_score(1 - y_val, 1 - y_pred)
+            '''training set metrics'''
 
-        rec_1_test = recall_score(y_val, y_pred)
-        rec_0_test = recall_score(1 - y_val, 1 - y_pred)
+            #loss_train, acc_train = model.evaluate(X_train, y_train, batch_size=512, verbose=0)
+            #y_pred = model.predict_classes(X_train)
+            '''
+            y_scores = model.predict(X_train)
+            y_pred = predict_class_v(y_scores[:, 1])
+    
+            aucmetric.update_state(y_train, y_scores[:,1])
+            auc_train = float(aucmetric.result())
+    
+            acc_1_train = accuracy_score(y_train, y_pred)
+            acc_0_train = accuracy_score(1-y_train, 1-y_pred)
+    
+            prec_1_train = precision_score(y_train, y_pred)
+            prec_0_train = precision_score(1-y_train, 1-y_pred)
+    
+            rec_1_train = recall_score(y_train, y_pred)
+            rec_0_train = recall_score(1-y_train, 1-y_pred)
+    
+            f1_1_train = f1_score(y_train, y_pred)
+            f1_0_train = f1_score(1-y_train, 1-y_pred)
+    
+            hybrid1_train = hybridrecall(2, 1, rec_1_train, rec_0_train)
+            hybrid2_train = hybridrecall(5, 1, rec_1_train, rec_0_train)
+            '''
 
-        f1_1_test = f1_score(y_val, y_pred)
-        f1_0_test = f1_score(1 - y_val, 1 - y_pred)
-
-        hybrid1_test = hybridrecall(2, 1, rec_1_test, rec_0_test)
-        hybrid2_test = hybridrecall(5, 1, rec_1_test, rec_0_test)
-        '''
-
-        auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test \
-            = calc_metrics(model, X_val, y_val, aucmetric, False)
-
-        print("Validation metrics time (min): %s"%((time.time() - start_time)/60.0))
-        start_time = time.time()
-
-        '''training set metrics'''
-
-        #loss_train, acc_train = model.evaluate(X_train, y_train, batch_size=512, verbose=0)
-        #y_pred = model.predict_classes(X_train)
-        '''
-        y_scores = model.predict(X_train)
-        y_pred = predict_class_v(y_scores[:, 1])
-
-        aucmetric.update_state(y_train, y_scores[:,1])
-        auc_train = float(aucmetric.result())
-
-        acc_1_train = accuracy_score(y_train, y_pred)
-        acc_0_train = accuracy_score(1-y_train, 1-y_pred)
-
-        prec_1_train = precision_score(y_train, y_pred)
-        prec_0_train = precision_score(1-y_train, 1-y_pred)
-
-        rec_1_train = recall_score(y_train, y_pred)
-        rec_0_train = recall_score(1-y_train, 1-y_pred)
-
-        f1_1_train = f1_score(y_train, y_pred)
-        f1_0_train = f1_score(1-y_train, 1-y_pred)
-
-        hybrid1_train = hybridrecall(2, 1, rec_1_train, rec_0_train)
-        hybrid2_train = hybridrecall(5, 1, rec_1_train, rec_0_train)
-        '''
-
-        auc_train,acc_1_train,acc_0_train,prec_1_train, prec_0_train,rec_1_train, rec_0_train,f1_1_train,f1_0_train,hybrid1_train,hybrid2_train \
-            = calc_metrics(model, X_train, y_train, aucmetric, not calc_test)
+            auc_train,acc_1_train,acc_0_train,prec_1_train, prec_0_train,rec_1_train, rec_0_train,f1_1_train,f1_0_train,hybrid1_train,hybrid2_train \
+                = calc_metrics(model, X_train, y_train, aucmetric, not calc_test)
 
 
-        print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
-        print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_test,rec_0_test))
+            print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
+            print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_test,rec_0_test))
 
         metrics.append(
             {#'loss val.': loss_test, 'loss train': loss_train,

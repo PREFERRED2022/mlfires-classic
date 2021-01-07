@@ -7,6 +7,7 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras import models
 import tensorflow.keras.metrics
+import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
 import numpy as np
 from pandas import concat
@@ -288,7 +289,7 @@ def cmvals(y_true, y_pred):
     tp = cm[1, 1]
     return tn, fp, fn, tp
 
-def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, y_pd_tst = None, testdate = None, metrics = None):
+def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, y_pd_tst = None, testdate = None, metrics = None, n_cpus = 1):
 
     modelfolder = 'models'
 
@@ -314,8 +315,13 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
         model = create_NN_model(params, X_train)
         es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
         start_time = time.time()
-        res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0,\
-                        callbacks=[es], class_weight=params['class_weights'])
+        with tf.Session(config=tf.ConfigProto(
+                device_count={"CPU": n_cpus},
+                inter_op_parallelism_threads=n_cpus,
+                intra_op_parallelism_threads=1,
+        )) as sess:
+            res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0,\
+                            callbacks=[es], class_weight=params['class_weights'])
 
         print("Fit time (min): %s"%((time.time() - start_time)/60.0))
         start_time = time.time()
@@ -369,7 +375,12 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
     start_predict = time.time()
     #loss_test, acc_test = model.evaluate(X_test, y_test, batch_size=512, verbose=0)
     #y_pred_1 = model.predict_classes(X_test)
-    y_scores = model.predict(X_test)
+    with tf.Session(config=tf.ConfigProto(
+            device_count={"CPU": n_cpus},
+            inter_op_parallelism_threads=n_cpus,
+            intra_op_parallelism_threads=1,
+    )) as sess:
+        y_scores = model.predict(X_test)
     predict_class = lambda p : int(round(p))
     predict_class_v = np.vectorize(predict_class)
     y_pred = predict_class_v(y_scores[:,1])
@@ -413,11 +424,14 @@ def calcminmaxstats(dstestfiles, statfname):
     else:
         with open(statfname, 'r') as statfile:
             stats = json.loads(statfile.read())
-    for X_pd, y_pd, tdate in load_datasets(dstrainfile, statfname=statfname):
+
+    for X_pd, y_pd, tdate in load_datasets(dstrainfile, calcstats = stats):
         i=1
+
     for dstestfile in dstestfiles:
         for X_pd, y_pd, tdate in load_datasets(dstestfile, calcstats = stats):
             i=1
+
     with open(os.path.join('stats','featurestats.json'),'w') as statfile:
         statfile.write(json.dumps(stats, default=npconv))
     return stats
@@ -455,7 +469,6 @@ else:
 
 for X_pd, y_pd, tdate in load_datasets(dstrainfile, statfname = statfname):
     nn_fit_and_predict(space, X_pd_tr = X_pd, y_pd_tr = y_pd, X_pd_tst = None, y_pd_tst = None)
-
 
 allfilemetrics = None
 modelfname = "".join([ch for ch in json.dumps(space) if re.match(r'\w', ch)])
