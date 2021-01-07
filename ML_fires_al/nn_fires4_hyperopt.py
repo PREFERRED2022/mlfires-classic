@@ -173,14 +173,14 @@ def create_NN_model(params, X):
     model = Sequential()
     n_features = X.shape[1]
     intlayers = int(params['n_internal_layers'][0])
-    model.add(Dense(params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes']['nodes'], activation='relu',
+    model.add(Dense(params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes'], activation='relu',
                     input_shape=(n_features,)))
-    if params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes']['droplayer']:
+    if params['dropout']:
         model.add(Dropout(0.5))
     for i in range(2, intlayers + 2):
-        model.add(Dense(int(params['n_internal_layers'][1]['layer_' + str(i) + '_' + str(intlayers) + '_nodes']['nodes']),
+        model.add(Dense(int(params['n_internal_layers'][1]['layer_' + str(i) + '_' + str(intlayers) + '_nodes']),
                         activation='relu'))
-        if params['n_internal_layers'][1]['layer_' + str(i) + '_' + str(intlayers) + '_nodes']['droplayer']:
+        if params['dropout']:
             model.add(Dropout(0.5))
 
         # model.add(Dense(1, activation='sigmoid'))
