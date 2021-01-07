@@ -8,7 +8,7 @@ def create_space():
                     #(2, {'layer_1_2_nodes': hp.quniform('layer_1_2_nodes', 10, 310, 50), 'layer_2_2_nodes': hp.quniform('layer_2_2_nodes', 10, 310, 50),
                     #     'layer_3_2_nodes': hp.quniform('layer_3_2_nodes', 10, 310, 50)})
 
-                    (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50])}),
+                    (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [{'nodes':50, 'droplayer':hp.choice('droplayer',[True,False]) }] )}),
                     #(1, {'layer_1_1_nodes': hp.choice('layer_1_1_nodes', [500, 1000]),
                     #     'layer_2_1_nodes': hp.choice('layer_2_1_nodes', [500, 1000])}),
                     #(2, {'layer_1_2_nodes': hp.choice('layer_1_2_nodes', [500, 1000]),

@@ -4,7 +4,7 @@ from pandas import read_csv
 from sklearn.model_selection import train_test_split, KFold, GroupKFold
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Dropout
 import tensorflow.keras.metrics
 from tensorflow.keras.utils import to_categorical
 import numpy as np
@@ -173,11 +173,16 @@ def create_NN_model(params, X):
     model = Sequential()
     n_features = X.shape[1]
     intlayers = int(params['n_internal_layers'][0])
-    model.add(Dense(params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes'], activation='relu',
+    model.add(Dense(params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes']['nodes'], activation='relu',
                     input_shape=(n_features,)))
+    if params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes']['droplayer']:
+        model.add(Dropout(0.5))
     for i in range(2, intlayers + 2):
-        model.add(Dense(int(params['n_internal_layers'][1]['layer_' + str(i) + '_' + str(intlayers) + '_nodes']),
+        model.add(Dense(int(params['n_internal_layers'][1]['layer_' + str(i) + '_' + str(intlayers) + '_nodes']['nodes']),
                         activation='relu'))
+        if params['n_internal_layers'][1]['layer_' + str(i) + '_' + str(intlayers) + '_nodes']['droplayer']:
+            model.add(Dropout(0.5))
+
         # model.add(Dense(1, activation='sigmoid'))
     model.add(Dense(2, activation='softmax'))
 
