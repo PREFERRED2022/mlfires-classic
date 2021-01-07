@@ -22,6 +22,8 @@ from sklearn.metrics import accuracy_score, precision_score, f1_score, recall_sc
 import time
 import json
 import space
+from functools import partial
+import re
 
 num_folds = 10
 # kf = KFold(n_splits=num_folds, shuffle=True)
@@ -165,9 +167,6 @@ def load_dataset():
 
     return X, y, groupspd
 
-dsfile, space, max_trials, max_epochs = space.create_space()
-X_pd, y_pd, groups_pd = load_dataset()
-
 
 def create_NN_model(params, X):
     # define model
@@ -198,7 +197,47 @@ def create_NN_model(params, X):
 
     return model
 
-def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
+def hybridrecall(w1, w0, rec1, rec0):
+    if rec1 != 0 and rec0 != 0:
+        return (w1+w0) / (w1 / rec1 + w0 / rec0)
+    elif rec1 == 0 and rec0 == 0:
+        return 0
+    elif rec1 == 0:
+        return rec0
+    elif rec0 == 0:
+        return rec1
+
+def calc_metrics(model, X, y, aucmetric, dontcalc = False):
+    if dontcalc:
+        return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    y_scores = model.predict(X)
+    predict_class = lambda p: int(round(p))
+    predict_class_v = np.vectorize(predict_class)
+    y_pred = predict_class_v(y_scores[:, 1])
+
+    aucmetric.update_state(y, y_scores[:, 1])
+    auc = float(aucmetric.result())
+
+    acc_1 = accuracy_score(y, y_pred)
+    acc_0 = accuracy_score(1 - y, 1 - y_pred)
+
+    prec_1 = precision_score(y, y_pred)
+    prec_0 = precision_score(1 - y, 1 - y_pred)
+
+    rec_1 = recall_score(y, y_pred)
+    rec_0 = recall_score(1 - y, 1 - y_pred)
+
+    f1_1 = f1_score(y, y_pred)
+    f1_0 = f1_score(1 - y, 1 - y_pred)
+
+    hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
+    hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
+
+    return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2
+
+#def nnfit(cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd, params):
+def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
+
     # the function gets a set of variable parameters in "param"
     '''
     params = {'n_internal_layers': params['n_internal_layers'][0],
@@ -212,8 +251,9 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
     cnt = 0
     print("NN params : %s" % params)
 
-    if params['feature_drop']:
-        X_pd=X_pd.drop(columns=[c for c in X_pd.columns if params['feature_drop'] in c])
+    if len(params['feature_drop'])>0:
+        #X_pd=X_pd.drop(columns=[c for c in X_pd.columns if params['feature_drop'] in c])
+        X_pd = X_pd.drop(columns=[c for c in X_pd.columns if any([fd in c for fd in params['feature_drop']])])
 
     X = X_pd.values
     y = y_pd.values
@@ -243,9 +283,13 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         aucmetric = tensorflow.metrics.AUC()
 
         '''validation set metrics'''
-        loss_test, acc_test = model.evaluate(X_val, y_val, batch_size=512, verbose=0)
-        y_pred = model.predict_classes(X_val)
+        #loss_test, acc_test = model.evaluate(X_val, y_val, batch_size=512, verbose=0)
+        #y_pred = model.predict_classes(X_val)
+        '''
         y_scores = model.predict(X_val)
+        predict_class = lambda p: int(round(p))
+        predict_class_v = np.vectorize(predict_class)
+        y_pred = predict_class_v(y_scores[:, 1])
 
         aucmetric.update_state(y_val, y_scores[:,1])
         auc_val = float(aucmetric.result())
@@ -262,13 +306,24 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         f1_1_test = f1_score(y_val, y_pred)
         f1_0_test = f1_score(1 - y_val, 1 - y_pred)
 
+        hybrid1_test = hybridrecall(2, 1, rec_1_test, rec_0_test)
+        hybrid2_test = hybridrecall(5, 1, rec_1_test, rec_0_test)
+        '''
+
+        auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test \
+            = calc_metrics(model, X_val, y_val, aucmetric, False)
+
         print("Validation metrics time (min): %s"%((time.time() - start_time)/60.0))
         start_time = time.time()
 
         '''training set metrics'''
-        loss_train, acc_train = model.evaluate(X_train, y_train, batch_size=512, verbose=0)
-        y_pred = model.predict_classes(X_train)
+
+        #loss_train, acc_train = model.evaluate(X_train, y_train, batch_size=512, verbose=0)
+        #y_pred = model.predict_classes(X_train)
+        '''
         y_scores = model.predict(X_train)
+        y_pred = predict_class_v(y_scores[:, 1])
+
         aucmetric.update_state(y_train, y_scores[:,1])
         auc_train = float(aucmetric.result())
 
@@ -284,19 +339,29 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
         f1_1_train = f1_score(y_train, y_pred)
         f1_0_train = f1_score(1-y_train, 1-y_pred)
 
-        print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
-        print("Recall 1 : %s, Recall 0 : %s" % (rec_1_test,rec_0_test))
+        hybrid1_train = hybridrecall(2, 1, rec_1_train, rec_0_train)
+        hybrid2_train = hybridrecall(5, 1, rec_1_train, rec_0_train)
+        '''
 
-        recall1st = 'recall 1 val.'
+        auc_train,acc_1_train,acc_0_train,prec_1_train, prec_0_train,rec_1_train, rec_0_train,f1_1_train,f1_0_train,hybrid1_train,hybrid2_train \
+            = calc_metrics(model, X_train, y_train, aucmetric, not calc_test)
+
+
+        print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
+        print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_test,rec_0_test))
+
         metrics.append(
-            {'loss val.': loss_test, 'loss train': loss_train, 'accuracy val.': acc_1_test, 'accuracy train': acc_1_train,
-             'precision 1 val.': prec_1_test, 'precision 1 train': prec_1_train, recall1st : rec_1_test,
+            {#'loss val.': loss_test, 'loss train': loss_train,
+             'accuracy val.': acc_1_test, 'accuracy train': acc_1_train,
+             'precision 1 val.': prec_1_test, 'precision 1 train': prec_1_train, 'recall 1 val.' : rec_1_test,
              'recall 1 train': rec_1_train,'f1-score 1 val.': f1_1_test, 'f1-score 1 train': f1_1_train,
              'accuracy 0 val.': acc_0_test, 'accuracy 0 train': acc_0_train,
              'precision 0 val.': prec_0_test, 'precision 0 train': prec_0_train, 'recall 0 val.': rec_0_test,
              'recall 0 train': rec_0_train, 'f1-score 0 val.': f1_0_test, 'f1-score 0 train': f1_0_train,
              'auc val.': auc_val,
-             'auc train.': auc_train, 'early stop epochs': es_epochs, } )#'fit time':  (time.time() - start_fold_time)/60.0})
+             'auc train.': auc_train, 'hybrid1 train': hybrid1_train, 'hybrid1 val': hybrid1_test, 'hybrid2 train': hybrid2_train, 'hybrid2 val': hybrid2_test,
+             'early stop epochs': es_epochs
+             } )#'fit time':  (time.time() - start_fold_time)/60.0})
 
         #print(metrics[-1])
 
@@ -304,37 +369,49 @@ def nnfit(params, cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd):
     for m in metrics[0]:
         mean_metrics[m] = sum(item.get(m, 0) for item in metrics) / len(metrics)
     mean_metrics["fit time (min)"] = (time.time() - start_folds)/60.0
-    print('Mean recall (on test) : %s' % mean_metrics[recall1st])
+    print('Mean %s : %s' % (optimize_target,mean_metrics[optimize_target]))
 
     return {
-        'loss': -mean_metrics[recall1st],
+        'loss': -mean_metrics[optimize_target],
         'status': STATUS_OK,
         # -- store other results like this
         # 'eval_time': time.time(),
         'metrics': mean_metrics,
+        'params': '%s'%params
         # -- attachments are handled differently
         # 'attachments':
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-trials = Trials()
 
-best = fmin(fn=nnfit,  # function to optimize
-            space=space,
-            algo=tpe.suggest,  # optimization algorithm, hyperotp will select its parameters automatically
-            max_evals=max_trials,  # maximum number of iterations
-            trials=trials,  # logging
-            rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility
-            )
+tset, testsets, space, max_trials, max_epochs, calc_test, opt_targets = space.create_space()
+dsfile = testsets[tset]
+X_pd, y_pd, groups_pd = load_dataset()
 
-pd_opt = pd.DataFrame(columns=list(trials.trials[0]['result']['metrics'].keys()))
-for t in trials:
-    pdrow = t['result']['metrics']
-    pdrow['params'] = str(t['misc']['vals'])
-    pd_opt = pd_opt.append(pdrow, ignore_index=True)
+opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
+for opt_target in opt_targets:
+    trials = Trials()
+    nnfitpart = partial(nnfit, kf, X_pd, y_pd, groups_pd, opt_target, calc_test)
 
-hyp_res_base = 'hyperopt_results_'
-cnt = 1
-while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
-    cnt += 1
-pd_opt.to_csv('%s%d.csv' % (hyp_res_base, cnt))
+    best = fmin(fn=nnfitpart,  # function to optimize
+                space=space,
+                algo=tpe.suggest,  # optimization algorithm, hyperotp will select its parameters automatically
+                max_evals=max_trials,  # maximum number of iterations
+                trials=trials,  # logging
+                rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility
+                )
+
+    pd_opt = pd.DataFrame(columns=list(trials.trials[0]['result']['metrics'].keys()))
+    for t in trials:
+        pdrow = t['result']['metrics']
+        pdrow['params'] = t['result']['params']
+        pd_opt = pd_opt.append(pdrow, ignore_index=True)
+
+    if not os.path.isdir(os.path.join('results','hyperopt')):
+        os.makedirs(os.path.join('results','hyperopt'))
+
+    hyp_res_base = os.path.join('results','hyperopt','hyperopt_results_'+"".join([ch for ch in opt_target if re.match(r'\w', ch)])+'_'+tset+'_')
+    cnt = 1
+    while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
+        cnt += 1
+    pd_opt.to_csv('%s%d.csv' % (hyp_res_base, cnt))

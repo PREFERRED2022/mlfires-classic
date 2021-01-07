@@ -96,7 +96,10 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
 
     X = normdataset.normalize_dataset(X_unnorm, aggrfile = statfile)
     y = y_int
-    groupspd = df[firedate_col]
+    if 'id' in df.columns:
+        groupspd = df[['id', firedate_col]]
+    else:
+        groupspd = df[[firedate_col]]
 
     return X, y, groupspd
 
@@ -156,7 +159,7 @@ def npconv(obj):
 def create_unnorm_datefile(dsetfolder, dfchunk, cols, y_columns, dsready, dsunnormsuffix, setdate):
     fileunnorm = os.path.join(dsetfolder, "%s%s_%s%s" % (os.path.basename(dsready), dsunnormsuffix, setdate, ".csv"))
     if not os.path.exists(fileunnorm):
-        pd.concat([dfchunk[cols], dfchunk[y_columns]], axis=1).to_csv(fileunnorm)
+        pd.concat([dfchunk[cols], dfchunk[y_columns]], axis=1).to_csv(fileunnorm, index=False)
 
 def filenames(dsfile):
     dsetfolder = 'data/'
@@ -188,6 +191,8 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None, c
     firedate_col = [c for c in df1.columns if firedatecheck.upper() in c.upper()][0]
     if checkunnorm:
         for dfchunk in pd.read_csv(dsfile, chunksize=chunksize, dtype ={ firedate_col: 'str'}):
+            if 'id' in dfchunk.columns:
+                dfchunk = dfchunk.astype({'id': 'int32'})
             firstdate = dfchunk[firedate_col].head(1).item() if perdate else ""
             print("df first date: %s shape: %s" % (firstdate, dfchunk.shape))
             newcols, corine_col, dirmax_col, domdir_col = fix_categorical(dfchunk, [corinecheck, dirmaxcheck, domdircheck], X_columns, drop_columns)
@@ -220,22 +225,23 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None, c
             print("drop -- : %s"%(dfchunk.shape[0]))
             dfchunk = dfchunk[(dfchunk != -1000).all(axis=1)]
             print("drop -1000 : %s"%(dfchunk.shape[0]))
-            create_unnorm_datefile(dsetfolder, dfchunk, [firedate_col]+newcols, y_columns, dsready, dsunnormsuffix, firstdate)
+            create_unnorm_datefile(dsetfolder, dfchunk, [firedate_col]+['id']+newcols, y_columns, dsready, dsunnormsuffix, firstdate)
             if not calcstats is None:
                 updatestats(dfchunk, calcstats, newcols)
             else:
                 X, y, groupspd = prepare_dataset(dfchunk, newcols, y_columns, firedate_col, corine_col, domdir_col, dirmax_col, statfname)
-                featdf = pd.concat([X, y, groupspd], axis=1)
+                featdf = pd.concat([groupspd, X, y], axis=1)
                 featdf = featdf[[c for c in featdf.columns if 'Unnamed' not in c]]
-                featdf.to_csv(os.path.join(dsetfolder, "%s_%s%s"%(os.path.basename(dsready),firstdate,".csv")))
+                featdf.to_csv(os.path.join(dsetfolder, "%s_%s%s"%(os.path.basename(dsready),firstdate,".csv")), index=False)
         if calcstats:
             return calcstats
     flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn and "~" not in fn]
     for dsready in flist:
-        featdf = pd.read_csv(os.path.join(dsetfolder, dsready))
+        print("Loading %s"%os.path.join(dsetfolder, dsready))
+        featdf = pd.read_csv(os.path.join(dsetfolder, dsready), index_col=False)
         firedate_col = [c for c in featdf.columns if firedate_col.upper() in c.upper()][0]
         firstdate = featdf[firedate_col].head(1).item()
-        X_columns_new = [c for c in featdf.columns if c not in [firedate_col]+y_columns+[c for c in featdf.columns if 'scores' in c] and 'Unnamed' not in c]
+        X_columns_new = [c for c in featdf.columns if c not in [firedate_col]+y_columns+['id']+[c for c in featdf.columns if 'scores' in c] and 'Unnamed' not in c]
         #X_columns_new = [c for c in featdf.columns if c not in y_columns and 'Unnamed' not in c]
         X = featdf[X_columns_new]
         y = featdf[y_columns]
@@ -296,7 +302,7 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
 
     if X_pd_tr is not None and y_pd_tr is not None and not os.path.exists(os.path.join(modelfolder, modelfname)):
         if len(params['feature_drop'])>0:
-            X_pd_tr = X_pd_tr.drop(columns=[c for c in X_pd_tr.columns if any(fd in c for fd in params['feature_drop'])])
+            X_pd_tr = X_pd_tr.drop(columns=[c for c in X_pd_tr.columns if any([fd in c for fd in params['feature_drop']])])
 
         X_train = X_pd_tr.values
         y_train = y_pd_tr.values
@@ -354,7 +360,7 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
     #if params['feature_drop']:
     #    X_pd_tst = X_pd_tst.drop(columns=[c for c in X_pd_tst.columns if params['feature_drop'] in c])
     if len(params['feature_drop']) > 0:
-        X_pd_tst = X_pd_tst.drop(columns=[c for c in X_pd_tst.columns if any(fd in c for fd in params['feature_drop'])])
+        X_pd_tst = X_pd_tst.drop(columns=[c for c in X_pd_tst.columns if any([fd in c for fd in params['feature_drop']])])
 
     X_test = X_pd_tst.values
     y_test = y_pd_tst.values
@@ -362,8 +368,11 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
 
     start_predict = time.time()
     #loss_test, acc_test = model.evaluate(X_test, y_test, batch_size=512, verbose=0)
-    y_pred = model.predict_classes(X_test)
+    #y_pred_1 = model.predict_classes(X_test)
     y_scores = model.predict(X_test)
+    predict_class = lambda p : int(round(p))
+    predict_class_v = np.vectorize(predict_class)
+    y_pred = predict_class_v(y_scores[:,1])
 
     aucmetric.update_state(y_test, y_scores[:,1])
     auc_val = float(aucmetric.result())
@@ -414,15 +423,23 @@ def calcminmaxstats(dstestfiles, statfname):
     return stats
 
 def recall(tp,fn):
+    if tp+fn == 0:
+        return 0
     return tp/(tp+fn)
 
 def precision(tp,fp):
+    if tp+fp == 0:
+        return 0
     return tp/(tp+fp)
 
 def accuracy(tp,tn, fp, fn):
+    if tp+fp+fp+fn == 0:
+        return 0
     return (tp+tn)/(tp+fp+fp+fn)
 
 def f1(tp,fp,fn):
+    if recall(tp,fn)+precision(tp,fp) == 0:
+        return 0
     return 2*recall(tp,fn)*precision(tp,fp)/(recall(tp,fn)+precision(tp,fp))
 
 
@@ -441,22 +458,29 @@ for X_pd, y_pd, tdate in load_datasets(dstrainfile, statfname = statfname):
 
 
 allfilemetrics = None
+modelfname = "".join([ch for ch in json.dumps(space) if re.match(r'\w', ch)])
 for dstestfile in dstestfiles:
     metrics = []
     dsetfolder, dsreadysuffix, dsunnormsuffix, dsfile, dsetfolder, dsready = filenames(dstestfile)
-    flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn]
+    #flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn]
     for X_pd, y_pd, tdate in load_datasets(dstestfile, perdate=True, statfname = statfname, checkunnorm = checkunnorm):
         y_scores = nn_fit_and_predict(space, X_pd_tr = None, y_pd_tr = None, X_pd_tst = X_pd, y_pd_tst = y_pd, testdate = tdate, metrics = metrics)
         month = str(tdate)[:6]
+        flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn]
         if y_scores is not None and savescores:
             fn = os.path.join(dsetfolder,[f for f in flist if str(tdate) in f][0])
-            scores = pd.Series(y_scores[:,1], name = 'scores')
+            modelparams = ''.join([str(space[p]) for p in space])
+            model_scorename = 'scores '+''.join([ch for ch in modelparams if re.match(r'\w', ch)])
+            scores = pd.Series(y_scores[:,1], name = model_scorename)
             featdf = pd.read_csv(fn)
+            #featdf = featdf.astype({'id': 'int32'})
             score_cols = [c for c in featdf.columns if 'scores' in c]
-            if score_cols is not None and len(score_cols)>0 in featdf.columns:
-                featdf.drop(score_cols, axis=1)
+            if score_cols is not None and len(score_cols)>0:
+                for c in score_cols:
+                    if c == model_scorename:
+                        featdf = featdf.drop([c], axis=1)
             featdf = pd.concat([featdf, scores], axis=1)
-            featdf.to_csv(fn)
+            featdf.to_csv(fn, index=False)
 
     pdmetrics = pd.DataFrame(metrics)
     if allfilemetrics is None:
@@ -477,12 +501,13 @@ for dstestfile in dstestfiles:
     pdmetrics['f1-score 0 test']['sums'] = f1(pdmetrics['True Positive 0']['sums'], pdmetrics['False Positive 0']['sums'], pdmetrics['False Negative 0']['sums'])
     pdmetrics['date']['sums'] = month
     res_pref = 'results/test_results_'
-    res_base = res_pref+os.path.basename(dstestfile)[:-4]
+    #res_base = res_pref+os.path.basename(dstestfile)[:-4]+modelfname
+    res_base = "%s%s_%s"%(res_pref, month, modelfname)
     cnt = 1
     while os.path.exists('%s_%d.csv' % (res_base, cnt)):
         cnt += 1
-    pdmetrics.to_csv('%s_%d.csv' % (res_base, cnt))
+    pdmetrics.to_csv('%s_%d.csv' % (res_base, cnt), index=False)
     allfilemetrics = allfilemetrics.append(pdmetrics.loc['sums'].to_dict(), ignore_index=True)
 
-modelfname = "".join([ch for ch in json.dumps(space) if re.match(r'\w', ch)])
-allfilemetrics.to_csv('%s_%d.csv' % (res_pref+modelfname, cnt))
+#modelfname = "".join([ch for ch in json.dumps(space) if re.match(r'\w', ch)])
+allfilemetrics.to_csv('%s_%d.csv' % (res_pref+modelfname, cnt), index=False)

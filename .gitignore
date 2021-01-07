@@ -7,3 +7,6 @@ ML_fires_al/.ipynb_checkpoints/
 !ML_fires_al/data/*csv
 .\\l*
 temp
+ML_fires_al/results/
+ML_fires_al/models/
+ML_fires_al/stats/
