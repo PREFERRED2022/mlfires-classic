@@ -315,13 +315,8 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
         model = create_NN_model(params, X_train)
         es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
         start_time = time.time()
-        with tf.Session(config=tf.ConfigProto(
-                device_count={"CPU": n_cpus},
-                inter_op_parallelism_threads=n_cpus,
-                intra_op_parallelism_threads=1,
-        )) as sess:
-            res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0,\
-                            callbacks=[es], class_weight=params['class_weights'])
+        res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0,\
+                        callbacks=[es], class_weight=params['class_weights'])
 
         print("Fit time (min): %s"%((time.time() - start_time)/60.0))
         start_time = time.time()
@@ -375,12 +370,8 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
     start_predict = time.time()
     #loss_test, acc_test = model.evaluate(X_test, y_test, batch_size=512, verbose=0)
     #y_pred_1 = model.predict_classes(X_test)
-    with tf.Session(config=tf.ConfigProto(
-            device_count={"CPU": n_cpus},
-            inter_op_parallelism_threads=n_cpus,
-            intra_op_parallelism_threads=1,
-    )) as sess:
-        y_scores = model.predict(X_test)
+
+    y_scores = model.predict(X_test)
     predict_class = lambda p : int(round(p))
     predict_class_v = np.vectorize(predict_class)
     y_pred = predict_class_v(y_scores[:,1])
@@ -457,8 +448,10 @@ def f1(tp,fp,fn):
     return 2*recall(tp,fn)*precision(tp,fp)/(recall(tp,fn)+precision(tp,fp))
 
 
-dstestfiles, dstrainfile, space, max_epochs, checkunnorm, savescores = space_test.create_space()
-
+dstestfiles, dstrainfile, space, max_epochs, checkunnorm, savescores, n_cpus = space_test.create_space()
+tf.config.threading.set_inter_op_parallelism_threads(
+    n_cpus
+)
 statfname = os.path.join('stats', 'featurestats.json')
 
 if not os.path.exists(os.path.join('stats', 'featurestats.json')):

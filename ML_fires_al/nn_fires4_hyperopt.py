@@ -265,88 +265,85 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
         model = create_NN_model(params, X)
         es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
         start_time = time.time()
-        with tf.Session(config=tf.ConfigProto(
-                device_count={"CPU": n_cpus},
-                inter_op_parallelism_threads=n_cpus,
-                intra_op_parallelism_threads=1,
-        )) as sess:
-            res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, validation_data=(X_val, y_val),\
-                            callbacks=[es], class_weight=params['class_weights'])
-
-            print("Fit time (min): %s"%((time.time() - start_time)/60.0))
-            start_time = time.time()
-            es_epochs = len(res.history['loss'])
-            #print("epochs run: %d" % es_epochs)
-
-            aucmetric = tensorflow.metrics.AUC()
-
-            '''validation set metrics'''
-            #loss_test, acc_test = model.evaluate(X_val, y_val, batch_size=512, verbose=0)
-            #y_pred = model.predict_classes(X_val)
-            '''
-            y_scores = model.predict(X_val)
-            predict_class = lambda p: int(round(p))
-            predict_class_v = np.vectorize(predict_class)
-            y_pred = predict_class_v(y_scores[:, 1])
-    
-            aucmetric.update_state(y_val, y_scores[:,1])
-            auc_val = float(aucmetric.result())
-    
-            acc_1_test = accuracy_score(y_val, y_pred)
-            acc_0_test = accuracy_score(1 - y_val, 1 - y_pred)
-    
-            prec_1_test = precision_score(y_val, y_pred)
-            prec_0_test = precision_score(1 - y_val, 1 - y_pred)
-    
-            rec_1_test = recall_score(y_val, y_pred)
-            rec_0_test = recall_score(1 - y_val, 1 - y_pred)
-    
-            f1_1_test = f1_score(y_val, y_pred)
-            f1_0_test = f1_score(1 - y_val, 1 - y_pred)
-    
-            hybrid1_test = hybridrecall(2, 1, rec_1_test, rec_0_test)
-            hybrid2_test = hybridrecall(5, 1, rec_1_test, rec_0_test)
-            '''
-
-            auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test \
-                = calc_metrics(model, X_val, y_val, aucmetric, False)
-
-            print("Validation metrics time (min): %s"%((time.time() - start_time)/60.0))
-            start_time = time.time()
-
-            '''training set metrics'''
-
-            #loss_train, acc_train = model.evaluate(X_train, y_train, batch_size=512, verbose=0)
-            #y_pred = model.predict_classes(X_train)
-            '''
-            y_scores = model.predict(X_train)
-            y_pred = predict_class_v(y_scores[:, 1])
-    
-            aucmetric.update_state(y_train, y_scores[:,1])
-            auc_train = float(aucmetric.result())
-    
-            acc_1_train = accuracy_score(y_train, y_pred)
-            acc_0_train = accuracy_score(1-y_train, 1-y_pred)
-    
-            prec_1_train = precision_score(y_train, y_pred)
-            prec_0_train = precision_score(1-y_train, 1-y_pred)
-    
-            rec_1_train = recall_score(y_train, y_pred)
-            rec_0_train = recall_score(1-y_train, 1-y_pred)
-    
-            f1_1_train = f1_score(y_train, y_pred)
-            f1_0_train = f1_score(1-y_train, 1-y_pred)
-    
-            hybrid1_train = hybridrecall(2, 1, rec_1_train, rec_0_train)
-            hybrid2_train = hybridrecall(5, 1, rec_1_train, rec_0_train)
-            '''
-
-            auc_train,acc_1_train,acc_0_train,prec_1_train, prec_0_train,rec_1_train, rec_0_train,f1_1_train,f1_0_train,hybrid1_train,hybrid2_train \
-                = calc_metrics(model, X_train, y_train, aucmetric, not calc_test)
 
 
-            print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
-            print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_test,rec_0_test))
+        res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, validation_data=(X_val, y_val),\
+                        callbacks=[es], class_weight=params['class_weights'])
+
+        print("Fit time (min): %s"%((time.time() - start_time)/60.0))
+        start_time = time.time()
+        es_epochs = len(res.history['loss'])
+        #print("epochs run: %d" % es_epochs)
+
+        aucmetric = tensorflow.metrics.AUC()
+
+        '''validation set metrics'''
+        #loss_test, acc_test = model.evaluate(X_val, y_val, batch_size=512, verbose=0)
+        #y_pred = model.predict_classes(X_val)
+        '''
+        y_scores = model.predict(X_val)
+        predict_class = lambda p: int(round(p))
+        predict_class_v = np.vectorize(predict_class)
+        y_pred = predict_class_v(y_scores[:, 1])
+
+        aucmetric.update_state(y_val, y_scores[:,1])
+        auc_val = float(aucmetric.result())
+
+        acc_1_test = accuracy_score(y_val, y_pred)
+        acc_0_test = accuracy_score(1 - y_val, 1 - y_pred)
+
+        prec_1_test = precision_score(y_val, y_pred)
+        prec_0_test = precision_score(1 - y_val, 1 - y_pred)
+
+        rec_1_test = recall_score(y_val, y_pred)
+        rec_0_test = recall_score(1 - y_val, 1 - y_pred)
+
+        f1_1_test = f1_score(y_val, y_pred)
+        f1_0_test = f1_score(1 - y_val, 1 - y_pred)
+
+        hybrid1_test = hybridrecall(2, 1, rec_1_test, rec_0_test)
+        hybrid2_test = hybridrecall(5, 1, rec_1_test, rec_0_test)
+        '''
+
+        auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test \
+            = calc_metrics(model, X_val, y_val, aucmetric, False)
+
+        print("Validation metrics time (min): %s"%((time.time() - start_time)/60.0))
+        start_time = time.time()
+
+        '''training set metrics'''
+
+        #loss_train, acc_train = model.evaluate(X_train, y_train, batch_size=512, verbose=0)
+        #y_pred = model.predict_classes(X_train)
+        '''
+        y_scores = model.predict(X_train)
+        y_pred = predict_class_v(y_scores[:, 1])
+
+        aucmetric.update_state(y_train, y_scores[:,1])
+        auc_train = float(aucmetric.result())
+
+        acc_1_train = accuracy_score(y_train, y_pred)
+        acc_0_train = accuracy_score(1-y_train, 1-y_pred)
+
+        prec_1_train = precision_score(y_train, y_pred)
+        prec_0_train = precision_score(1-y_train, 1-y_pred)
+
+        rec_1_train = recall_score(y_train, y_pred)
+        rec_0_train = recall_score(1-y_train, 1-y_pred)
+
+        f1_1_train = f1_score(y_train, y_pred)
+        f1_0_train = f1_score(1-y_train, 1-y_pred)
+
+        hybrid1_train = hybridrecall(2, 1, rec_1_train, rec_0_train)
+        hybrid2_train = hybridrecall(5, 1, rec_1_train, rec_0_train)
+        '''
+
+        auc_train,acc_1_train,acc_0_train,prec_1_train, prec_0_train,rec_1_train, rec_0_train,f1_1_train,f1_0_train,hybrid1_train,hybrid2_train \
+            = calc_metrics(model, X_train, y_train, aucmetric, not calc_test)
+
+
+        print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
+        print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_test,rec_0_test))
 
         metrics.append(
             {#'loss val.': loss_test, 'loss train': loss_train,
@@ -382,7 +379,11 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
     }
 
 
-tset, testsets, space, max_trials, max_epochs, calc_test, opt_targets = space.create_space()
+
+tset, testsets, space, max_trials, max_epochs, calc_test, opt_targets, n_cpus = space.create_space()
+tf.config.threading.set_inter_op_parallelism_threads(
+    n_cpus
+)
 dsfile = testsets[tset]
 X_pd, y_pd, groups_pd = load_dataset()
 

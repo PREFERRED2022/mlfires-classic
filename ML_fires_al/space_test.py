@@ -16,5 +16,5 @@ def create_space():
     checkunnorm = True
     savescores = True
 
-    return dstestfiles, dsfile, space, max_epochs, checkunnorm, savescores
+    return dstestfiles, dsfile, space, max_epochs, checkunnorm, savescores, 8
 
