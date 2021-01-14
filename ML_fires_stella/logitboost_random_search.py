@@ -36,7 +36,7 @@ def hyperparameter_tune(base_model, parameters, kfold, X, y, groups):
 
     optimal_model = RandomizedSearchCV(base_model,
                                        param_distributions=parameters,
-                                       n_iter=200,
+                                       n_iter=50,
                                        cv=k,
                                        scoring = scoring_st,
                                        n_jobs=6,
@@ -93,11 +93,12 @@ X_ = X_unnorm.values
 y_ = y.values
 groupskfold = groups.values
 
-logitb = LogitBoost(DecisionTreeRegressor())
+logitb = LogitBoost()
 
+estimator = [DecisionTreeRegressor]
 depth = [10,20,100,200,400,500,700,1000,1200,2000,None]
 n_estimators = [50 ,100, 120, 150,170,200, 1000]
-learning_rate = [0.001,0.1,0.5,0.005,0.0001,1]
+learning_rate = [0.001,0.1,0.5,1]
 random_state = [420]
 bootstrap = [True, False]
 
@@ -110,6 +111,7 @@ class_weights = [{0:1,1:300},{0:1,1:400},{0:1,1:500},{0:1,1:1000}]
 
 
 lots_of_parameters = {
+    "estimator": estimator,
     "n_estimators": n_estimators,#trees of the forest
     "max_response": max_response,
     "random_state":random_state,
@@ -140,7 +142,7 @@ for i in folds:
     #df_results.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion.csv')
 
     df_short = df_results.filter(regex="mean|std|params")
-    df_short.to_csv('/home/sgirtsou/Documents/GridSearchCV/LB/LBcv_dataset_balanced_noshufflestrictcriterion_200.csv ')
+    df_short.to_csv('/home/sgirtsou/Documents/GridSearchCV/LB/LBcv_dataset_balanced_noshufflestrictcriterion_regressor_50.csv ')
     #df_no_split_cols = [c for c in df_results.columns if 'split' not in c]
     #df1.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion_sh.csv')
 

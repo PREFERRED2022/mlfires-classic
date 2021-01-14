@@ -26,6 +26,7 @@ import json
 import space_test
 import re
 from datetime import datetime
+import manage_model
 
 def drop_all0_features(df):
     for c in df.columns:
@@ -236,7 +237,7 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None, c
                 featdf.to_csv(os.path.join(dsetfolder, "%s_%s%s"%(os.path.basename(dsready),firstdate,".csv")), index=False)
         if calcstats:
             return calcstats
-    flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn and "~" not in fn]
+    flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn and "~" not in fn and fn.endswith('.csv')]
     for dsready in flist:
         print("Loading %s"%os.path.join(dsetfolder, dsready))
         featdf = pd.read_csv(os.path.join(dsetfolder, dsready), index_col=False)
@@ -250,36 +251,6 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None, c
         yield X, y, firstdate
 
     #return X, y, groupspd
-
-
-def create_NN_model(params, X):
-    # define model
-    model = Sequential()
-    n_features = X.shape[1]
-    intlayers = int(params['n_internal_layers'][0])
-    model.add(Dense(params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes'], activation='relu',
-                    input_shape=(n_features,)))
-    for i in range(2, intlayers + 2):
-        model.add(Dense(int(params['n_internal_layers'][1]['layer_' + str(i) + '_' + str(intlayers) + '_nodes']),
-                        activation='relu'))
-        # model.add(Dense(1, activation='sigmoid'))
-    model.add(Dense(2, activation='softmax'))
-
-    # compile the model
-
-    from tensorflow.keras.optimizers import Adam
-
-    adam = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, amsgrad=False)
-
-    if params['metric'] == 'accuracy':
-        metrics = ['accuracy']
-    elif params['metric'] == 'sparse':
-        metrics = [tensorflow.metrics.SparseCategoricalAccuracy()]
-    #elif params['metric'] == 'tn':
-        #metrics = [tensorflow.metrics.TrueNegatives(),tensorflow.metrics.TruePositives()]
-    model.compile(optimizer=adam, loss='sparse_categorical_crossentropy', metrics=metrics)  # , AUC(multi_label=False)])
-
-    return model
 
 def cmvals(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
@@ -312,7 +283,7 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
         print("Fitting ...")
         # print("TRAIN:", train_index, "TEST:", test_index)
         y_train = y_train[:,0]
-        model = create_NN_model(params, X_train)
+        model = manage_model.create_NN_model(params, X_train)
         es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
         start_time = time.time()
         res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0,\
@@ -448,7 +419,7 @@ def f1(tp,fp,fn):
     return 2*recall(tp,fn)*precision(tp,fp)/(recall(tp,fn)+precision(tp,fp))
 
 
-dstestfiles, dstrainfile, space, max_epochs, checkunnorm, savescores, n_cpus = space_test.create_space()
+dstestfiles, dstrainfile, spaces, max_epochs, checkunnorm, savescores, n_cpus = space_test.create_space()
 tf.config.threading.set_inter_op_parallelism_threads(
     n_cpus
 )
@@ -460,60 +431,61 @@ else:
     with open(os.path.join('stats', 'featurestats.json'), 'r') as statfile:
         stats = json.loads(statfile.read())
 
-for X_pd, y_pd, tdate in load_datasets(dstrainfile, statfname = statfname):
-    nn_fit_and_predict(space, X_pd_tr = X_pd, y_pd_tr = y_pd, X_pd_tst = None, y_pd_tst = None)
+for space in spaces:
+    for X_pd, y_pd, tdate in load_datasets(dstrainfile, statfname = statfname):
+        nn_fit_and_predict(space, X_pd_tr = X_pd, y_pd_tr = y_pd, X_pd_tst = None, y_pd_tst = None)
 
-allfilemetrics = None
-modelfname = "".join([ch for ch in json.dumps(space) if re.match(r'\w', ch)])
-for dstestfile in dstestfiles:
-    metrics = []
-    dsetfolder, dsreadysuffix, dsunnormsuffix, dsfile, dsetfolder, dsready = filenames(dstestfile)
-    #flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn]
-    for X_pd, y_pd, tdate in load_datasets(dstestfile, perdate=True, statfname = statfname, checkunnorm = checkunnorm):
-        y_scores = nn_fit_and_predict(space, X_pd_tr = None, y_pd_tr = None, X_pd_tst = X_pd, y_pd_tst = y_pd, testdate = tdate, metrics = metrics)
-        month = str(tdate)[:6]
-        flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn]
-        if y_scores is not None and savescores:
-            fn = os.path.join(dsetfolder,[f for f in flist if str(tdate) in f][0])
-            modelparams = ''.join([str(space[p]) for p in space])
-            model_scorename = 'scores '+''.join([ch for ch in modelparams if re.match(r'\w', ch)])
-            scores = pd.Series(y_scores[:,1], name = model_scorename)
-            featdf = pd.read_csv(fn)
-            #featdf = featdf.astype({'id': 'int32'})
-            score_cols = [c for c in featdf.columns if 'scores' in c]
-            if score_cols is not None and len(score_cols)>0:
-                for c in score_cols:
-                    if c == model_scorename:
-                        featdf = featdf.drop([c], axis=1)
-            featdf = pd.concat([featdf, scores], axis=1)
-            featdf.to_csv(fn, index=False)
+    allfilemetrics = None
+    modelfname = "".join([ch for ch in json.dumps(space) if re.match(r'\w', ch)])
+    for dstestfile in dstestfiles:
+        metrics = []
+        dsetfolder, dsreadysuffix, dsunnormsuffix, dsfile, dsetfolder, dsready = filenames(dstestfile)
+        #flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn]
+        for X_pd, y_pd, tdate in load_datasets(dstestfile, perdate=True, statfname = statfname, checkunnorm = checkunnorm):
+            y_scores = nn_fit_and_predict(space, X_pd_tr = None, y_pd_tr = None, X_pd_tst = X_pd, y_pd_tst = y_pd, testdate = tdate, metrics = metrics)
+            month = str(tdate)[:6]
+            flist = [fn for fn in os.listdir(dsetfolder) if os.path.basename(dsready) in fn and dsunnormsuffix not in fn]
+            if y_scores is not None and savescores:
+                fn = os.path.join(dsetfolder,[f for f in flist if str(tdate) in f][0])
+                modelparams = ''.join([str(space[p]) for p in space])
+                model_scorename = 'scores '+''.join([ch for ch in modelparams if re.match(r'\w', ch)])
+                scores = pd.Series(y_scores[:,1], name = model_scorename)
+                featdf = pd.read_csv(fn)
+                #featdf = featdf.astype({'id': 'int32'})
+                score_cols = [c for c in featdf.columns if 'scores' in c]
+                if score_cols is not None and len(score_cols)>0:
+                    for c in score_cols:
+                        if c == model_scorename:
+                            featdf = featdf.drop([c], axis=1)
+                featdf = pd.concat([featdf, scores], axis=1)
+                featdf.to_csv(fn, index=False)
 
-    pdmetrics = pd.DataFrame(metrics)
-    if allfilemetrics is None:
-        allfilemetrics = pd.DataFrame(columns=pdmetrics.columns)
-    pdmetrics = pdmetrics.append(pd.Series(name = 'sums'))
-    sumscols = [ 'True Negative 1', 'False Positive 1', 'False Negative 1', 'True Positive 1',\
-                 'True Negative 0', 'False Positive 0', 'False Negative 0', 'True Positive 0', 'predict time']
-    for c in sumscols:
-        pdmetrics[c]['sums'] = pdmetrics[c].sum()
+        pdmetrics = pd.DataFrame(metrics)
+        if allfilemetrics is None:
+            allfilemetrics = pd.DataFrame(columns=pdmetrics.columns)
+        pdmetrics = pdmetrics.append(pd.Series(name = 'sums'))
+        sumscols = [ 'True Negative 1', 'False Positive 1', 'False Negative 1', 'True Positive 1',\
+                     'True Negative 0', 'False Positive 0', 'False Negative 0', 'True Positive 0', 'predict time']
+        for c in sumscols:
+            pdmetrics[c]['sums'] = pdmetrics[c].sum()
 
-    pdmetrics['accuracy test']['sums'] = accuracy(pdmetrics['True Positive 1']['sums'],pdmetrics['True Negative 1']['sums'],\
-                                                  pdmetrics['False Positive 1']['sums'], pdmetrics['False Negative 1']['sums'])
-    pdmetrics['precision 1 test']['sums'] = precision(pdmetrics['True Positive 1']['sums'], pdmetrics['False Positive 1']['sums'])
-    pdmetrics['precision 0 test']['sums'] = precision(pdmetrics['True Positive 0']['sums'], pdmetrics['False Positive 0']['sums'])
-    pdmetrics['recall 1 test']['sums'] = recall(pdmetrics['True Positive 1']['sums'],pdmetrics['False Negative 1']['sums'])
-    pdmetrics['recall 0 test']['sums'] = recall(pdmetrics['True Positive 0']['sums'],pdmetrics['False Negative 0']['sums'])
-    pdmetrics['f1-score 1 test']['sums'] = f1(pdmetrics['True Positive 1']['sums'], pdmetrics['False Positive 1']['sums'], pdmetrics['False Negative 1']['sums'])
-    pdmetrics['f1-score 0 test']['sums'] = f1(pdmetrics['True Positive 0']['sums'], pdmetrics['False Positive 0']['sums'], pdmetrics['False Negative 0']['sums'])
-    pdmetrics['date']['sums'] = month
-    res_pref = 'results/test_results_'
-    #res_base = res_pref+os.path.basename(dstestfile)[:-4]+modelfname
-    res_base = "%s%s_%s"%(res_pref, month, modelfname)
-    cnt = 1
-    while os.path.exists('%s_%d.csv' % (res_base, cnt)):
-        cnt += 1
-    pdmetrics.to_csv('%s_%d.csv' % (res_base, cnt), index=False)
-    allfilemetrics = allfilemetrics.append(pdmetrics.loc['sums'].to_dict(), ignore_index=True)
+        pdmetrics['accuracy test']['sums'] = accuracy(pdmetrics['True Positive 1']['sums'],pdmetrics['True Negative 1']['sums'],\
+                                                      pdmetrics['False Positive 1']['sums'], pdmetrics['False Negative 1']['sums'])
+        pdmetrics['precision 1 test']['sums'] = precision(pdmetrics['True Positive 1']['sums'], pdmetrics['False Positive 1']['sums'])
+        pdmetrics['precision 0 test']['sums'] = precision(pdmetrics['True Positive 0']['sums'], pdmetrics['False Positive 0']['sums'])
+        pdmetrics['recall 1 test']['sums'] = recall(pdmetrics['True Positive 1']['sums'],pdmetrics['False Negative 1']['sums'])
+        pdmetrics['recall 0 test']['sums'] = recall(pdmetrics['True Positive 0']['sums'],pdmetrics['False Negative 0']['sums'])
+        pdmetrics['f1-score 1 test']['sums'] = f1(pdmetrics['True Positive 1']['sums'], pdmetrics['False Positive 1']['sums'], pdmetrics['False Negative 1']['sums'])
+        pdmetrics['f1-score 0 test']['sums'] = f1(pdmetrics['True Positive 0']['sums'], pdmetrics['False Positive 0']['sums'], pdmetrics['False Negative 0']['sums'])
+        pdmetrics['date']['sums'] = month
+        res_pref = 'results/test_results_'
+        #res_base = res_pref+os.path.basename(dstestfile)[:-4]+modelfname
+        res_base = "%s%s_%s"%(res_pref, month, modelfname)
+        cnt = 1
+        while os.path.exists('%s_%d.csv' % (res_base, cnt)):
+            cnt += 1
+        pdmetrics.to_csv('%s_%d.csv' % (res_base, cnt), index=False)
+        allfilemetrics = allfilemetrics.append(pdmetrics.loc['sums'].to_dict(), ignore_index=True)
 
-#modelfname = "".join([ch for ch in json.dumps(space) if re.match(r'\w', ch)])
-allfilemetrics.to_csv('%s_%d.csv' % (res_pref+modelfname, cnt), index=False)
+    #modelfname = "".join([ch for ch in json.dumps(space) if re.match(r'\w', ch)])
+    allfilemetrics.to_csv('%s_%d.csv' % (res_pref+modelfname, cnt), index=False)

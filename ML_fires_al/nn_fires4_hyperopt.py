@@ -25,6 +25,7 @@ import json
 import space
 from functools import partial
 import re
+import manage_model
 
 num_folds = 10
 # kf = KFold(n_splits=num_folds, shuffle=True)
@@ -155,41 +156,6 @@ def load_dataset():
 
     return X, y, groupspd
 
-
-def create_NN_model(params, X):
-    # define model
-    model = Sequential()
-    n_features = X.shape[1]
-    intlayers = int(params['n_internal_layers'][0])
-    model.add(Dense(params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes'], activation='relu',
-                    input_shape=(n_features,)))
-    if params['dropout']:
-        model.add(Dropout(0.5))
-    for i in range(2, intlayers + 2):
-        model.add(Dense(int(params['n_internal_layers'][1]['layer_' + str(i) + '_' + str(intlayers) + '_nodes']),
-                        activation='relu'))
-        if params['dropout']:
-            model.add(Dropout(0.5))
-
-        # model.add(Dense(1, activation='sigmoid'))
-    model.add(Dense(2, activation='softmax'))
-
-    # compile the model
-
-    from tensorflow.keras.optimizers import Adam
-
-    adam = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, amsgrad=False)
-
-    if params['metric'] == 'accuracy':
-        metrics = ['accuracy']
-    elif params['metric'] == 'sparse':
-        metrics = [tensorflow.metrics.SparseCategoricalAccuracy()]
-    #elif params['metric'] == 'tn':
-        #metrics = [tensorflow.metrics.TrueNegatives(),tensorflow.metrics.TruePositives()]
-    model.compile(optimizer=adam, loss='sparse_categorical_crossentropy', metrics=metrics)  # , AUC(multi_label=False)])
-
-    return model
-
 def hybridrecall(w1, w0, rec1, rec0):
     if rec1 != 0 and rec0 != 0:
         return (w1+w0) / (w1 / rec1 + w0 / rec0)
@@ -262,7 +228,7 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
         y_train, y_val = y[train_index], y[test_index]
         y_val = y_val[:,0]
         y_train = y_train[:,0]
-        model = create_NN_model(params, X)
+        model = manage_model.create_NN_model(params, X)
         es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
         start_time = time.time()
 
@@ -280,30 +246,6 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
         '''validation set metrics'''
         #loss_test, acc_test = model.evaluate(X_val, y_val, batch_size=512, verbose=0)
         #y_pred = model.predict_classes(X_val)
-        '''
-        y_scores = model.predict(X_val)
-        predict_class = lambda p: int(round(p))
-        predict_class_v = np.vectorize(predict_class)
-        y_pred = predict_class_v(y_scores[:, 1])
-
-        aucmetric.update_state(y_val, y_scores[:,1])
-        auc_val = float(aucmetric.result())
-
-        acc_1_test = accuracy_score(y_val, y_pred)
-        acc_0_test = accuracy_score(1 - y_val, 1 - y_pred)
-
-        prec_1_test = precision_score(y_val, y_pred)
-        prec_0_test = precision_score(1 - y_val, 1 - y_pred)
-
-        rec_1_test = recall_score(y_val, y_pred)
-        rec_0_test = recall_score(1 - y_val, 1 - y_pred)
-
-        f1_1_test = f1_score(y_val, y_pred)
-        f1_0_test = f1_score(1 - y_val, 1 - y_pred)
-
-        hybrid1_test = hybridrecall(2, 1, rec_1_test, rec_0_test)
-        hybrid2_test = hybridrecall(5, 1, rec_1_test, rec_0_test)
-        '''
 
         auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test \
             = calc_metrics(model, X_val, y_val, aucmetric, False)
@@ -315,28 +257,6 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
 
         #loss_train, acc_train = model.evaluate(X_train, y_train, batch_size=512, verbose=0)
         #y_pred = model.predict_classes(X_train)
-        '''
-        y_scores = model.predict(X_train)
-        y_pred = predict_class_v(y_scores[:, 1])
-
-        aucmetric.update_state(y_train, y_scores[:,1])
-        auc_train = float(aucmetric.result())
-
-        acc_1_train = accuracy_score(y_train, y_pred)
-        acc_0_train = accuracy_score(1-y_train, 1-y_pred)
-
-        prec_1_train = precision_score(y_train, y_pred)
-        prec_0_train = precision_score(1-y_train, 1-y_pred)
-
-        rec_1_train = recall_score(y_train, y_pred)
-        rec_0_train = recall_score(1-y_train, 1-y_pred)
-
-        f1_1_train = f1_score(y_train, y_pred)
-        f1_0_train = f1_score(1-y_train, 1-y_pred)
-
-        hybrid1_train = hybridrecall(2, 1, rec_1_train, rec_0_train)
-        hybrid2_train = hybridrecall(5, 1, rec_1_train, rec_0_train)
-        '''
 
         auc_train,acc_1_train,acc_0_train,prec_1_train, prec_0_train,rec_1_train, rec_0_train,f1_1_train,f1_0_train,hybrid1_train,hybrid2_train \
             = calc_metrics(model, X_train, y_train, aucmetric, not calc_test)

@@ -2,7 +2,7 @@ from hyperopt import hp
 import os
 
 def create_space():
-    space = {'n_internal_layers': [0, {'layer_1_0_nodes': 50}], 'class_weights': {0:3,1:7}, 'feature_drop':['aspect'], 'metric': 'accuracy' }
+    space = [{'n_internal_layers': [0, {'layer_1_0_nodes': 50}], 'class_weights': {0:3,1:7}, 'feature_drop':['aspect'], 'metric': 'accuracy', 'dropout': [False]}]
     #space = {'n_internal_layers': [0, {'layer_1_0_nodes': 50}], 'class_weights': {0:1,1:25}, 'feature_drop':['_dir_'], 'metric': 'accuracy' }
 
     max_epochs = 2000
