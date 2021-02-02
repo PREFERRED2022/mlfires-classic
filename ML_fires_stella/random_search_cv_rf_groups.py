@@ -71,11 +71,12 @@ def hyperparameter_tune(base_model, parameters, kfold, X, y, groups):
 
     optimal_model = RandomizedSearchCV(base_model,
                                        param_distributions=parameters,
-                                       n_iter=10,
+                                       n_iter=1,
                                        cv=k,
                                        scoring = scoring_st,
                                        n_jobs=6,
                                        refit='rec_1',
+                                       verbose=3,
                                        return_train_score=True)
                                        #random_state=SEED)
 
@@ -99,8 +100,8 @@ def hyperparameter_tune(base_model, parameters, kfold, X, y, groups):
 #df = pd.read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/training_dataset.csv')
 #df = pd.read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/dataset_ndvi_lu.csv')
 #df = pd.read_csv('/home/sgirtsou/PycharmProjects/ML/ML_fires_al/dataset_dummies.csv')
-#df = pd.read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/dataset_corine_level2_onehotenc.csv')
-df = pd.read_csv('/home/sgirtsou/Documents/dataset_120/dataset_1_10_corine_level2_onehotenc.csv')
+df = pd.read_csv('/home/sgirtsou/Documents/ML-dataset_newLU/dataset_corine_level2_onehotenc.csv')
+#df = pd.read_csv('/home/sgirtsou/Documents/dataset_120/dataset_1_10_corine_level2_onehotenc.csv')
 
 df_part = df[['id','max_temp', 'min_temp', 'mean_temp', 'res_max', 'dom_vel', 'rain_7days', 'dem', 'slope',
        'curvature', 'aspect','ndvi_new', 'evi','dir_max_1','dir_max_2', 'dir_max_3', 'dir_max_4', 'dir_max_5', 'dir_max_6',
@@ -172,7 +173,7 @@ for i in folds:
     #df_results.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion.csv')
 
     df_short = df_results.filter(regex="mean|std|params")
-    df_short.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_dataset_1_10_noshufflestrictcriterion_weights.csv ')
+    df_short.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_balanced_dataset_noshufflestrictcriterion_weights_full.csv ')
     #df_no_split_cols = [c for c in df_results.columns if 'split' not in c]
     #df1.to_csv('/home/sgirtsou/Documents/GridSearchCV/RF/RFcv_25kbalanced_noshufflestrictcriterion_sh.csv')
 

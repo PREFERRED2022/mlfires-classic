@@ -254,6 +254,7 @@ def load_datasets(dsfile, perdate = False, calcstats = None, statfname = None, c
 
 def cmvals(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
+    print(cm)
     tn = cm[0, 0]
     fp = cm[0, 1]
     fn = cm[1, 0]
