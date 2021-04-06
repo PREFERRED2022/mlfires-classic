@@ -328,7 +328,6 @@ def nn_fit_and_predict(params, X_pd_tr = None, y_pd_tr = None, X_pd_tst = None, 
     start_time = time.time()
 
     model = models.load_model(os.path.join(modelfolder, modelfname))
-    model = models.load_model(os.path.join(modelfolder, modelfname))
 
     #if params['feature_drop']:
     #    X_pd_tst = X_pd_tst.drop(columns=[c for c in X_pd_tst.columns if params['feature_drop'] in c])
