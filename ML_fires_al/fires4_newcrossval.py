@@ -219,6 +219,7 @@ def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
     cnt = 0
     print("NN params : %s" % params)
 
+    print('Training File: %s' % trfile)
     X_pd, y_pd, groups_pd = load_dataset(trfile,params['feature_drop'])
 
     X_train = X_pd.values
@@ -242,6 +243,7 @@ def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
     y_pred=None
     y_val_tmp=None
     for cvfile in cvfiles:
+        print('Cross Validation File: %s'%cvfile)
         X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'])
         X_val = X_pd.values
         y_val_tmp = y_pd.values
