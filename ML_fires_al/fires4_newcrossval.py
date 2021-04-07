@@ -165,25 +165,39 @@ def hybridrecall(w1, w0, rec1, rec0):
 
 def calc_metrics(y, y_scores, y_pred):
 
-    aucmetric = tensorflow.metrics.AUC()
+    if debug:
+        print("calulating auc...")
+    aucmetric = tensorflow.metrics.AUC(num_thresholds=numaucthres)
     aucmetric.update_state(y, y_scores[:, 1])
     auc = float(aucmetric.result())
 
+    if debug:
+        print("calulating accuracy...")
     acc_1 = accuracy_score(y, y_pred)
     acc_0 = accuracy_score(1 - y, 1 - y_pred)
 
+    if debug:
+        print("calulating precision...")
     prec_1 = precision_score(y, y_pred)
     prec_0 = precision_score(1 - y, 1 - y_pred)
 
+    if debug:
+        print("calulating recall...")
     rec_1 = recall_score(y, y_pred)
     rec_0 = recall_score(1 - y, 1 - y_pred)
 
+    if debug:
+        print("calulating f1 score...")
     f1_1 = f1_score(y, y_pred)
     f1_0 = f1_score(1 - y, 1 - y_pred)
 
+    if debug:
+        print("calulating hybrids...")
     hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
     hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
 
+    if debug:
+        print("Calculating tn, fp, fn, tp...")
     tn, fp, fn, tp = MLscores.cmvals(y, y_pred)
 
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
@@ -307,7 +321,7 @@ def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-testsets, space, max_trials, max_epochs, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, debug = space_newcv.create_space()
+testsets, space, max_trials, max_epochs, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, numaucthres, debug = space_newcv.create_space()
 tf.config.threading.set_inter_op_parallelism_threads(
     n_cpus
 )
