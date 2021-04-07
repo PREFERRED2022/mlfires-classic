@@ -48,5 +48,5 @@ def create_space():
     dstestfile = '/home/sgirtsou/Documents/test_datasets_19/test_datasets_2019_dummies/august_2019_dataset_fire_sh_dummies.csv'
     calc_train_metrics = True
     opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
-    return testsets, space, max_trials, max_epochs, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir
+    return testsets, space, max_trials, max_epochs, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, True
 

@@ -28,6 +28,7 @@ import re
 import manage_model
 import fileutils
 import MLscores
+import sys
 
 num_folds = 10
 # kf = KFold(n_splits=num_folds, shuffle=True)
@@ -215,6 +216,9 @@ def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
               'layer_4_nodes': params['layer_4_nodes']}
               '''
 
+    if len(cvfiles)==0:
+        print('No cross validation files')
+        sys.exit()
     metrics = []
     cnt = 0
     print("NN params : %s" % params)
@@ -242,6 +246,7 @@ def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
     y_scores=None
     y_pred=None
     y_val_tmp=None
+
     for cvfile in cvfiles:
         print('Cross Validation File: %s'%cvfile)
         X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'])
@@ -302,7 +307,7 @@ def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-testsets, space, max_trials, max_epochs, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir = space_newcv.create_space()
+testsets, space, max_trials, max_epochs, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, debug = space_newcv.create_space()
 tf.config.threading.set_inter_op_parallelism_threads(
     n_cpus
 )
