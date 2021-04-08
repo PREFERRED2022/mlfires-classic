@@ -140,10 +140,14 @@ def load_dataset(trfiles, featuredrop=None):
                  'mean_dew_temp', 'max_dew_temp', 'min_dew_temp']
     y_columns = ['fire']
     # if not os.path.exists(os.path.join(dsetfolder, dsready)):
-    dflist=[]
-    for dsfile in trfiles:
-        dflist.append(pd.read_csv(os.path.join(dsetfolder, dsfile)))
-    df=pd.concat(dflist)
+    if isinstance(trfiles, list):
+        dflist=[]
+        for dsfile in trfiles:
+            dflist.append(pd.read_csv(os.path.join(dsetfolder, dsfile)))
+        df=pd.concat(dflist)
+    else:
+        dsfile = trfiles
+        df = pd.read_csv(os.path.join(dsetfolder, dsfile))
     X_columns_upper = [c.upper() for c in X_columns]
     newcols = [c for c in df.columns if
                c.upper() in X_columns_upper or any([cX in c.upper() for cX in X_columns_upper])]
