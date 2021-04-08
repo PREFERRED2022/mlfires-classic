@@ -44,7 +44,7 @@ def create_space():
     #dsfile = 'dataset_corine_level2_onehotenc.csv'
     trainsetdir = '/home/aapos/Documents/newcrossval/datasets/hard_cosine_similarity'
     testsetdir = '/home/aapos/Documents/newcrossval'
-    testsets = {'training':['*2010.csv'], 'crossval':[['may*2010*','april*2010*'],['april*2011*']]}
+    testsets = {'training':['*2010.csv','*2011.csv'], 'crossval':[['may*2010*','april*2010*'],['april*2011*']]}
     dstestfile = '/home/sgirtsou/Documents/test_datasets_19/test_datasets_2019_dummies/august_2019_dataset_fire_sh_dummies.csv'
     calc_train_metrics = True
     #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']

@@ -125,7 +125,7 @@ def check_categorical(df, checkcol, newcols):
 
 
 # load the dataset
-def load_dataset(dsfile, featuredrop=None):
+def load_dataset(trfiles, featuredrop=None):
     dsetfolder = trainsetdir
     # dsfile = 'dataset_ndvi_lu.csv'
     domdircheck = 'dom_dir'
@@ -139,10 +139,11 @@ def load_dataset(dsfile, featuredrop=None):
                  'lst_night', monthcheck, wkdcheck,
                  'mean_dew_temp', 'max_dew_temp', 'min_dew_temp']
     y_columns = ['fire']
-    dsreadysuffix = '_nn_ready'
-    dsready = dsfile[:-4] + dsreadysuffix + ".csv"
     # if not os.path.exists(os.path.join(dsetfolder, dsready)):
-    df = pd.read_csv(os.path.join(dsetfolder, dsfile))
+    dflist=[]
+    for dsfile in trfiles:
+        dflist.append(pd.read_csv(os.path.join(dsetfolder, dsfile)))
+    df=pd.concat(dflist)
     X_columns_upper = [c.upper() for c in X_columns]
     newcols = [c for c in df.columns if
                c.upper() in X_columns_upper or any([cX in c.upper() for cX in X_columns_upper])]
@@ -243,7 +244,7 @@ def run_predict_and_metrics(model, X, y, dontcalc=False):
 
 
 # def nnfit(cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd, params):
-def evalmodel(trfile, cvsets, optimize_target, calc_test, params):
+def evalmodel(trfiles, cvsets, optimize_target, calc_test, params):
     # the function gets a set of variable parameters in "param"
     '''
     params = {'n_internal_layers': params['n_internal_layers'][0],
@@ -260,8 +261,8 @@ def evalmodel(trfile, cvsets, optimize_target, calc_test, params):
     cnt = 0
     print("NN params : %s" % params)
 
-    print('Training File: %s' % trfile)
-    X_pd, y_pd, groups_pd = load_dataset(trfile, params['feature_drop'])
+    print('Training Files: %s' % trfiles)
+    X_pd, y_pd, groups_pd = load_dataset(trfiles, params['feature_drop'])
 
     X_train = X_pd.values
     y_train = y_pd.values
@@ -274,23 +275,24 @@ def evalmodel(trfile, cvsets, optimize_target, calc_test, params):
     res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, callbacks=[es],
                     class_weight=params['class_weights'])
 
-    print("Fit time (min): %s" % ((time.time() - start_fit) / 60.0))
+    print("Fit time (min): %.1f" % ((time.time() - start_fit) / 60.0))
 
     '''training set metrics'''
     auc_train, acc_1_train, acc_0_train, prec_1_train, prec_0_train, rec_1_train, rec_0_train, f1_1_train, f1_0_train, hybrid1_train, hybrid2_train,\
     tn_train, fp_train, fn_train, tp_train = run_predict_and_metrics(model, X_train, y_train, not calc_test)
     es_epochs = len(res.history['loss'])
 
+    start_cv = time.time()
     for cvset in cvsets:
         print('Cross Validation Set: %s' % cvset)
         tn = 0; fp = 0; fn = 0; tp = 0;
         for cvfile in cvset:
+            start_predict_file = time.time()
             print('Cross Validation File: %s' % cvfile)
             X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'])
             X_val = X_pd.values
             _y_val = y_pd.values
             _y_val = _y_val[:, 0]
-            start_cv = time.time()
             _y_scores, _y_pred = run_predict(model, X_val)
             '''
             if y_scores is None:
@@ -304,12 +306,13 @@ def evalmodel(trfile, cvsets, optimize_target, calc_test, params):
             '''
             _tn, _fp, _fn, _tp = MLscores.cmvals(_y_val, _y_pred)
             tn += _tn; fp += _fp; fn += _fn; tp += _tp;
+            print("Predict time (min): %.1f" % ((time.time() - start_predict_file) / 60.0))
 
         '''validation set metrics'''
         auc_val, acc_1_val, acc_0_val, prec_1_val, prec_0_val, rec_1_val, rec_0_val, f1_1_val, f1_0_val, hybrid1_val, hybrid2_val,\
         tn_val, fp_val, fn_val, tp_val = calc_metrics_custom(tn, fp, fn, tp)
 
-        print("Validation metrics time (min): %s" % ((time.time() - start_cv) / 60.0))
+        print("Validation metrics time (min): %.1f" % ((time.time() - start_cv) / 60.0))
         start_time = time.time()
 
         print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_val, rec_0_val))
@@ -366,7 +369,7 @@ for dsset in testsets['crossval']:
 
 for opt_target in opt_targets:
     trials = Trials()
-    evalmodelpart = partial(evalmodel, trfiles[0], dssets, opt_target, calc_test)
+    evalmodelpart = partial(evalmodel, trfiles, dssets, opt_target, calc_test)
 
     best = fmin(fn=evalmodelpart,  # function to optimize
                 space=space,
