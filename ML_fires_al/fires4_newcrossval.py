@@ -183,32 +183,43 @@ def calc_metrics(y, y_scores, y_pred):
     # aucmetric.update_state(y, y_scores[:, 1])
     # auc = float(aucmetric.result())
     auc = 0.0
-
+    if debug:
+        print("auc : %.2f"%auc)
     if debug:
         print("calulating accuracy...")
     acc_1 = accuracy_score(y, y_pred)
     acc_0 = accuracy_score(1 - y, 1 - y_pred)
-
     if debug:
-        print("calulating precision...")
-    prec_1 = precision_score(y, y_pred)
-    prec_0 = precision_score(1 - y, 1 - y_pred)
-
+        print("accuracy 1 : %.2f"%acc_1)
+        print("accuracy 0 : %.2f"%acc_0)
     if debug:
         print("calulating recall...")
     rec_1 = recall_score(y, y_pred)
     rec_0 = recall_score(1 - y, 1 - y_pred)
-
+    if debug:
+        print("recall 1 : %.2f"%rec_1)
+        print("recall 0 : %.2f"%rec_0)
+    if debug:
+        print("calulating precision...")
+    prec_1 = precision_score(y, y_pred)
+    prec_0 = precision_score(1 - y, 1 - y_pred)
+    if debug:
+        print("precision 1 : %.2f"%prec_1)
+        print("precision 0 : %.2f"%prec_0)
     if debug:
         print("calulating f1 score...")
     f1_1 = f1_score(y, y_pred)
     f1_0 = f1_score(1 - y, 1 - y_pred)
-
+    if debug:
+        print("f1 1 : %.2f"%f1_1)
+        print("f1 0 : %.2f"%f1_0)
     if debug:
         print("calulating hybrids...")
     hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
     hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
-
+    if debug:
+        print("hybrid 1 : %.2f"%hybrid1)
+        print("hybrid 2 : %.2f"%hybrid2)
     if debug:
         print("Calculating tn, fp, fn, tp...")
     tn, fp, fn, tp = MLscores.cmvals(y, y_pred)
@@ -217,22 +228,53 @@ def calc_metrics(y, y_scores, y_pred):
 
 
 def calc_metrics_custom(tn, fp, fn, tp):
+    if debug:
+        print("calulating merics (custom)")
     auc = 0
+    if debug:
+        print("auc : %.2f"%auc)
     # tp0 = tn1 tn0 = tp1 fp0 = fn1 fn0 = fp1
-    rec_1 = MLscores.recall(tp, fn)
-    rec_0 = MLscores.recall(tn, fp)
-    prec_1 = MLscores.precision(tp, fp)
-    prec_0 = MLscores.precision(tn, fn)
+    if debug:
+        print("calulating accuracy...")
     acc_1 = MLscores.accuracy(tp, tn, fp, fn)
     acc_0 = MLscores.accuracy(tn, tp, fn, fp)
+    if debug:
+        print("accuracy 1 : %.2f"%acc_1)
+        print("accuracy 0 : %.2f"%acc_0)
+    if debug:
+        print("calulating recall ...")
+    rec_1 = MLscores.recall(tp, fn)
+    rec_0 = MLscores.recall(tn, fp)
+    if debug:
+        print("recall 1 : %.2f"%rec_1)
+        print("recall 0 : %.2f"%rec_0)
+    if debug:
+        print("calulating precision...")
+    prec_1 = MLscores.precision(tp, fp)
+    prec_0 = MLscores.precision(tn, fn)
+    if debug:
+        print("precision 1 : %.2f"%prec_1)
+        print("precision 0 : %.2f"%prec_0)
+    if debug:
+        print("calulating f1_score...")
     f1_1 = MLscores.f1(tp, fp, fn)
     f1_0 = MLscores.f1(tn, fn, fp)
+    if debug:
+        print("f1 1 : %.2f" % f1_1)
+        print("f1 0 : %.2f" % f1_0)
+    if debug:
+        print("calulating hybrids ...")
     hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
     hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
+    if debug:
+        print("hybrid 1 : %.2f"%hybrid1)
+        print("hybrid 2 : %.2f"%hybrid2)
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
 
 
 def run_predict(model, X):
+    if debug:
+        print("Running Prediction...")
     y_scores = model.predict(X)
     predict_class = lambda p: int(round(p))
     predict_class_v = np.vectorize(predict_class)
@@ -284,6 +326,8 @@ def evalmodel(trfiles, cvsets, optimize_target, calc_test, params):
     '''training set metrics'''
     auc_train, acc_1_train, acc_0_train, prec_1_train, prec_0_train, rec_1_train, rec_0_train, f1_1_train, f1_0_train, hybrid1_train, hybrid2_train,\
     tn_train, fp_train, fn_train, tp_train = run_predict_and_metrics(model, X_train, y_train, not calc_test)
+    if debug:
+        calc_metrics_custom(tn_train, fp_train, fn_train, tp_train)
     es_epochs = len(res.history['loss'])
 
     start_cv = time.time()
