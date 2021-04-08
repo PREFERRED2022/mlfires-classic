@@ -35,17 +35,19 @@ num_folds = 10
 kf = GroupKFold(n_splits=num_folds)
 random_state = 42
 
+
 def drop_all0_features(df):
     for c in df.columns:
         if 'bin' in c:
             u = df[c].unique()
-            if (len(u)>1):
+            if (len(u) > 1):
                 cnt = df.groupby([c]).count()
-                if cnt["max_temp"][1]<20:
-                    print("Droping Feature %s, count: %d"%(c, cnt["max_temp"][1]))
+                if cnt["max_temp"][1] < 20:
+                    print("Droping Feature %s, count: %d" % (c, cnt["max_temp"][1]))
                     df.drop(columns=[c])
             else:
-                print("%s not exists (size : %d)"%(c, len(u)))
+                print("%s not exists (size : %d)" % (c, len(u)))
+
 
 def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col):
     df = df.dropna()
@@ -61,7 +63,7 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
             ddircols.append('bin_dom_dir_%d' % i)
         Xbindomdir.columns = ddircols
         del X_unnorm[domdir_col]
-        X_unnorm = pd.concat([X_unnorm, Xbindomdir], axis = 1)
+        X_unnorm = pd.concat([X_unnorm, Xbindomdir], axis=1)
 
     if dirmax_col:
         Xbindirmax = pd.get_dummies(X_unnorm[dirmax_col].round())
@@ -72,27 +74,28 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
             dmaxcols.append('bin_dir_max_%d' % i)
         Xbindirmax.columns = dmaxcols
         del X_unnorm[dirmax_col]
-        X_unnorm = pd.concat([X_unnorm, Xbindirmax], axis = 1)
+        X_unnorm = pd.concat([X_unnorm, Xbindirmax], axis=1)
 
     if corine_col:
         # convert corine level
         corine2 = X_unnorm[corine_col].copy() // 10
         del X_unnorm[corine_col]
-        #X_unnorm.rename(columns={corine_col: 'corine_orig'})
+        # X_unnorm.rename(columns={corine_col: 'corine_orig'})
         X_unnorm = pd.concat([X_unnorm, corine2], axis=1)
 
         Xbincorine = pd.get_dummies(X_unnorm[corine_col])
         corcols = ['bin_corine_' + str(c) for c in Xbincorine.columns]
         Xbincorine.columns = corcols
         del X_unnorm[corine_col]
-        X_unnorm = pd.concat([X_unnorm, Xbincorine], axis = 1)
+        X_unnorm = pd.concat([X_unnorm, Xbincorine], axis=1)
 
-    #X = normdataset.normalize_dataset(X_unnorm, aggrfile='stats/featurestats.json')
-    X=X_unnorm
+    # X = normdataset.normalize_dataset(X_unnorm, aggrfile='stats/featurestats.json')
+    X = X_unnorm
     y = y_int
     groupspd = df[firedate_col]
 
     return X, y, groupspd
+
 
 def check_categorical(df, checkcol, newcols):
     cat_cols = [c for c in df.columns if checkcol.upper() in c.upper()]
@@ -110,20 +113,21 @@ def check_categorical(df, checkcol, newcols):
         cat_col = [c for c in df.columns if checkcol.upper() == c.upper()][0]
     elif not any([c.upper() == checkcol.upper() for c in cat_cols]) and len(cat_cols) > 1:
         cat_col = None
-        for i in range(0,len(newcols)):
+        for i in range(0, len(newcols)):
             c = newcols[i]
             if (c.upper() != checkcol.upper() and checkcol.upper() in c.upper()):
                 newname = "bin_" + c
                 newcols[i] = newname
-                df.rename(columns={c : newname}, inplace=True)
+                df.rename(columns={c: newname}, inplace=True)
     else:
         cat_col = None
     return cat_col, newcols
 
+
 # load the dataset
 def load_dataset(dsfile, featuredrop=None):
     dsetfolder = trainsetdir
-    #dsfile = 'dataset_ndvi_lu.csv'
+    # dsfile = 'dataset_ndvi_lu.csv'
     domdircheck = 'dom_dir'
     dirmaxcheck = 'dir_max'
     corinecheck = 'Corine'
@@ -131,15 +135,17 @@ def load_dataset(dsfile, featuredrop=None):
     wkdcheck = 'wkd'
     firedatecheck = 'firedate'
     X_columns = ['max_temp', 'min_temp', 'mean_temp', 'res_max', dirmaxcheck, 'dom_vel', domdircheck,
-                 'rain_7days',corinecheck, 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi', 'evi', 'lst_day','lst_night', monthcheck, wkdcheck,
+                 'rain_7days', corinecheck, 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi', 'evi', 'lst_day',
+                 'lst_night', monthcheck, wkdcheck,
                  'mean_dew_temp', 'max_dew_temp', 'min_dew_temp']
     y_columns = ['fire']
     dsreadysuffix = '_nn_ready'
-    dsready = dsfile[:-4]+dsreadysuffix+".csv"
-    #if not os.path.exists(os.path.join(dsetfolder, dsready)):
+    dsready = dsfile[:-4] + dsreadysuffix + ".csv"
+    # if not os.path.exists(os.path.join(dsetfolder, dsready)):
     df = pd.read_csv(os.path.join(dsetfolder, dsfile))
     X_columns_upper = [c.upper() for c in X_columns]
-    newcols = [c for c in df.columns if c.upper() in X_columns_upper or any([cX in c.upper() for cX in X_columns_upper])]
+    newcols = [c for c in df.columns if
+               c.upper() in X_columns_upper or any([cX in c.upper() for cX in X_columns_upper])]
     X_columns = newcols
     corine_col, newcols = check_categorical(df, corinecheck, newcols)
     dirmax_col, newcols = check_categorical(df, dirmaxcheck, newcols)
@@ -149,13 +155,14 @@ def load_dataset(dsfile, featuredrop=None):
 
     firedate_col = [c for c in df.columns if firedatecheck.upper() in c.upper()][0]
     X, y, groupspd = prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col)
-    if len(featuredrop)>0:
+    if len(featuredrop) > 0:
         X = X.drop(columns=[c for c in X.columns if any([fd in c for fd in featuredrop])])
     return X, y, groupspd
 
+
 def hybridrecall(w1, w0, rec1, rec0):
     if rec1 != 0 and rec0 != 0:
-        return (w1+w0) / (w1 / rec1 + w0 / rec0)
+        return (w1 + w0) / (w1 / rec1 + w0 / rec0)
     elif rec1 == 0 and rec0 == 0:
         return 0
     elif rec1 == 0:
@@ -163,13 +170,14 @@ def hybridrecall(w1, w0, rec1, rec0):
     elif rec0 == 0:
         return rec1
 
-def calc_metrics(y, y_scores, y_pred):
 
+def calc_metrics(y, y_scores, y_pred):
     if debug:
         print("calulating auc...")
-    aucmetric = tensorflow.metrics.AUC(num_thresholds=numaucthres)
-    aucmetric.update_state(y, y_scores[:, 1])
-    auc = float(aucmetric.result())
+    # aucmetric = tensorflow.metrics.AUC(num_thresholds=numaucthres)
+    # aucmetric.update_state(y, y_scores[:, 1])
+    # auc = float(aucmetric.result())
+    auc = 0.0
 
     if debug:
         print("calulating accuracy...")
@@ -199,8 +207,25 @@ def calc_metrics(y, y_scores, y_pred):
     if debug:
         print("Calculating tn, fp, fn, tp...")
     tn, fp, fn, tp = MLscores.cmvals(y, y_pred)
-
+    # tp0 = tn1 tn0 = tp1 fp0 = fn1 fn0 = fp1
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
+
+
+def calc_metrics_custom(tn, fp, fn, tp):
+    auc = 0
+    # tp0 = tn1 tn0 = tp1 fp0 = fn1 fn0 = fp1
+    rec_1 = MLscores.recall(tp, fn)
+    rec_0 = MLscores.recall(tn, fp)
+    prec_1 = MLscores.precision(tp, fp)
+    prec_0 = MLscores.precision(tn, fn)
+    acc_1 = MLscores.accuracy(tp, tn, fp, fn)
+    acc_0 = MLscores.accuracy(tn, tp, fn, fp)
+    f1_1 = MLscores.f1(tp, fp, fn)
+    f1_0 = MLscores.f1(tn, fn, fp)
+    hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
+    hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
+    return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
+
 
 def run_predict(model, X):
     y_scores = model.predict(X)
@@ -209,18 +234,16 @@ def run_predict(model, X):
     y_pred = predict_class_v(y_scores[:, 1])
     return y_scores, y_pred
 
-def run_predict_and_metrics(model, X, y, dontcalc = False, metrictype = 'sklearn'):
+
+def run_predict_and_metrics(model, X, y, dontcalc=False):
     if dontcalc:
         return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     y_scores, y_pred = run_predict(model, X)
-    if metrictype == 'sklearn':
-        return calc_metrics(y, y_scores, y_pred)
-    elif metrictype == 'sums':
-        return MLscores.cmvals(y, y_pred)
+    return calc_metrics(y, y_scores, y_pred)
 
-#def nnfit(cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd, params):
-def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
 
+# def nnfit(cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd, params):
+def evalmodel(trfile, cvsets, optimize_target, calc_test, params):
     # the function gets a set of variable parameters in "param"
     '''
     params = {'n_internal_layers': params['n_internal_layers'][0],
@@ -230,7 +253,7 @@ def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
               'layer_4_nodes': params['layer_4_nodes']}
               '''
 
-    if len(cvfiles)==0:
+    if len(cvsets) == 0:
         print('No cross validation files')
         sys.exit()
     metrics = []
@@ -238,7 +261,7 @@ def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
     print("NN params : %s" % params)
 
     print('Training File: %s' % trfile)
-    X_pd, y_pd, groups_pd = load_dataset(trfile,params['feature_drop'])
+    X_pd, y_pd, groups_pd = load_dataset(trfile, params['feature_drop'])
 
     X_train = X_pd.values
     y_train = y_pd.values
@@ -248,7 +271,8 @@ def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
     model = manage_model.create_NN_model(params, X_train)
     es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
 
-    res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, callbacks=[es], class_weight=params['class_weights'])
+    res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, callbacks=[es],
+                    class_weight=params['class_weights'])
 
     print("Fit time (min): %s" % ((time.time() - start_fit) / 60.0))
 
@@ -257,57 +281,61 @@ def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
     tn_train, fp_train, fn_train, tp_train = run_predict_and_metrics(model, X_train, y_train, not calc_test)
     es_epochs = len(res.history['loss'])
 
-    y_scores=None
-    y_pred=None
-    y_val_tmp=None
+    for cvset in cvsets:
+        print('Cross Validation Set: %s' % cvset)
+        tn = 0; fp = 0; fn = 0; tp = 0;
+        for cvfile in cvset:
+            print('Cross Validation File: %s' % cvfile)
+            X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'])
+            X_val = X_pd.values
+            _y_val = y_pd.values
+            _y_val = _y_val[:, 0]
+            start_cv = time.time()
+            _y_scores, _y_pred = run_predict(model, X_val)
+            '''
+            if y_scores is None:
+                y_scores = _y_scores
+                y_pred = _y_pred
+                y_val = _y_val
+            else:
+                y_scores = np.concatenate((y_scores, _y_scores))
+                y_pred = np.concatenate((y_pred, _y_pred))
+                y_val = np.concatenate((y_val, _y_val))
+            '''
+            _tn, _fp, _fn, _tp = MLscores.cmvals(_y_val, _y_pred)
+            tn += _tn; fp += _fp; fn += _fn; tp += _tp;
 
-    for cvfile in cvfiles:
-        print('Cross Validation File: %s'%cvfile)
-        X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'])
-        X_val = X_pd.values
-        y_val_tmp = y_pd.values
-        y_val_tmp = y_val_tmp[:,0]
-        start_cv = time.time()
-        y_scores_tmp, y_pred_tmp = run_predict(model, X_val)
-        if y_scores is None:
-            y_scores = y_scores_tmp
-            y_pred = y_pred_tmp
-            y_val = y_val_tmp
-        else:
-            y_scores =np.concatenate((y_scores,y_scores_tmp))
-            y_pred = np.concatenate((y_pred, y_pred_tmp))
-            y_val = np.concatenate((y_val, y_val_tmp))
+        '''validation set metrics'''
+        auc_val, acc_1_val, acc_0_val, prec_1_val, prec_0_val, rec_1_val, rec_0_val, f1_1_val, f1_0_val, hybrid1_val, hybrid2_val,\
+        tn_val, fp_val, fn_val, tp_val = calc_metrics_custom(tn, fp, fn, tp)
 
-    '''validation set metrics'''
-    auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test,\
-    tn_val, fp_val, fn_val, tp_val = calc_metrics(y_val, y_scores, y_pred)
+        print("Validation metrics time (min): %s" % ((time.time() - start_cv) / 60.0))
+        start_time = time.time()
 
-    print("Validation metrics time (min): %s"%((time.time() - start_cv)/60.0))
-    start_time = time.time()
+        print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_val, rec_0_val))
 
-    print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_test,rec_0_test))
+        metrics.append(
+            {'accuracy val.': acc_1_val, 'accuracy train': acc_1_train,
+             'precision 1 val.': prec_1_val, 'precision 1 train': prec_1_train, 'recall 1 val.': rec_1_val,
+             'recall 1 train': rec_1_train, 'f1-score 1 val.': f1_1_val, 'f1-score 1 train': f1_1_train,
+             'accuracy 0 val.': acc_0_val, 'accuracy 0 train': acc_0_train,
+             'precision 0 val.': prec_0_val, 'precision 0 train': prec_0_train, 'recall 0 val.': rec_0_val,
+             'recall 0 train': rec_0_train, 'f1-score 0 val.': f1_0_val, 'f1-score 0 train': f1_0_train,
+             'auc val.': auc_val,
+             'auc train.': auc_train, 'hybrid1 train': hybrid1_train, 'hybrid1 val': hybrid1_val,
+             'hybrid2 train': hybrid2_train, 'hybrid2 val': hybrid2_val,
+             'TN val.': tn_val, 'TN train.': tn_train, 'FP val.': fp_val, 'FP train.': fp_train,
+             'FN val.': fn_val, 'FN train.': fn_train, 'TP val.': tp_val, 'TP train.': tp_train,
+             'early stop epochs': es_epochs
+             })  # 'fit time':  (time.time() - start_fold_time)/60.0})
 
-    metrics.append(
-        {'accuracy val.': acc_1_test, 'accuracy train': acc_1_train,
-         'precision 1 val.': prec_1_test, 'precision 1 train': prec_1_train, 'recall 1 val.' : rec_1_test,
-         'recall 1 train': rec_1_train,'f1-score 1 val.': f1_1_test, 'f1-score 1 train': f1_1_train,
-         'accuracy 0 val.': acc_0_test, 'accuracy 0 train': acc_0_train,
-         'precision 0 val.': prec_0_test, 'precision 0 train': prec_0_train, 'recall 0 val.': rec_0_test,
-         'recall 0 train': rec_0_train, 'f1-score 0 val.': f1_0_test, 'f1-score 0 train': f1_0_train,
-         'auc val.': auc_val,
-         'auc train.': auc_train, 'hybrid1 train': hybrid1_train, 'hybrid1 val': hybrid1_test, 'hybrid2 train': hybrid2_train, 'hybrid2 val': hybrid2_test,
-         'TN val.':tn_val, 'TN train.': tn_train, 'FP val.':fp_val, 'FP train.': fp_train,
-         'FN val.':fn_val, 'FN train.': fn_train, 'TP val.':tp_val, 'TP train.': tp_train,
-         'early stop epochs': es_epochs
-         } )#'fit time':  (time.time() - start_fold_time)/60.0})
-
-    #print(metrics[-1])
+    # print(metrics[-1])
 
     mean_metrics = {}
     for m in metrics[0]:
-        mean_metrics[m] = sum(item.get(m, 0) for item in metrics) / len(metrics)
-    mean_metrics["fit time (min)"] = (time.time() - start_fit)/60.0
-    print('Mean %s : %s' % (optimize_target,mean_metrics[optimize_target]))
+        mean_metrics[m] = sum([item.get(m, 0) for item in metrics]) / len(metrics)
+    mean_metrics["fit time (min)"] = (time.time() - start_fit) / 60.0
+    print('Mean %s : %s' % (optimize_target, mean_metrics[optimize_target]))
 
     return {
         'loss': -mean_metrics[optimize_target],
@@ -315,27 +343,30 @@ def evalmodel(trfile, cvfiles, optimize_target, calc_test, params):
         # -- store other results like this
         # 'eval_time': time.time(),
         'metrics': mean_metrics,
-        'params': '%s'%params
+        'params': '%s' % params
         # -- attachments are handled differently
         # 'attachments':
         #    {'time_module': pickle.dumps(time.time)}
     }
 
+
 testsets, space, max_trials, max_epochs, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, numaucthres, debug = space_newcv.create_space()
 tf.config.threading.set_inter_op_parallelism_threads(
     n_cpus
 )
-trfiles=[]
+trfiles = []
 for dsfilepattern in testsets['training']:
-    trfiles+=[f for f in fileutils.find_files(trainsetdir, dsfilepattern, listtype="walk")]
-cvfiles=[]
-for dsfilepattern in testsets['crossval']:
-    cvfiles+=[f for f in fileutils.find_files(testsetdir, dsfilepattern, listtype="walk")]
+    trfiles += [f for f in fileutils.find_files(trainsetdir, dsfilepattern, listtype="walk")]
+dssets = []
+for dsset in testsets['crossval']:
+    dsfiles = []
+    for dsfilepattern in dsset:
+        dsfiles += [f for f in fileutils.find_files(testsetdir, dsfilepattern, listtype="walk")]
+    dssets += [dsfiles]
 
-opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
 for opt_target in opt_targets:
     trials = Trials()
-    evalmodelpart = partial(evalmodel, trfiles[0], cvfiles, opt_target, calc_test)
+    evalmodelpart = partial(evalmodel, trfiles[0], dssets, opt_target, calc_test)
 
     best = fmin(fn=evalmodelpart,  # function to optimize
                 space=space,
@@ -351,10 +382,11 @@ for opt_target in opt_targets:
         pdrow['params'] = t['result']['params']
         pd_opt = pd_opt.append(pdrow, ignore_index=True)
 
-    if not os.path.isdir(os.path.join('results','hyperopt')):
-        os.makedirs(os.path.join('results','hyperopt'))
+    if not os.path.isdir(os.path.join('results', 'hyperopt')):
+        os.makedirs(os.path.join('results', 'hyperopt'))
 
-    hyp_res_base = os.path.join('results','hyperopt','hyperopt_results_'+"".join([ch for ch in opt_target if re.match(r'\w', ch)])+'_')
+    hyp_res_base = os.path.join('results', 'hyperopt',
+                                'hyperopt_results_' + "".join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_')
     cnt = 1
     while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
         cnt += 1

@@ -20,6 +20,11 @@ def f1(tp,fp,fn):
         return 0
     return 2*recall(tp,fn)*precision(tp,fp)/(recall(tp,fn)+precision(tp,fp))
 
+def npv(tn,fn):
+    if tn+fn == 0:
+        return 0
+    return tn/(tn+fn)
+
 def cmvals(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
     if cm.shape[0]==1 and y_true[0]==0:
