@@ -177,6 +177,9 @@ def hybridrecall(w1, w0, rec1, rec0):
 
 
 def calc_metrics(y, y_scores, y_pred):
+    tn, fp, fn, tp = MLscores.cmvals(y, y_pred)
+    if debug:
+        print("tn : %d, fp : %d, fn : %d, tp : %d"%(tn, fp, fn, tp))
     if debug:
         print("calulating merics (sklearn)")
     if debug:
@@ -224,7 +227,6 @@ def calc_metrics(y, y_scores, y_pred):
         print("hybrid 2 : %.2f"%hybrid2)
     if debug:
         print("Calculating tn, fp, fn, tp...")
-    tn, fp, fn, tp = MLscores.cmvals(y, y_pred)
     # tp0 = tn1 tn0 = tp1 fp0 = fn1 fn0 = fp1
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
 
@@ -232,6 +234,8 @@ def calc_metrics(y, y_scores, y_pred):
 def calc_metrics_custom(tn, fp, fn, tp):
     if debug:
         print("calulating merics (custom)")
+    if debug:
+        print("(input) tn : %d, fp : %d, fn : %d, tp : %d"%(tn, fp, fn, tp))
     auc = 0
     if debug:
         print("auc : %.2f"%auc)
@@ -355,7 +359,11 @@ def evalmodel(trfiles, cvsets, optimize_target, calc_test, params):
                 y_val = np.concatenate((y_val, _y_val))
             '''
             _tn, _fp, _fn, _tp = MLscores.cmvals(_y_val, _y_pred)
+            if debug:
+                print("file tn : %d, fp : %d, fn : %d, tp : %d"%(_tn, _fp, _fn, _tp))
             tn += _tn; fp += _fp; fn += _fn; tp += _tp;
+            if debug:
+                print("sums tn : %d, fp : %d, fn : %d, tp : %d"%(tn, fp, fn, tp))
             print("Predict time (min): %.1f" % ((time.time() - start_predict_file) / 60.0))
 
         '''validation set metrics'''
