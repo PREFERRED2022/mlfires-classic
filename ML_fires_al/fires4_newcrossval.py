@@ -178,6 +178,8 @@ def hybridrecall(w1, w0, rec1, rec0):
 
 def calc_metrics(y, y_scores, y_pred):
     if debug:
+        print("calulating merics (sklearn)")
+    if debug:
         print("calulating auc...")
     # aucmetric = tensorflow.metrics.AUC(num_thresholds=numaucthres)
     # aucmetric.update_state(y, y_scores[:, 1])

@@ -13,7 +13,7 @@ def precision(tp,fp):
 def accuracy(tp,tn, fp, fn):
     if tp+fp+fp+fn == 0:
         return 0
-    return (tp+tn)/(tp+fp+fp+fn)
+    return (tp+tn)/(tp+tn+fp+fn)
 
 def f1(tp,fp,fn):
     if recall(tp,fn)+precision(tp,fp) == 0:
