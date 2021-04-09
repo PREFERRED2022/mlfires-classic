@@ -1,6 +1,7 @@
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 import tensorflow.keras.metrics
+from sklearn.ensemble import RandomForestClassifier
 
 
 def create_NN_model(params, X):
@@ -35,4 +36,8 @@ def create_NN_model(params, X):
         #metrics = [tensorflow.metrics.TrueNegatives(),tensorflow.metrics.TruePositives()]
     model.compile(optimizer=adam, loss='sparse_categorical_crossentropy', metrics=metrics)  # , AUC(multi_label=False)])
 
+    return model
+
+def create_RF_model(params):
+    model = RandomForestClassifier(max_depth=params['max_depth'], n_estimators=params['n_estimators'])
     return model

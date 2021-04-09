@@ -1,6 +1,7 @@
 from hyperopt import hp
 
 def create_space():
+    '''
     space = {'n_internal_layers': hp.choice('n_internal_layers',
                 [
                     #(0, {'layer_1_0_nodes': hp.quniform('layer_1_0_nodes', 10, 310, 50)}),
@@ -23,7 +24,7 @@ def create_space():
              #'feature_drop': hp.choice('feature_drop',['','bin','DIR','COR']),
              #'feature_drop': hp.choice('feature_drop', [[],['_dir_'],['aspect'], ['aspect', '_dir_']]),
              'feature_drop': hp.choice('feature_drop', [['wkd', 'month']]),
-
+             'max_epochs': hp.choice('max_epochs', [20]),
              #'metric': hp.choice('metric',['accuracy', 'sparse'])
              #'metric': hp.choice('metric', ['tn'])
              'metric': hp.choice('metric',['accuracy'])
@@ -31,24 +32,18 @@ def create_space():
              #'feature_drop': hp.choice('feature_drop', ['bin'])
              }
     '''
-    space = {'n_internal_layers': hp.choice('n_internal_layers',
-                [(0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [50])})]
-
-                ),
-             'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
+    space = {'n_estimators': hp.choice('n_estimators', [100]),
+             'max_depth': hp.choice('max_depth', [100]),
+             'feature_drop': hp.choice('feature_drop', [['wkd', 'month']])
              }
-    '''
     max_trials = 1
-    max_epochs = 20
-    #dsfile = 'dataset_1_10_corine_level2_onehotenc.csv'
-    #dsfile = 'dataset_corine_level2_onehotenc.csv'
     trainsetdir = '/home/aapos/Documents/newcrossval/datasets/hard_cosine_similarity'
     testsetdir = '/home/aapos/Documents/newcrossval'
     testsets = {'training':['*2010.csv','*2011.csv'], 'crossval':[['may*2010*','april*2010*'],['april*2011*']]}
-    dstestfile = '/home/sgirtsou/Documents/test_datasets_19/test_datasets_2019_dummies/august_2019_dataset_fire_sh_dummies.csv'
     calc_train_metrics = True
     #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['hybrid1 val']
     auc_thressholds=30
-    return testsets, space, max_trials, max_epochs, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, auc_thressholds, True
+    modeltype = 'sklearn'
+    return testsets, space, max_trials, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, auc_thressholds, modeltype, True
 

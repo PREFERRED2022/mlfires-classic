@@ -177,11 +177,11 @@ def hybridrecall(w1, w0, rec1, rec0):
 
 
 def calc_metrics(y, y_scores, y_pred):
+    if debug:
+        print("calulating merics (sklearn)")
     tn, fp, fn, tp = MLscores.cmvals(y, y_pred)
     if debug:
         print("tn : %d, fp : %d, fn : %d, tp : %d"%(tn, fp, fn, tp))
-    if debug:
-        print("calulating merics (sklearn)")
     if debug:
         print("calulating auc...")
     # aucmetric = tensorflow.metrics.AUC(num_thresholds=numaucthres)
@@ -281,7 +281,10 @@ def calc_metrics_custom(tn, fp, fn, tp):
 def run_predict(model, X):
     if debug:
         print("Running Prediction...")
-    y_scores = model.predict(X)
+    if modeltype=='tensorflow':
+        y_scores = model.predict(X)
+    elif modeltype=='sklearn':
+        y_scores = model.predict_proba(X)
     predict_class = lambda p: int(round(p))
     predict_class_v = np.vectorize(predict_class)
     y_pred = predict_class_v(y_scores[:, 1])
@@ -296,7 +299,7 @@ def run_predict_and_metrics(model, X, y, dontcalc=False):
 
 
 # def nnfit(cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd, params):
-def evalmodel(trfiles, cvsets, optimize_target, calc_test, params):
+def evalmodel(trfiles, cvsets, optimize_target, calc_test, modeltype, params):
     # the function gets a set of variable parameters in "param"
     '''
     params = {'n_internal_layers': params['n_internal_layers'][0],
@@ -311,7 +314,7 @@ def evalmodel(trfiles, cvsets, optimize_target, calc_test, params):
         sys.exit()
     metrics = []
     cnt = 0
-    print("NN params : %s" % params)
+    print("Params : %s" % params)
 
     print('Training Files: %s' % trfiles)
     X_pd, y_pd, groups_pd = load_dataset(trfiles, params['feature_drop'])
@@ -321,11 +324,14 @@ def evalmodel(trfiles, cvsets, optimize_target, calc_test, params):
     y_train = y_train[:, 0]
     start_fit = time.time()
 
-    model = manage_model.create_NN_model(params, X_train)
-    es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
-
-    res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, callbacks=[es],
+    if modeltype=='tensorflow':
+        model = manage_model.create_NN_model(params, X_train)
+        es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
+        res = model.fit(X_train, y_train, batch_size=512, epochs=params['max_epochs'], verbose=0, callbacks=[es],
                     class_weight=params['class_weights'])
+    elif modeltype=='sklearn':
+        model = manage_model.create_RF_model(params)
+        model.fit(X_train, y_train)
 
     print("Fit time (min): %.1f" % ((time.time() - start_fit) / 60.0))
 
@@ -334,7 +340,10 @@ def evalmodel(trfiles, cvsets, optimize_target, calc_test, params):
     tn_train, fp_train, fn_train, tp_train = run_predict_and_metrics(model, X_train, y_train, not calc_test)
     if debug:
         calc_metrics_custom(tn_train, fp_train, fn_train, tp_train)
-    es_epochs = len(res.history['loss'])
+    if modeltype=='tensorflow':
+        es_epochs = len(res.history['loss'])
+    else:
+        es_epochs = 0
 
     start_cv = time.time()
     for cvset in cvsets:
@@ -358,6 +367,8 @@ def evalmodel(trfiles, cvsets, optimize_target, calc_test, params):
                 y_pred = np.concatenate((y_pred, _y_pred))
                 y_val = np.concatenate((y_val, _y_val))
             '''
+            if debug:
+                print("confusion matrix retrieval...")
             _tn, _fp, _fn, _tp = MLscores.cmvals(_y_val, _y_pred)
             if debug:
                 print("file tn : %d, fp : %d, fn : %d, tp : %d"%(_tn, _fp, _fn, _tp))
@@ -411,7 +422,7 @@ def evalmodel(trfiles, cvsets, optimize_target, calc_test, params):
     }
 
 
-testsets, space, max_trials, max_epochs, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, numaucthres, debug = space_newcv.create_space()
+testsets, space, max_trials, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, numaucthres, modeltype, debug = space_newcv.create_space()
 tf.config.threading.set_inter_op_parallelism_threads(
     n_cpus
 )
@@ -427,7 +438,7 @@ for dsset in testsets['crossval']:
 
 for opt_target in opt_targets:
     trials = Trials()
-    evalmodelpart = partial(evalmodel, trfiles, dssets, opt_target, calc_test)
+    evalmodelpart = partial(evalmodel, trfiles, dssets, opt_target, calc_test, modeltype)
 
     best = fmin(fn=evalmodelpart,  # function to optimize
                 space=space,
