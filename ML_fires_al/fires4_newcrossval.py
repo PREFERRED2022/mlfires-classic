@@ -137,7 +137,7 @@ def load_dataset(trfiles, featuredrop=None):
     X_columns = ['max_temp', 'min_temp', 'mean_temp', 'res_max', dirmaxcheck, 'dom_vel', domdircheck,
                  'rain_7days', corinecheck, 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi', 'evi', 'lst_day',
                  'lst_night', monthcheck, wkdcheck,
-                 'mean_dew_temp', 'max_dew_temp', 'min_dew_temp']
+                 'mean_dew_temp', 'max_dew_temp', 'min_dew_temp','frequency', 'f81', 'x', 'y']
     y_columns = ['fire']
     # if not os.path.exists(os.path.join(dsetfolder, dsready)):
     if isinstance(trfiles, list):
@@ -165,8 +165,9 @@ def load_dataset(trfiles, featuredrop=None):
     if len(featuredrop) > 0:
         X = X.drop(columns=[c for c in X.columns if any([fd in c for fd in featuredrop])])
     print("Dropped columns %s"%(set(X_columns)-set(X.columns)))
-    X_columns = X.columns
-
+    if debug:
+        print("X helth check %s"%X.describe())
+        print("y helth check %s"%y.describe())
     return X, y, groupspd
 
 
