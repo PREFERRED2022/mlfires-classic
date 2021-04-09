@@ -160,8 +160,13 @@ def load_dataset(trfiles, featuredrop=None):
 
     firedate_col = [c for c in df.columns if firedatecheck.upper() in c.upper()][0]
     X, y, groupspd = prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col)
+    print("Ignored columns from csv %s"%([c for c in df.columns if c not in X.columns]))
+    X_columns = X.columns
     if len(featuredrop) > 0:
         X = X.drop(columns=[c for c in X.columns if any([fd in c for fd in featuredrop])])
+    print("Dropped columns %s"%(set(X_columns)-set(X.columns)))
+    X_columns = X.columns
+
     return X, y, groupspd
 
 
@@ -178,7 +183,8 @@ def hybridrecall(w1, w0, rec1, rec0):
 
 def calc_metrics(y, y_scores, y_pred):
     if debug:
-        print("calulating merics (sklearn)")
+        print("calulating merics from scores (sklearn)")
+        print("calulating tn, fp, fn, tp")
     tn, fp, fn, tp = MLscores.cmvals(y, y_pred)
     if debug:
         print("tn : %d, fp : %d, fn : %d, tp : %d"%(tn, fp, fn, tp))
@@ -225,8 +231,6 @@ def calc_metrics(y, y_scores, y_pred):
     if debug:
         print("hybrid 1 : %.2f"%hybrid1)
         print("hybrid 2 : %.2f"%hybrid2)
-    if debug:
-        print("Calculating tn, fp, fn, tp...")
     # tp0 = tn1 tn0 = tp1 fp0 = fn1 fn0 = fp1
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
 

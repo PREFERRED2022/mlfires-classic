@@ -1,7 +1,7 @@
 from hyperopt import hp
 
 def create_space():
-    '''
+
     space = {'n_internal_layers': hp.choice('n_internal_layers',
                 [
                     #(0, {'layer_1_0_nodes': hp.quniform('layer_1_0_nodes', 10, 310, 50)}),
@@ -37,6 +37,7 @@ def create_space():
              'max_depth': hp.choice('max_depth', [100]),
              'feature_drop': hp.choice('feature_drop', [['wkd', 'month']])
              }
+    '''
     max_trials = 1
     trainsetdir = '/home/aapos/Documents/newcrossval/datasets/hard_cosine_similarity'
     testsetdir = '/home/aapos/Documents/newcrossval'
@@ -45,6 +46,7 @@ def create_space():
     #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['hybrid1 val']
     auc_thressholds=30
-    modeltype = 'sklearn'
+    modeltype = 'tensorflow'
+    #modeltype = 'sklearn'
     return testsets, space, max_trials, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, auc_thressholds, modeltype, True
 
