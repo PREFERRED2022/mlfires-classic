@@ -38,6 +38,7 @@ def create_NN_model(params, X):
 
     return model
 
-def create_RF_model(params):
-    model = RandomForestClassifier(max_depth=params['max_depth'], n_estimators=params['n_estimators'])
+def create_sklearn_model(params):
+    if params['algo']=='RF':
+        model = RandomForestClassifier(max_depth=params['max_depth'], n_estimators=params['n_estimators'])
     return model

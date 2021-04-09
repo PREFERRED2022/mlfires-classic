@@ -32,7 +32,8 @@ def create_space():
              #'feature_drop': hp.choice('feature_drop', ['bin'])
              }
     '''
-    space = {'n_estimators': hp.choice('n_estimators', [100]),
+    space = {'algo': hp.choice('algo', ['RF']),
+            'n_estimators': hp.choice('n_estimators', [100]),
              'max_depth': hp.choice('max_depth', [100]),
              'feature_drop': hp.choice('feature_drop', [['wkd', 'month']])
              }

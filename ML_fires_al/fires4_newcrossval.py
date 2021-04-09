@@ -330,7 +330,7 @@ def evalmodel(trfiles, cvsets, optimize_target, calc_test, modeltype, params):
         res = model.fit(X_train, y_train, batch_size=512, epochs=params['max_epochs'], verbose=0, callbacks=[es],
                     class_weight=params['class_weights'])
     elif modeltype=='sklearn':
-        model = manage_model.create_RF_model(params)
+        model = manage_model.create_sklearn_model(params)
         model.fit(X_train, y_train)
 
     print("Fit time (min): %.1f" % ((time.time() - start_fit) / 60.0))
