@@ -302,9 +302,15 @@ def run_predict_and_metrics(model, X, y, dontcalc=False):
     y_scores, y_pred = run_predict(model, X)
     return calc_metrics(y, y_scores, y_pred)
 
+def load_files(cvset, settype, setdir):
+    setfiles = []
+    for dsfilepattern in cvset[settype]:
+        setfiles += [f for f in fileutils.find_files(setdir, dsfilepattern, listtype="walk")]
+    return setfiles
+
 
 # def nnfit(cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd, params):
-def evalmodel(trfiles, cvsets, optimize_target, calc_test, modeltype, params):
+def evalmodel(cvsets, optimize_target, calc_test, modeltype, params):
     # the function gets a set of variable parameters in "param"
     '''
     params = {'n_internal_layers': params['n_internal_layers'][0],
@@ -321,40 +327,43 @@ def evalmodel(trfiles, cvsets, optimize_target, calc_test, modeltype, params):
     cnt = 0
     print("Params : %s" % params)
 
-    print('Training Files: %s' % trfiles)
-    X_pd, y_pd, groups_pd = load_dataset(trfiles, params['feature_drop'])
-
-    X_train = X_pd.values
-    y_train = y_pd.values
-    y_train = y_train[:, 0]
-    start_fit = time.time()
-
-    if modeltype=='tensorflow':
-        model = manage_model.create_NN_model(params, X_train)
-        es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
-        res = model.fit(X_train, y_train, batch_size=512, epochs=params['max_epochs'], verbose=0, callbacks=[es],
-                    class_weight=params['class_weights'])
-    elif modeltype=='sklearn':
-        model = manage_model.create_sklearn_model(params)
-        model.fit(X_train, y_train)
-
-    print("Fit time (min): %.1f" % ((time.time() - start_fit) / 60.0))
-
-    '''training set metrics'''
-    auc_train, acc_1_train, acc_0_train, prec_1_train, prec_0_train, rec_1_train, rec_0_train, f1_1_train, f1_0_train, hybrid1_train, hybrid2_train,\
-    tn_train, fp_train, fn_train, tp_train = run_predict_and_metrics(model, X_train, y_train, not calc_test)
-    if debug:
-        calc_metrics_custom(tn_train, fp_train, fn_train, tp_train)
-    if modeltype=='tensorflow':
-        es_epochs = len(res.history['loss'])
-    else:
-        es_epochs = 0
-
     start_cv = time.time()
     for cvset in cvsets:
+        trfiles = load_files(cvset, 'training', trainsetdir)
+        print('Training Files: %s' % trfiles)
+        X_pd, y_pd, groups_pd = load_dataset(trfiles, params['feature_drop'])
+
+        X_train = X_pd.values
+        y_train = y_pd.values
+        y_train = y_train[:, 0]
+        start_fit = time.time()
+
+        if modeltype=='tensorflow':
+            model = manage_model.create_NN_model(params, X_train)
+            es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
+            res = model.fit(X_train, y_train, batch_size=512, epochs=params['max_epochs'], verbose=0, callbacks=[es],
+                        class_weight=params['class_weights'])
+        elif modeltype=='sklearn':
+            model = manage_model.create_sklearn_model(params)
+            model.fit(X_train, y_train)
+
+        print("Fit time (min): %.1f" % ((time.time() - start_fit) / 60.0))
+
+        '''training set metrics'''
+        auc_train, acc_1_train, acc_0_train, prec_1_train, prec_0_train, rec_1_train, rec_0_train, f1_1_train, f1_0_train, hybrid1_train, hybrid2_train,\
+        tn_train, fp_train, fn_train, tp_train = run_predict_and_metrics(model, X_train, y_train, not calc_test)
+        if debug:
+            calc_metrics_custom(tn_train, fp_train, fn_train, tp_train)
+        if modeltype=='tensorflow':
+            es_epochs = len(res.history['loss'])
+        else:
+            es_epochs = 0
+
+        start_cv = time.time()
         print('Cross Validation Set: %s' % cvset)
         tn = 0; fp = 0; fn = 0; tp = 0;
-        for cvfile in cvset:
+        cvfiles = load_files(cvset, 'crossval', testsetdir)
+        for cvfile in cvfiles:
             start_predict_file = time.time()
             print('Cross Validation File: %s' % cvfile)
             X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'])
@@ -401,8 +410,8 @@ def evalmodel(trfiles, cvsets, optimize_target, calc_test, modeltype, params):
              'auc val.': auc_val,
              'auc train.': auc_train, 'hybrid1 train': hybrid1_train, 'hybrid1 val': hybrid1_val,
              'hybrid2 train': hybrid2_train, 'hybrid2 val': hybrid2_val,
-             'TN val.': tn_val, 'TN train.': tn_train, 'FP val.': fp_val, 'FP train.': fp_train,
-             'FN val.': fn_val, 'FN train.': fn_train, 'TP val.': tp_val, 'TP train.': tp_train,
+             'TN val.': tn_val, 'FP val.': fp_val, 'FN val.': fn_val, 'TP val.': tp_val,
+             'TN train.': tn_train, 'FP train.': fp_train, 'FN train.': fn_train,  'TP train.': tp_train,
              'early stop epochs': es_epochs
              })  # 'fit time':  (time.time() - start_fold_time)/60.0})
 
@@ -411,7 +420,7 @@ def evalmodel(trfiles, cvsets, optimize_target, calc_test, modeltype, params):
     mean_metrics = {}
     for m in metrics[0]:
         mean_metrics[m] = sum([item.get(m, 0) for item in metrics]) / len(metrics)
-    mean_metrics["fit time (min)"] = (time.time() - start_fit) / 60.0
+    mean_metrics["CV time (min)"] = (time.time() - start_cv) / 60.0
     print('Mean %s : %s' % (optimize_target, mean_metrics[optimize_target]))
 
     return {
@@ -431,19 +440,10 @@ testsets, space, max_trials, calc_test, opt_targets, n_cpus, trainsetdir, testse
 tf.config.threading.set_inter_op_parallelism_threads(
     n_cpus
 )
-trfiles = []
-for dsfilepattern in testsets['training']:
-    trfiles += [f for f in fileutils.find_files(trainsetdir, dsfilepattern, listtype="walk")]
-dssets = []
-for dsset in testsets['crossval']:
-    dsfiles = []
-    for dsfilepattern in dsset:
-        dsfiles += [f for f in fileutils.find_files(testsetdir, dsfilepattern, listtype="walk")]
-    dssets += [dsfiles]
 
 for opt_target in opt_targets:
     trials = Trials()
-    evalmodelpart = partial(evalmodel, trfiles, dssets, opt_target, calc_test, modeltype)
+    evalmodelpart = partial(evalmodel, testsets, opt_target, calc_test, modeltype)
 
     best = fmin(fn=evalmodelpart,  # function to optimize
                 space=space,

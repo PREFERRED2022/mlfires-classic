@@ -41,7 +41,8 @@ def create_space():
     max_trials = 1
     trainsetdir = '/home/aapos/Documents/newcrossval/datasets/hard_cosine_similarity'
     testsetdir = '/home/aapos/Documents/newcrossval'
-    testsets = {'training':['*2010.csv','*2011.csv'], 'crossval':[['may*2010*','april*2010*'],['april*2011*']]}
+    testsets = [{'training': ['*2010.csv'],'crossval': ['may*2010*', 'april*2010*']},
+                {'training':['*2010.csv','*2011.csv'], 'crossval':['april*2011*']}]
     calc_train_metrics = True
     #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['hybrid1 val']
