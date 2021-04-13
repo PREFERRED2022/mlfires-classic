@@ -189,9 +189,9 @@ def load_dataset(trfiles, featuredrop=None, class0nrows=0):
     if len(featuredrop) > 0:
         X = X.drop(columns=[c for c in X.columns if any([fd in c for fd in featuredrop])])
     print("Dropped columns %s"%(set(X_columns)-set(X.columns)))
-    if debug:
-        print("X helth check %s"%X.describe())
-        print("y helth check %s"%y.describe())
+    #if debug:
+    #    print("X helth check %s"%X.describe())
+    #    print("y helth check %s"%y.describe())
     return X, y, groupspd
 
 
