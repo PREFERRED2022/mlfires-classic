@@ -442,7 +442,12 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, params):
 
     mean_metrics = {}
     for m in metrics[0]:
-        mean_metrics[m] = sum([item.get(m, 0) for item in metrics]) / len(metrics)
+        metricsum = sum([item.get(m, 0) for item in metrics])
+        cmvalsts = ['TN','FP','FN','TP']
+        if any([st in m for st in cmvalsts]):
+            mean_metrics[m] = metricsum
+        else:
+            mean_metrics[m] = metricsum / len(metrics)
     mean_metrics["CV time (min)"] = (time.time() - start_cv) / 60.0
     print('Mean %s : %s' % (optimize_target, mean_metrics[optimize_target]))
 
