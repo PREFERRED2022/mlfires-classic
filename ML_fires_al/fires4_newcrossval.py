@@ -125,7 +125,7 @@ def check_categorical(df, checkcol, newcols):
 
 
 # load the dataset
-def load_dataset(trfiles, featuredrop=None):
+def load_dataset(trfiles, featuredrop=None, class0nrows=0):
     dsetfolder = trainsetdir
     # dsfile = 'dataset_ndvi_lu.csv'
     domdircheck = 'dom_dir'
@@ -148,6 +148,14 @@ def load_dataset(trfiles, featuredrop=None):
     else:
         dsfile = trfiles
         df = pd.read_csv(os.path.join(dsetfolder, dsfile))
+    if class0nrows>0:
+        firegroup = df.groupby('fire')
+        dfpart = firegroup.get_group(0).head(class0nrows)
+        if 1 in firegroup.groups:
+            df = pd.concat([dfpart,firegroup.get_group(1)])
+        else:
+            df = dfpart
+
     X_columns_upper = [c.upper() for c in X_columns]
     newcols = [c for c in df.columns if
                c.upper() in X_columns_upper or any([cX in c.upper() for cX in X_columns_upper])]
@@ -329,6 +337,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, params):
 
     start_cv = time.time()
     for cvset in cvsets:
+        print('Cross Validation Set: %s' % cvset)
         trfiles = load_files(cvset, 'training', trainsetdir)
         print('Training Files: %s' % trfiles)
         X_pd, y_pd, groups_pd = load_dataset(trfiles, params['feature_drop'])
@@ -360,13 +369,12 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, params):
             es_epochs = 0
 
         start_cv = time.time()
-        print('Cross Validation Set: %s' % cvset)
         tn = 0; fp = 0; fn = 0; tp = 0;
         cvfiles = load_files(cvset, 'crossval', testsetdir)
         for cvfile in cvfiles:
             start_predict_file = time.time()
             print('Cross Validation File: %s' % cvfile)
-            X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'])
+            X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'], cvrownum)
             X_val = X_pd.values
             _y_val = y_pd.values
             _y_val = _y_val[:, 0]
@@ -436,7 +444,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, params):
     }
 
 
-testsets, space, max_trials, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, numaucthres, modeltype, debug = space_newcv.create_space()
+testsets, space, max_trials, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, numaucthres, modeltype, cvrownum, debug = space_newcv.create_space()
 tf.config.threading.set_inter_op_parallelism_threads(
     n_cpus
 )

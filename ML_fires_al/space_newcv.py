@@ -49,5 +49,6 @@ def create_space():
     auc_thressholds=30
     modeltype = 'tensorflow'
     #modeltype = 'sklearn'
-    return testsets, space, max_trials, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, auc_thressholds, modeltype, True
+    cvrownum = 5000
+    return testsets, space, max_trials, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, auc_thressholds, modeltype, cvrownum, True
 
