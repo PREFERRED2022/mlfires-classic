@@ -123,10 +123,8 @@ def check_categorical(df, checkcol, newcols):
         cat_col = None
     return cat_col, newcols
 
-
 # load the dataset
 def load_dataset(trfiles, featuredrop=None, class0nrows=0):
-    dsetfolder = trainsetdir
     # dsfile = 'dataset_ndvi_lu.csv'
     domdircheck = 'dom_dir'
     dirmaxcheck = 'dir_max'
@@ -143,18 +141,36 @@ def load_dataset(trfiles, featuredrop=None, class0nrows=0):
     if isinstance(trfiles, list):
         dflist=[]
         for dsfile in trfiles:
-            dflist.append(pd.read_csv(os.path.join(dsetfolder, dsfile)))
+            dflist.append(pd.read_csv(dsfile))
         df=pd.concat(dflist)
     else:
         dsfile = trfiles
-        df = pd.read_csv(os.path.join(dsetfolder, dsfile))
-    if class0nrows>0:
-        firegroup = df.groupby('fire')
-        dfpart = firegroup.get_group(0).head(class0nrows)
-        if 1 in firegroup.groups:
-            df = pd.concat([dfpart,firegroup.get_group(1)])
+        if class0nrows > 0:
+            dffirefile = dsfile[0:-4]+"_fires.csv"
+            if os.path.isfile(dffirefile):
+                if debug:
+                    print("Loading fire dataset %s"%dffirefile)
+                dffire = pd.read_csv(dffirefile)
+                if debug:
+                    print("Loading no-fire dataset %s"%dffirefile)
+                dfpart = pd.read_csv(dsfile, nrows=class0nrows)
+                dfpart = dfpart[dfpart['fire']!=1]
+                df = pd.concat(dfpart, dffire)
+            else:
+                df = pd.read_csv(dsfile)
+                if debug:
+                    print("Split dataset to fire no-fire %s"%dffirefile)
+                firegroup = df.groupby('fire')
+                dfpart = firegroup.get_group(0).head(class0nrows)
+                if 1 in firegroup.groups:
+                    if debug:
+                        print("Creating fire dataset %s" % dffirefile)
+                    firegroup.get_group(1).to_csv(dffirefile, index=False)
+                    df = pd.concat([dfpart, firegroup.get_group(1)])
+                else:
+                    df = dfpart
         else:
-            df = dfpart
+            df = pd.read_csv(dsfile)
 
     X_columns_upper = [c.upper() for c in X_columns]
     newcols = [c for c in df.columns if
@@ -289,7 +305,6 @@ def calc_metrics_custom(tn, fp, fn, tp):
         print("hybrid 1 : %.2f"%hybrid1)
         print("hybrid 2 : %.2f"%hybrid2)
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
-
 
 def run_predict(model, X):
     if debug:
@@ -475,4 +490,4 @@ for opt_target in opt_targets:
     cnt = 1
     while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
         cnt += 1
-    pd_opt.to_csv('%s%d.csv' % (hyp_res_base, cnt))
+    pd_opt.to_csv('%s%d.csv' % (hyp_res_base, cnt), index=False)
