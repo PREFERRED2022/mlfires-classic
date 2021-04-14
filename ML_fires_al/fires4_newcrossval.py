@@ -29,6 +29,7 @@ import manage_model
 import fileutils
 import MLscores
 import sys
+from csv import DictWriter
 
 num_folds = 10
 # kf = KFold(n_splits=num_folds, shuffle=True)
@@ -155,11 +156,11 @@ def load_dataset(trfiles, featuredrop=None, class0nrows=0):
                     print("Loading no-fire dataset %s"%dffirefile)
                 dfpart = pd.read_csv(dsfile, nrows=class0nrows)
                 dfpart = dfpart[dfpart['fire']!=1]
-                df = pd.concat(dfpart, dffire)
+                df = pd.concat([dfpart, dffire])
             else:
                 df = pd.read_csv(dsfile)
                 if debug:
-                    print("Split dataset to fire no-fire %s"%dffirefile)
+                    print("Split dataset to fire no-fire")
                 firegroup = df.groupby('fire')
                 dfpart = firegroup.get_group(0).head(class0nrows)
                 if 1 in firegroup.groups:
@@ -188,7 +189,7 @@ def load_dataset(trfiles, featuredrop=None, class0nrows=0):
     X_columns = X.columns
     if len(featuredrop) > 0:
         X = X.drop(columns=[c for c in X.columns if any([fd in c for fd in featuredrop])])
-    print("Dropped columns %s"%(set(X_columns)-set(X.columns)))
+    print("Dropped columns %s"%(list(set(X_columns)-set(X.columns))))
     #if debug:
     #    print("X helth check %s"%X.describe())
     #    print("y helth check %s"%y.describe())
@@ -332,8 +333,34 @@ def load_files(cvset, settype, setdir):
     return setfiles
 
 
+def writemetrics(metrics, mean_metrics, hpresfile, allresfile):
+    writeheader = True if not os.path.isfile(hpresfile) else False
+    with open(hpresfile, 'a') as _f:
+        dw = DictWriter(_f, fieldnames=mean_metrics.keys())
+        if writeheader:
+            dw.writeheader()
+        dw.writerow(mean_metrics)
+    writeheader = True if not os.path.isfile(allresfile) else False
+    with open(allresfile, 'a') as _f:
+        dw = DictWriter(_f, fieldnames=metrics[0].keys())
+        if writeheader:
+            dw.writeheader()
+        for m in metrics:
+            dw.writerow(m)
+
+def resfilename(opt_target):
+    hyp_res_base = os.path.join('results', 'hyperopt',
+                                'hyperopt_results_' + "".join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_' + filedesc + '_')
+    cnt = 1
+    while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
+        cnt += 1
+    hyperresfile='%s%d.csv' % (hyp_res_base, cnt)
+    hyperallfile='%sall_%d.csv' % (hyp_res_base, cnt)
+    return hyperresfile, hyperallfile
+
+
 # def nnfit(cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd, params):
-def evalmodel(cvsets, optimize_target, calc_test, modeltype, params):
+def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyperallfile, params):
     # the function gets a set of variable parameters in "param"
     '''
     params = {'n_internal_layers': params['n_internal_layers'][0],
@@ -350,7 +377,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, params):
     cnt = 0
     print("Params : %s" % params)
 
-    start_cv = time.time()
+    start_cv_all = time.time()
     for cvset in cvsets:
         print('Cross Validation Set: %s' % cvset)
         trfiles = load_files(cvset, 'training', trainsetdir)
@@ -435,21 +462,23 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, params):
              'hybrid2 train': hybrid2_train, 'hybrid2 val': hybrid2_val,
              'TN val.': tn_val, 'FP val.': fp_val, 'FN val.': fn_val, 'TP val.': tp_val,
              'TN train.': tn_train, 'FP train.': fp_train, 'FN train.': fn_train,  'TP train.': tp_train,
-             'early stop epochs': es_epochs
+             'early stop epochs': es_epochs,
+             'cvset': "%s"%cvset
              })  # 'fit time':  (time.time() - start_fold_time)/60.0})
-
-    # print(metrics[-1])
 
     mean_metrics = {}
     for m in metrics[0]:
+        if m == 'cvset':
+            continue
         metricsum = sum([item.get(m, 0) for item in metrics])
         cmvalsts = ['TN','FP','FN','TP']
         if any([st in m for st in cmvalsts]):
             mean_metrics[m] = metricsum
         else:
             mean_metrics[m] = metricsum / len(metrics)
-    mean_metrics["CV time (min)"] = (time.time() - start_cv) / 60.0
+    mean_metrics["CV time (min)"] = (time.time() - start_cv_all) / 60.0
     print('Mean %s : %s' % (optimize_target, mean_metrics[optimize_target]))
+    writemetrics(metrics, mean_metrics, hyperresfile, hyperallfile)
 
     return {
         'loss': -mean_metrics[optimize_target],
@@ -457,22 +486,29 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, params):
         # -- store other results like this
         # 'eval_time': time.time(),
         'metrics': mean_metrics,
-        'params': '%s' % params
+        'params': '%s' % params,
+        'allmetrics': metrics,
         # -- attachments are handled differently
         # 'attachments':
         #    {'time_module': pickle.dumps(time.time)}
     }
 
 
-testsets, space, max_trials, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, numaucthres, modeltype, cvrownum, debug = space_newcv.create_space()
+
+testsets, space, max_trials, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, numaucthres, modeltype,\
+cvrownum, filedesc, debug = space_newcv.create_space()
 tf.config.threading.set_inter_op_parallelism_threads(
     n_cpus
 )
 
 for opt_target in opt_targets:
-    trials = Trials()
-    evalmodelpart = partial(evalmodel, testsets, opt_target, calc_test, modeltype)
 
+    trials = Trials()
+    hyperresfile, hyperallfile = resfilename(opt_target)
+    evalmodelpart = partial(evalmodel, testsets, opt_target, calc_test, modeltype, hyperresfile, hyperallfile)
+
+    if not os.path.isdir(os.path.join('results', 'hyperopt')):
+        os.makedirs(os.path.join('results', 'hyperopt'))
     best = fmin(fn=evalmodelpart,  # function to optimize
                 space=space,
                 algo=tpe.suggest,  # optimization algorithm, hyperotp will select its parameters automatically
@@ -487,12 +523,5 @@ for opt_target in opt_targets:
         pdrow['params'] = t['result']['params']
         pd_opt = pd_opt.append(pdrow, ignore_index=True)
 
-    if not os.path.isdir(os.path.join('results', 'hyperopt')):
-        os.makedirs(os.path.join('results', 'hyperopt'))
 
-    hyp_res_base = os.path.join('results', 'hyperopt',
-                                'hyperopt_results_' + "".join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_')
-    cnt = 1
-    while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
-        cnt += 1
-    pd_opt.to_csv('%s%d.csv' % (hyp_res_base, cnt), index=False)
+    #pd_opt.to_csv(hyperresfile, index=False)

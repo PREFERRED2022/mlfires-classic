@@ -33,7 +33,7 @@ def create_space():
              }
     '''
     space = {'algo': hp.choice('algo', ['RF']),
-            'n_estimators': hp.choice('n_estimators', [100]),
+             'n_estimators': hp.choice('n_estimators', [100,200,2000]),
              'max_depth': hp.choice('max_depth', [100]),
              'feature_drop': hp.choice('feature_drop', [['wkd', 'month']])
              }
@@ -50,5 +50,6 @@ def create_space():
     modeltype = 'tensorflow'
     #modeltype = 'sklearn'
     cvrownum = 5000
-    return testsets, space, max_trials, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, auc_thressholds, modeltype, cvrownum, True
+    filedesc = 'NN_1M'
+    return testsets, space, max_trials, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, auc_thressholds, modeltype, cvrownum, filedesc, True
 
