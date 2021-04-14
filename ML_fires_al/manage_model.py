@@ -38,7 +38,12 @@ def create_NN_model(params, X):
 
     return model
 
-def create_sklearn_model(params):
+def create_sklearn_model(params, X):
+    n_features = X.shape[1]
     if params['algo']=='RF':
-        model = RandomForestClassifier(max_depth=params['max_depth'], n_estimators=params['n_estimators'])
+        max_feat = int(n_features/10*params['max_features'])
+        model = RandomForestClassifier(max_depth=params['max_depth'], n_estimators=params['n_estimators'], min_samples_split=params['min_samples_split'], \
+                                       min_samples_leaf=params['min_samples_leaf'],criterion=params['criterion'],max_features=max_feat,
+                                       bootstrap=params['bootstrap'], class_weight=params['class_weight']
+                                       )
     return model

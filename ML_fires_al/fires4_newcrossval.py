@@ -395,7 +395,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             res = model.fit(X_train, y_train, batch_size=512, epochs=params['max_epochs'], verbose=0, callbacks=[es],
                         class_weight=params['class_weights'])
         elif modeltype=='sklearn':
-            model = manage_model.create_sklearn_model(params)
+            model = manage_model.create_sklearn_model(params, X_train)
             model.fit(X_train, y_train)
 
         print("Fit time (min): %.1f" % ((time.time() - start_fit) / 60.0))
@@ -463,12 +463,13 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
              'TN val.': tn_val, 'FP val.': fp_val, 'FN val.': fn_val, 'TP val.': tp_val,
              'TN train.': tn_train, 'FP train.': fp_train, 'FN train.': fn_train,  'TP train.': tp_train,
              'early stop epochs': es_epochs,
-             'cvset': "%s"%cvset
+             'cvset': '%s'%cvset,
+             'params':'%s'%params
              })  # 'fit time':  (time.time() - start_fold_time)/60.0})
 
     mean_metrics = {}
     for m in metrics[0]:
-        if m == 'cvset':
+        if m in ['cvset', 'params']:
             continue
         metricsum = sum([item.get(m, 0) for item in metrics])
         cmvalsts = ['TN','FP','FN','TP']
@@ -477,6 +478,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         else:
             mean_metrics[m] = metricsum / len(metrics)
     mean_metrics["CV time (min)"] = (time.time() - start_cv_all) / 60.0
+    mean_metrics['params'] = '%s'%params
     print('Mean %s : %s' % (optimize_target, mean_metrics[optimize_target]))
     writemetrics(metrics, mean_metrics, hyperresfile, hyperallfile)
 

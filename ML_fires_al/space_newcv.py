@@ -1,7 +1,7 @@
 from hyperopt import hp
 
 def create_space():
-
+    '''
     space = {'n_internal_layers': hp.choice('n_internal_layers',
                 [
                     #(0, {'layer_1_0_nodes': hp.quniform('layer_1_0_nodes', 10, 310, 50)}),
@@ -33,6 +33,18 @@ def create_space():
              }
     '''
     space = {'algo': hp.choice('algo', ['RF']),
+             'n_estimators': hp.choice('n_estimators', [50, 100, 120, 150,170,200, 250, 350, 500, 750, 1000,1400, 1500]),
+              'min_samples_split': hp.choice('min_samples_split',[2, 10, 50, 70,100,120,150,180, 200, 250,400,600,1000, 1300, 2000]),
+              'min_samples_leaf' :hp.choice('min_samples_leaf',[1, 10,30,40,50,100,120,150]),
+              'criterion':hp.choice('criterion',["gini", "entropy"]),
+              'max_features':hp.quniform('max_features', 1,10,1),
+              'bootstrap':hp.choice('bootstrap',[True, False]),
+              'max_depth': hp.choice('max_depth', [10, 20, 100, 200, 400,500, 700, 1000, 1200,2000, None]),
+              'feature_drop': hp.choice('feature_drop', [['wkd', 'month']]),
+             'class_weight':hp.choice('class_weight',[{0:1,1:9},{0:1,1:300},{0:1,1:400},{0:1,1:500},{0:1,1:1000}])
+            }
+    '''
+    space = {'algo': hp.choice('algo', ['RF']),
              'n_estimators': hp.choice('n_estimators', [100,200,2000]),
              'max_depth': hp.choice('max_depth', [100]),
              'feature_drop': hp.choice('feature_drop', [['wkd', 'month']])
@@ -47,9 +59,9 @@ def create_space():
     #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['hybrid1 val']
     auc_thressholds=30
-    modeltype = 'tensorflow'
-    #modeltype = 'sklearn'
+    #modeltype = 'tensorflow'
+    modeltype = 'sklearn'
     cvrownum = 5000
-    filedesc = 'NN_1M'
+    filedesc = 'RF_1M'
     return testsets, space, max_trials, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, auc_thressholds, modeltype, cvrownum, filedesc, True
 
