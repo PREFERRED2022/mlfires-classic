@@ -1,7 +1,7 @@
 from hyperopt import hp
 
 def create_space():
-    '''
+
     space = {'n_internal_layers': hp.choice('n_internal_layers',
                 [
                     #(0, {'layer_1_0_nodes': hp.quniform('layer_1_0_nodes', 10, 310, 50)}),
@@ -44,12 +44,6 @@ def create_space():
              'class_weight':hp.choice('class_weight',[{0:1,1:9},{0:1,1:300},{0:1,1:400},{0:1,1:500},{0:1,1:1000}])
             }
     '''
-    space = {'algo': hp.choice('algo', ['RF']),
-             'n_estimators': hp.choice('n_estimators', [100,200,2000]),
-             'max_depth': hp.choice('max_depth', [100]),
-             'feature_drop': hp.choice('feature_drop', [['wkd', 'month']])
-             }
-    '''
     max_trials = 1
     trainsetdir = '/home/aapos/Documents/newcrossval/datasets/hard_cosine_similarity'
     testsetdir = '/home/aapos/Documents/newcrossval'
@@ -59,9 +53,11 @@ def create_space():
     #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['hybrid1 val']
     auc_thressholds=30
-    #modeltype = 'tensorflow'
-    modeltype = 'sklearn'
-    cvrownum = 5000
-    filedesc = 'RF_1M'
-    return testsets, space, max_trials, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, auc_thressholds, modeltype, cvrownum, filedesc, True
+    modeltype = 'tensorflow'
+    #modeltype = 'sklearn'
+    cvrownum = 0
+    filedesc = 'NN'
+    valst = 'val.'
+    #valst = 'test'
+    return testsets, space, max_trials, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, auc_thressholds, modeltype, cvrownum, filedesc, valst, True
 

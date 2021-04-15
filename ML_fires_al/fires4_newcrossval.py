@@ -197,15 +197,10 @@ def load_dataset(trfiles, featuredrop=None, class0nrows=0):
 
 
 def hybridrecall(w1, w0, rec1, rec0):
-    if rec1 != 0 and rec0 != 0:
+    if rec1 > 0 and rec0 > 0:
         return (w1 + w0) / (w1 / rec1 + w0 / rec0)
-    elif rec1 == 0 and rec0 == 0:
-        return 0
-    elif rec1 == 0:
-        return rec0
-    elif rec0 == 0:
-        return rec1
-
+    else:
+        return -1000
 
 def calc_metrics(y, y_scores, y_pred):
     if debug:
@@ -269,7 +264,9 @@ def calc_metrics_custom(tn, fp, fn, tp):
     auc = 0
     if debug:
         print("auc : %.2f"%auc)
-    # tp0 = tn1 tn0 = tp1 fp0 = fn1 fn0 = fp1
+    ##############################################
+    # tp0 = tn1, tn0 = tp1, fp0 = fn1, fn0 = fp1 #
+    ##############################################
     if debug:
         print("calulating accuracy...")
     acc_1 = MLscores.accuracy(tp, tn, fp, fn)
@@ -319,7 +316,6 @@ def run_predict(model, X):
     y_pred = predict_class_v(y_scores[:, 1])
     return y_scores, y_pred
 
-
 def run_predict_and_metrics(model, X, y, dontcalc=False):
     if dontcalc:
         return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -331,7 +327,6 @@ def load_files(cvset, settype, setdir):
     for dsfilepattern in cvset[settype]:
         setfiles += [f for f in fileutils.find_files(setdir, dsfilepattern, listtype="walk")]
     return setfiles
-
 
 def writemetrics(metrics, mean_metrics, hpresfile, allresfile):
     writeheader = True if not os.path.isfile(hpresfile) else False
@@ -357,7 +352,6 @@ def resfilename(opt_target):
     hyperresfile='%s%d.csv' % (hyp_res_base, cnt)
     hyperallfile='%sall_%d.csv' % (hyp_res_base, cnt)
     return hyperresfile, hyperallfile
-
 
 # def nnfit(cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd, params):
 def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyperallfile, params):
@@ -449,29 +443,29 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         start_time = time.time()
 
         print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_val, rec_0_val))
-
         metrics.append(
-            {'accuracy val.': acc_1_val, 'accuracy train': acc_1_train,
-             'precision 1 val.': prec_1_val, 'precision 1 train': prec_1_train, 'recall 1 val.': rec_1_val,
-             'recall 1 train': rec_1_train, 'f1-score 1 val.': f1_1_val, 'f1-score 1 train': f1_1_train,
-             'accuracy 0 val.': acc_0_val, 'accuracy 0 train': acc_0_train,
-             'precision 0 val.': prec_0_val, 'precision 0 train': prec_0_train, 'recall 0 val.': rec_0_val,
-             'recall 0 train': rec_0_train, 'f1-score 0 val.': f1_0_val, 'f1-score 0 train': f1_0_train,
-             'auc val.': auc_val,
+            {
+             'training set': '%s' % cvset['training'],
+             '%s set'%valst : '%s' % cvset['crossval'],
+             'accuracy %s'%valst: acc_1_val, 'accuracy train': acc_1_train,
+             'precision 1 %s'%valst: prec_1_val, 'precision 1 train': prec_1_train, 'recall 1 %s'%valst: rec_1_val,
+             'recall 1 train': rec_1_train, 'f1-score 1 %s'%valst: f1_1_val, 'f1-score 1 train': f1_1_train,
+             'accuracy 0 %s'%valst: acc_0_val, 'accuracy 0 train': acc_0_train,
+             'precision 0 %s'%valst: prec_0_val, 'precision 0 train': prec_0_train, 'recall 0 %s'%valst: rec_0_val,
+             'recall 0 train': rec_0_train, 'f1-score 0 %s'%valst: f1_0_val, 'f1-score 0 train': f1_0_train,
+             'auc %s'%valst: auc_val,
              'auc train.': auc_train, 'hybrid1 train': hybrid1_train, 'hybrid1 val': hybrid1_val,
              'hybrid2 train': hybrid2_train, 'hybrid2 val': hybrid2_val,
-             'TN val.': tn_val, 'FP val.': fp_val, 'FN val.': fn_val, 'TP val.': tp_val,
+             'TN %s'%valst: tn_val, 'FP %s'%valst: fp_val, 'FN %s'%valst: fn_val, 'TP %s'%valst: tp_val,
              'TN train.': tn_train, 'FP train.': fp_train, 'FN train.': fn_train,  'TP train.': tp_train,
              'early stop epochs': es_epochs,
-             'cvset': '%s'%cvset,
              'params':'%s'%params
              })  # 'fit time':  (time.time() - start_fold_time)/60.0})
-
     mean_metrics = {}
     for m in metrics[0]:
-        if m in ['cvset', 'params']:
+        if isinstance(metrics[0][m], str):
             continue
-        metricsum = sum([item.get(m, 0) for item in metrics])
+        metricsum = sum([item.get(m, 0) for item in metrics if item.get(m) >= 0])
         cmvalsts = ['TN','FP','FN','TP']
         if any([st in m for st in cmvalsts]):
             mean_metrics[m] = metricsum
@@ -495,10 +489,8 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-
-
 testsets, space, max_trials, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, numaucthres, modeltype,\
-cvrownum, filedesc, debug = space_newcv.create_space()
+cvrownum, filedesc, valst, debug = space_newcv.create_space()
 tf.config.threading.set_inter_op_parallelism_threads(
     n_cpus
 )
@@ -524,6 +516,5 @@ for opt_target in opt_targets:
         pdrow = t['result']['metrics']
         pdrow['params'] = t['result']['params']
         pd_opt = pd_opt.append(pdrow, ignore_index=True)
-
 
     #pd_opt.to_csv(hyperresfile, index=False)
