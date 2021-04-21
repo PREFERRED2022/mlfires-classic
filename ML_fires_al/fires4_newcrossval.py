@@ -377,6 +377,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         trfiles = load_files(cvset, 'training', trainsetdir)
         print('Training Files: %s' % trfiles)
         X_pd, y_pd, groups_pd = load_dataset(trfiles, params['feature_drop'])
+        traincolumns = X_pd.columns
 
         X_train = X_pd.values
         y_train = y_pd.values
@@ -411,6 +412,12 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             start_predict_file = time.time()
             print('Cross Validation File: %s' % cvfile)
             X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'], cvrownum)
+            valcolumns = X_pd.columns
+            if debug:
+                for i in range(0,len(traincolumns)):
+                    if traincolumns[i]!=valcolumns[i]:
+                        print('WARNING! Training set column %d: %s is different from Validation Set Column %d: %s'%(i,traincolumns[i],i,valcolumns[i]))
+
             X_val = X_pd.values
             _y_val = y_pd.values
             _y_val = _y_val[:, 0]
