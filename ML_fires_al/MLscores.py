@@ -25,6 +25,11 @@ def npv(tn,fn):
         return -1000
     return tn/(tn+fn)
 
+def hybridrecall(w1, w0, rec1, rec0):
+    if rec1 > 0 and rec0 > 0:
+        return (w1 + w0) / (w1 / rec1 + w0 / rec0)
+    else:
+        return -1000
 def cmvals(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
     if cm.shape[0]==1 and y_true[0]==0:

@@ -59,5 +59,6 @@ def create_space():
     filedesc = 'NN'
     valst = 'val.'
     #valst = 'test'
-    return testsets, space, max_trials, calc_train_metrics, opt_targets, 8, trainsetdir, testsetdir, auc_thressholds, modeltype, cvrownum, filedesc, valst, True
+    return testsets, space, max_trials, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
+           modeltype, cvrownum, filedesc, valst, True
 

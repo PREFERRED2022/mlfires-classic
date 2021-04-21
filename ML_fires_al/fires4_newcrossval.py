@@ -30,6 +30,7 @@ import fileutils
 import MLscores
 import sys
 from csv import DictWriter
+from check_and_prepare_dataset import load_dataset
 
 num_folds = 10
 # kf = KFold(n_splits=num_folds, shuffle=True)
@@ -48,159 +49,6 @@ def drop_all0_features(df):
                     df.drop(columns=[c])
             else:
                 print("%s not exists (size : %d)" % (c, len(u)))
-
-
-def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col):
-    df = df.dropna()
-    X_unnorm, y_int = df[X_columns], df[y_columns]
-
-    # categories to binary
-    if domdir_col:
-        Xbindomdir = pd.get_dummies(X_unnorm[domdir_col].round())
-        if 0 in Xbindomdir.columns:
-            del Xbindomdir[0]
-        ddircols = []
-        for i in range(1, 9):
-            ddircols.append('bin_dom_dir_%d' % i)
-        Xbindomdir.columns = ddircols
-        del X_unnorm[domdir_col]
-        X_unnorm = pd.concat([X_unnorm, Xbindomdir], axis=1)
-
-    if dirmax_col:
-        Xbindirmax = pd.get_dummies(X_unnorm[dirmax_col].round())
-        if 0 in Xbindirmax.columns:
-            del Xbindirmax[0]
-        dmaxcols = []
-        for i in range(1, 9):
-            dmaxcols.append('bin_dir_max_%d' % i)
-        Xbindirmax.columns = dmaxcols
-        del X_unnorm[dirmax_col]
-        X_unnorm = pd.concat([X_unnorm, Xbindirmax], axis=1)
-
-    if corine_col:
-        # convert corine level
-        corine2 = X_unnorm[corine_col].copy() // 10
-        del X_unnorm[corine_col]
-        # X_unnorm.rename(columns={corine_col: 'corine_orig'})
-        X_unnorm = pd.concat([X_unnorm, corine2], axis=1)
-
-        Xbincorine = pd.get_dummies(X_unnorm[corine_col])
-        corcols = ['bin_corine_' + str(c) for c in Xbincorine.columns]
-        Xbincorine.columns = corcols
-        del X_unnorm[corine_col]
-        X_unnorm = pd.concat([X_unnorm, Xbincorine], axis=1)
-
-    # X = normdataset.normalize_dataset(X_unnorm, aggrfile='stats/featurestats.json')
-    X = X_unnorm
-    y = y_int
-    groupspd = df[firedate_col]
-
-    return X, y, groupspd
-
-
-def check_categorical(df, checkcol, newcols):
-    cat_cols = [c for c in df.columns if checkcol.upper() in c.upper()]
-    if any([c.upper() == checkcol.upper() for c in cat_cols]) and len(cat_cols) > 1:
-        cat_col = [c for c in df.columns if checkcol.upper() == c.upper()][0]
-        deletecolumns = []
-        for c in newcols:
-            if (c.upper() != checkcol.upper() and checkcol.upper() in c.upper()):
-                deletecolumns.append(c)
-        for c in deletecolumns:
-            newcols.remove(c)
-    elif any([c.upper() == checkcol.upper() for c in cat_cols]) and len(cat_cols) == 1:
-        cat_col = [c for c in df.columns if checkcol.upper() == c.upper()][0]
-    elif not any([c.upper() == checkcol.upper() for c in cat_cols]) and len(cat_cols) == 1:
-        cat_col = [c for c in df.columns if checkcol.upper() == c.upper()][0]
-    elif not any([c.upper() == checkcol.upper() for c in cat_cols]) and len(cat_cols) > 1:
-        cat_col = None
-        for i in range(0, len(newcols)):
-            c = newcols[i]
-            if (c.upper() != checkcol.upper() and checkcol.upper() in c.upper()):
-                newname = "bin_" + c
-                newcols[i] = newname
-                df.rename(columns={c: newname}, inplace=True)
-    else:
-        cat_col = None
-    return cat_col, newcols
-
-# load the dataset
-def load_dataset(trfiles, featuredrop=None, class0nrows=0):
-    # dsfile = 'dataset_ndvi_lu.csv'
-    domdircheck = 'dom_dir'
-    dirmaxcheck = 'dir_max'
-    corinecheck = 'Corine'
-    monthcheck = 'month'
-    wkdcheck = 'wkd'
-    firedatecheck = 'firedate'
-    X_columns = ['max_temp', 'min_temp', 'mean_temp', 'res_max', dirmaxcheck, 'dom_vel', domdircheck,
-                 'rain_7days', corinecheck, 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi', 'evi', 'lst_day',
-                 'lst_night', monthcheck, wkdcheck,
-                 'mean_dew_temp', 'max_dew_temp', 'min_dew_temp','frequency', 'f81', 'x', 'y']
-    y_columns = ['fire']
-    # if not os.path.exists(os.path.join(dsetfolder, dsready)):
-    if isinstance(trfiles, list):
-        dflist=[]
-        for dsfile in trfiles:
-            dflist.append(pd.read_csv(dsfile))
-        df=pd.concat(dflist)
-    else:
-        dsfile = trfiles
-        if class0nrows > 0:
-            dffirefile = dsfile[0:-4]+"_fires.csv"
-            if os.path.isfile(dffirefile):
-                if debug:
-                    print("Loading fire dataset %s"%dffirefile)
-                dffire = pd.read_csv(dffirefile)
-                if debug:
-                    print("Loading no-fire dataset %s"%dffirefile)
-                dfpart = pd.read_csv(dsfile, nrows=class0nrows)
-                dfpart = dfpart[dfpart['fire']!=1]
-                df = pd.concat([dfpart, dffire])
-            else:
-                df = pd.read_csv(dsfile)
-                if debug:
-                    print("Split dataset to fire no-fire")
-                firegroup = df.groupby('fire')
-                dfpart = firegroup.get_group(0).head(class0nrows)
-                if 1 in firegroup.groups:
-                    if debug:
-                        print("Creating fire dataset %s" % dffirefile)
-                    firegroup.get_group(1).to_csv(dffirefile, index=False)
-                    df = pd.concat([dfpart, firegroup.get_group(1)])
-                else:
-                    df = dfpart
-        else:
-            df = pd.read_csv(dsfile)
-
-    X_columns_upper = [c.upper() for c in X_columns]
-    newcols = [c for c in df.columns if
-               c.upper() in X_columns_upper or any([cX in c.upper() for cX in X_columns_upper])]
-    X_columns = newcols
-    corine_col, newcols = check_categorical(df, corinecheck, newcols)
-    dirmax_col, newcols = check_categorical(df, dirmaxcheck, newcols)
-    domdir_col, newcols = check_categorical(df, domdircheck, newcols)
-    month_col, newcols = check_categorical(df, monthcheck, newcols)
-    wkd_col, newcols = check_categorical(df, wkdcheck, newcols)
-
-    firedate_col = [c for c in df.columns if firedatecheck.upper() in c.upper()][0]
-    X, y, groupspd = prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col)
-    print("Ignored columns from csv %s"%([c for c in df.columns if c not in X.columns]))
-    X_columns = X.columns
-    if len(featuredrop) > 0:
-        X = X.drop(columns=[c for c in X.columns if any([fd in c for fd in featuredrop])])
-    print("Dropped columns %s"%(list(set(X_columns)-set(X.columns))))
-    #if debug:
-    #    print("X helth check %s"%X.describe())
-    #    print("y helth check %s"%y.describe())
-    return X, y, groupspd
-
-
-def hybridrecall(w1, w0, rec1, rec0):
-    if rec1 > 0 and rec0 > 0:
-        return (w1 + w0) / (w1 / rec1 + w0 / rec0)
-    else:
-        return -1000
 
 def calc_metrics(y, y_scores, y_pred):
     if debug:
@@ -247,8 +95,8 @@ def calc_metrics(y, y_scores, y_pred):
         print("f1 0 : %.2f"%f1_0)
     if debug:
         print("calulating hybrids...")
-    hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
-    hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
+    hybrid1 = MLscores.hybridrecall(2, 1, rec_1, rec_0)
+    hybrid2 = MLscores.hybridrecall(5, 1, rec_1, rec_0)
     if debug:
         print("hybrid 1 : %.2f"%hybrid1)
         print("hybrid 2 : %.2f"%hybrid2)
@@ -297,8 +145,8 @@ def calc_metrics_custom(tn, fp, fn, tp):
         print("f1 0 : %.2f" % f1_0)
     if debug:
         print("calulating hybrids ...")
-    hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
-    hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
+    hybrid1 = MLscores.hybridrecall(2, 1, rec_1, rec_0)
+    hybrid2 = MLscores.hybridrecall(5, 1, rec_1, rec_0)
     if debug:
         print("hybrid 1 : %.2f"%hybrid1)
         print("hybrid 2 : %.2f"%hybrid2)
@@ -376,7 +224,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         print('Cross Validation Set: %s' % cvset)
         trfiles = load_files(cvset, 'training', trainsetdir)
         print('Training Files: %s' % trfiles)
-        X_pd, y_pd, groups_pd = load_dataset(trfiles, params['feature_drop'])
+        X_pd, y_pd, groups_pd = load_dataset(trfiles, params['feature_drop'], debug=debug)
         traincolumns = X_pd.columns
 
         X_train = X_pd.values
@@ -411,7 +259,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         for cvfile in cvfiles:
             start_predict_file = time.time()
             print('Cross Validation File: %s' % cvfile)
-            X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'], cvrownum)
+            X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'], class0nrows=cvrownum, debug=debug)
             valcolumns = X_pd.columns
             if debug:
                 for i in range(0,len(traincolumns)):
@@ -496,11 +344,12 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-testsets, space, max_trials, calc_test, opt_targets, n_cpus, trainsetdir, testsetdir, numaucthres, modeltype,\
+testsets, space, max_trials, calc_test, opt_targets, trainsetdir, testsetdir, numaucthres, modeltype,\
 cvrownum, filedesc, valst, debug = space_newcv.create_space()
-tf.config.threading.set_inter_op_parallelism_threads(
-    n_cpus
-)
+
+#tf.config.threading.set_inter_op_parallelism_threads(
+#    n_cpus
+#)
 
 for opt_target in opt_targets:
 
