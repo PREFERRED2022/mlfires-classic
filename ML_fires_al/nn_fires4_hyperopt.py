@@ -145,6 +145,7 @@ def load_dataset():
         featdf[[c for c in featdf.columns if 'Unnamed' not in c]].to_csv(os.path.join(dsetfolder, dsready))
     else:
         featdf = pd.read_csv(os.path.join(dsetfolder, dsready))
+        featdf.rename(columns={'x': 'xpos', 'y':'ypos'}, inplace=True)
         firedate_col = [c for c in featdf.columns if 'firedate'.upper() in c.upper()][0]
         X_columns_new = [c for c in featdf.columns if c not in [firedate_col,'fire','id'] and 'Unnamed' not in c]
         X = featdf[X_columns_new]
@@ -333,4 +334,4 @@ for opt_target in opt_targets:
     cnt = 1
     while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
         cnt += 1
-    pd_opt.to_csv('%s%d.csv' % (hyp_res_base, cnt))
+    pd_opt.to_csv('%s%d.csv' % (hyp_res_base, cnt), index=False)
