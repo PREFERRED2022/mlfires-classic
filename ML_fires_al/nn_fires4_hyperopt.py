@@ -211,8 +211,9 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
     print("NN params : %s" % params)
 
     if len(params['feature_drop'])>0:
-        #X_pd=X_pd.drop(columns=[c for c in X_pd.columns if params['feature_drop'] in c])
-        X_pd = X_pd.drop(columns=[c for c in X_pd.columns if any([fd in c for fd in params['feature_drop']])])
+        dropcols = [c for c in X_pd.columns if any([fd in c for fd in params['feature_drop']])]
+        print("dropping columns: %s"%dropcols)
+        X_pd = X_pd.drop(columns=dropcols)
 
     X = X_pd.values
     y = y_pd.values
@@ -236,7 +237,7 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
         res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, validation_data=(X_val, y_val),\
                         callbacks=[es], class_weight=params['class_weights'])
 
-        print("Fit time (min): %s"%((time.time() - start_time)/60.0))
+        print("Fit time (min): %.1f"%((time.time() - start_time)/60.0))
         start_time = time.time()
         es_epochs = len(res.history['loss'])
         #print("epochs run: %d" % es_epochs)
@@ -250,7 +251,7 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
         auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test \
             = calc_metrics(model, X_val, y_val, aucmetric, False)
 
-        print("Validation metrics time (min): %s"%((time.time() - start_time)/60.0))
+        print("Validation metrics time (min): %.1f"%((time.time() - start_time)/60.0))
         start_time = time.time()
 
         '''training set metrics'''
@@ -262,7 +263,7 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
             = calc_metrics(model, X_train, y_train, aucmetric, not calc_test)
 
 
-        print("Training metrics time (min): %s"%((time.time() - start_time)/60.0))
+        print("Training metrics time (min): %.1f"%((time.time() - start_time)/60.0))
         print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_test,rec_0_test))
 
         metrics.append(
@@ -307,8 +308,6 @@ tf.config.threading.set_inter_op_parallelism_threads(
 dsfile = testsets[tset]
 X_pd, y_pd, groups_pd = load_dataset()
 
-opt_targets = ['hybrid1 val']
-#opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
 for opt_target in opt_targets:
     trials = Trials()
     nnfitpart = partial(nnfit, kf, X_pd, y_pd, groups_pd, opt_target, calc_test)
