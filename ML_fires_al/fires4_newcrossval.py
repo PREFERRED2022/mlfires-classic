@@ -223,9 +223,14 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
     for cvset in cvsets:
         print('Cross Validation Set: %s' % cvset)
         trfiles = load_files(cvset, 'training', trainsetdir)
+        if len(trfiles)==0:
+            print("No training dataset(s) found")
+            return
         print('Training Files: %s' % trfiles)
         X_pd, y_pd, groups_pd = load_dataset(trfiles, params['feature_drop'], debug=debug)
+        X_pd = X_pd.reindex(sorted(X_pd.columns), axis=1)
         traincolumns = X_pd.columns
+
 
         X_train = X_pd.values
         y_train = y_pd.values
@@ -256,10 +261,14 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         start_cv = time.time()
         tn = 0; fp = 0; fn = 0; tp = 0;
         cvfiles = load_files(cvset, 'crossval', testsetdir)
+        if len(cvfiles)==0:
+           print("No Validation dataset(s) found")
+           return
         for cvfile in cvfiles:
             start_predict_file = time.time()
             print('Cross Validation File: %s' % cvfile)
             X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'], class0nrows=cvrownum, debug=debug)
+            X_pd = X_pd.reindex(sorted(X_pd.columns), axis=1)
             valcolumns = X_pd.columns
             if debug:
                 for i in range(0,len(traincolumns)):

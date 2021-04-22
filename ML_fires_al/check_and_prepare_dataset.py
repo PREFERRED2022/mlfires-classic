@@ -66,7 +66,7 @@ def check_categorical(df, checkcol, newcols):
         cat_col = None
         for i in range(0, len(newcols)):
             c = newcols[i]
-            if (c.upper() != checkcol.upper() and checkcol.upper() in c.upper()):
+            if c.upper() != checkcol.upper() and checkcol.upper() in c.upper() and not c.startswith('bin_'):
                 newname = "bin_" + c
                 newcols[i] = newname
                 df.rename(columns={c: newname}, inplace=True)

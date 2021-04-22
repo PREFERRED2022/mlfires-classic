@@ -146,7 +146,7 @@ def load_dataset():
     else:
         featdf = pd.read_csv(os.path.join(dsetfolder, dsready))
         firedate_col = [c for c in featdf.columns if 'firedate'.upper() in c.upper()][0]
-        X_columns_new = [c for c in featdf.columns if c not in [firedate_col,'fire'] and 'Unnamed' not in c]
+        X_columns_new = [c for c in featdf.columns if c not in [firedate_col,'fire','id'] and 'Unnamed' not in c]
         X = featdf[X_columns_new]
         y = featdf[y_columns]
         groupspd = featdf[firedate_col]
@@ -307,7 +307,8 @@ tf.config.threading.set_inter_op_parallelism_threads(
 dsfile = testsets[tset]
 X_pd, y_pd, groups_pd = load_dataset()
 
-opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
+opt_targets = ['hybrid1 val']
+#opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
 for opt_target in opt_targets:
     trials = Trials()
     nnfitpart = partial(nnfit, kf, X_pd, y_pd, groups_pd, opt_target, calc_test)

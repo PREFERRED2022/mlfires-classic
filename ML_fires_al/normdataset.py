@@ -76,10 +76,8 @@ def normalize_dataset(df, norm_type = None, aggrfile = None):
 
     return X
 
-
 def convtoindex(y, lu_dict):
     return(lu_dict[y])
-
 
 def indexdict(dfcol):
     lu = list(dfcol.unique())

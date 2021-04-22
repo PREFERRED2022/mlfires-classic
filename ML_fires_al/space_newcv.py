@@ -23,7 +23,7 @@ def create_space():
              'class_weights': hp.choice('class_weights', [{0:1, 1:1}, {0:2,1:3}, {0:3,1:7}, {0:1,1:4}, {0:1,1:9}, {0:1, 1:25}, {0:1, 1:50}, {0:1, 1:100} , {0:1, 1:200}]),
              #'feature_drop': hp.choice('feature_drop',['','bin','DIR','COR']),
              #'feature_drop': hp.choice('feature_drop', [[],['_dir_'],['aspect'], ['aspect', '_dir_']]),
-             'feature_drop': hp.choice('feature_drop', [['wkd', 'month']]),
+             'feature_drop': hp.choice('feature_drop', [['wkd', 'month','f81','frequency','x','y']]),
              'max_epochs': hp.choice('max_epochs', [20]),
              #'metric': hp.choice('metric',['accuracy', 'sparse'])
              #'metric': hp.choice('metric', ['tn'])
@@ -45,10 +45,13 @@ def create_space():
             }
     '''
     max_trials = 1
-    trainsetdir = '/home/aapos/Documents/newcrossval/datasets/hard_cosine_similarity'
-    testsetdir = '/home/aapos/Documents/newcrossval'
-    testsets = [{'training': ['*2010.csv'],'crossval': ['may*2010*', 'april*2010*']},
-                {'training':['*2010.csv','*2011.csv'], 'crossval':['april*2011*']}]
+    trainsetdir = '/home/aapos/Documents/newcrossval/datasets/'
+    testsetdir = '/home/aapos/Documents/newcrossval/'
+    #testsets = [{'training': ['*2010.csv'],'crossval': ['may*2010*', 'april*2010*']},
+    #            {'training':['*2010.csv','*2011.csv'], 'crossval':['april*2011*']}]
+    testsets = [{'training': ['*features_norm.csv'],'crossval': ['may*2010*', 'april*2010*']},
+                {'training': ['*features_norm.csv'],'crossval':['april*2011*']}]
+
     calc_train_metrics = True
     #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['hybrid1 val']

@@ -3,7 +3,6 @@ from tensorflow.keras.layers import Dense, Dropout
 import tensorflow.keras.metrics
 from sklearn.ensemble import RandomForestClassifier
 
-
 def create_NN_model(params, X):
     # define model
     model = Sequential()
