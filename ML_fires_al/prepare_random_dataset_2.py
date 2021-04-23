@@ -37,7 +37,6 @@ for year in range(2010,2020):
                 dftrainpart = pd.merge(iddfmonth, dfmonthpart, on=['id', 'firedate'], how='inner')
                 if len(dftrainpart.index > 0):
                     dftrainmonth = dftrainpart if dftrainmonth is None else pd.concat([dftrainmonth, dftrainpart])
-                    break
         if dftrainmonth is None:
             dfmissmonth = iddfmonth
         else:

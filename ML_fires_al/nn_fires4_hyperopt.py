@@ -144,8 +144,12 @@ def load_dataset():
         featdf = pd.concat([X, y, groupspd], axis=1)
         featdf[[c for c in featdf.columns if 'Unnamed' not in c]].to_csv(os.path.join(dsetfolder, dsready))
     else:
-        featdf = pd.read_csv(os.path.join(dsetfolder, dsready))
+        featdf = pd.read_csv(os.path.join(dsetfolder, dsready), dtype={'firedate':str})
         featdf.rename(columns={'x': 'xpos', 'y':'ypos'}, inplace=True)
+        featdf = featdf[[c for c in featdf.columns if 'Unnamed' not in c]]
+        print('before nan drop: %d'%len(featdf.index))
+        featdf = featdf.dropna()
+        print('after nan drop: %d' % len(featdf.index))
         firedate_col = [c for c in featdf.columns if 'firedate'.upper() in c.upper()][0]
         X_columns_new = [c for c in featdf.columns if c not in [firedate_col,'fire','id'] and 'Unnamed' not in c]
         X = featdf[X_columns_new]

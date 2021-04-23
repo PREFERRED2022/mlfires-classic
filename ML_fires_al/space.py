@@ -24,8 +24,8 @@ def create_space():
              'class_weights': hp.choice('class_weights', [{0: 1, 1: 1}]),
 
              #'feature_drop': hp.choice('feature_drop',['','bin','DIR','COR']),
-             'feature_drop': hp.choice('feature_drop', [[], newfeatures, ['x'], ['y'], ['x', 'y'], ['month', 'wkd'],['_dir_'], ['aspect'], ['corine'], \
-                                                       ['lst'], ['dew'], ['lst', 'dew'], newfeatures+['_dir_','aspect', 'corine']]),
+             'feature_drop': hp.choice('feature_drop', [[], newfeatures, ['x'], ['y'], ['x', 'y'], ['month', 'wkd'],['dir_'], ['aspect'], ['corine'], \
+                                                       ['lst'], ['dew'], ['lst', 'dew'], newfeatures+['dir_','aspect', 'corine']]),
              #'metric': hp.choice('metric',['accuracy', 'sparse'])
              #'metric': hp.choice('metric', ['tn'])
              'metric': hp.choice('metric',['accuracy'])
@@ -44,7 +44,8 @@ def create_space():
     max_epochs = 3
     #dsfile = 'dataset_1_10_corine_level2_onehotenc.csv'
     #dsfile = 'dataset_corine_level2_onehotenc.csv'
-    testsets = {'balanced':'/home/aapos/Documents/newcrossval/datasets/randomnofire/old_random_new_features_norm.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
+    #testsets = {'balanced':'/home/aapos/Documents/newcrossval/datasets/randomnofire/old_random_new_features_norm.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
+    testsets = {'balanced':'/home/aapos/Documents/newcrossval/datasets/randomnofire/oldrandomnewfeat.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
     dstestfile = '/home/sgirtsou/Documents/test_datasets_19/test_datasets_2019_dummies/august_2019_dataset_fire_sh_dummies.csv'
     calc_train_metrics = False
     #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
