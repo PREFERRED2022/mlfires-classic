@@ -2,6 +2,18 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 import tensorflow.keras.metrics
 from sklearn.ensemble import RandomForestClassifier
+import numpy as np
+
+
+def run_predict(model, modeltype, X):
+    if modeltype == 'tensorflow':
+        y_scores = model.predict(X)
+    elif modeltype == 'sklearn':
+        y_scores = model.predict_proba(X)
+    predict_class = lambda p: int(round(p))
+    predict_class_v = np.vectorize(predict_class)
+    y_pred = predict_class_v(y_scores[:, 1])
+    return y_scores, y_pred
 
 def create_NN_model(params, X):
     # define model

@@ -141,19 +141,6 @@ def calc_metrics_custom(tn, fp, fn, tp):
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
 
 
-def run_predict(model, X):
-    if debug:
-        print("Running Prediction...")
-    if modeltype == 'tensorflow':
-        y_scores = model.predict(X)
-    elif modeltype == 'sklearn':
-        y_scores = model.predict_proba(X)
-    predict_class = lambda p: int(round(p))
-    predict_class_v = np.vectorize(predict_class)
-    y_pred = predict_class_v(y_scores[:, 1])
-    return y_scores, y_pred
-
-
 def run_predict_and_metrics(model, X, y, dontcalc=False):
     if dontcalc:
         return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -245,10 +232,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             es_epochs = 0
 
         start_cv = time.time()
-        tn = 0;
-        fp = 0;
-        fn = 0;
-        tp = 0;
+        tn = 0; fp = 0; fn = 0; tp = 0;
         cvfiles = load_files(cvset, 'crossval', testsetdir)
         if len(cvfiles) == 0:
             print("No Validation dataset(s) found")

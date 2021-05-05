@@ -174,10 +174,11 @@ def hybridrecall(w1, w0, rec1, rec0):
 def calc_metrics(model, X, y, aucmetric, dontcalc = False):
     if dontcalc:
         return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    y_scores = model.predict(X)
+    y_scores, y_pred = manage_model.run_predict(model, modeltype, X)
+    #y_scores = model.predict(X)
     predict_class = lambda p: int(round(p))
     predict_class_v = np.vectorize(predict_class)
-    y_pred = predict_class_v(y_scores[:, 1])
+    #y_pred = predict_class_v(y_scores[:, 1])
 
     aucmetric.update_state(y, y_scores[:, 1])
     auc = float(aucmetric.result())
@@ -199,8 +200,7 @@ def calc_metrics(model, X, y, aucmetric, dontcalc = False):
 
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2
 
-#def nnfit(cv=kf, X_pd=X_pd, y_pd=y_pd, groups_pd=groups_pd, params):
-def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
+def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modeltype, params):
 
     # the function gets a set of variable parameters in "param"
     '''
@@ -234,17 +234,19 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
         y_train, y_val = y[train_index], y[test_index]
         y_val = y_val[:,0]
         y_train = y_train[:,0]
-        model = manage_model.create_NN_model(params, X)
-        es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
         start_time = time.time()
-
-
-        res = model.fit(X_train, y_train, batch_size=512, epochs=max_epochs, verbose=0, validation_data=(X_val, y_val),\
-                        callbacks=[es], class_weight=params['class_weights'])
-
+        es_epochs = 0
+        if modeltype == 'tensorflow':
+            model = manage_model.create_NN_model(params, X_train)
+            es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
+            res = model.fit(X_train, y_train, batch_size=512, epochs=params['max_epochs'], verbose=0, callbacks=[es],
+                            validation_data=(X_val, y_val), class_weight=params['class_weights'])
+            es_epochs = len(res.history['loss'])
+        elif modeltype == 'sklearn':
+            model = manage_model.create_sklearn_model(params, X_train)
+            model.fit(X_train, y_train)
         print("Fit time (min): %.1f"%((time.time() - start_time)/60.0))
         start_time = time.time()
-        es_epochs = len(res.history['loss'])
         #print("epochs run: %d" % es_epochs)
 
         aucmetric = tensorflow.metrics.AUC()
@@ -260,10 +262,6 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
         start_time = time.time()
 
         '''training set metrics'''
-
-        #loss_train, acc_train = model.evaluate(X_train, y_train, batch_size=512, verbose=0)
-        #y_pred = model.predict_classes(X_train)
-
         auc_train,acc_1_train,acc_0_train,prec_1_train, prec_0_train,rec_1_train, rec_0_train,f1_1_train,f1_0_train,hybrid1_train,hybrid2_train \
             = calc_metrics(model, X_train, y_train, aucmetric, not calc_test)
 
@@ -304,20 +302,18 @@ def nnfit(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, params):
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-
-
-tset, testsets, space, max_trials, max_epochs, calc_test, opt_targets, n_cpus = space.create_space()
-tf.config.threading.set_inter_op_parallelism_threads(
-    n_cpus
-)
+tset, testsets, space, max_trials, max_epochs, calc_test, opt_targets, modeltype = space.create_space()
+#tf.config.threading.set_inter_op_parallelism_threads(
+#    n_cpus
+#)
 dsfile = testsets[tset]
 X_pd, y_pd, groups_pd = load_dataset()
 
 for opt_target in opt_targets:
     trials = Trials()
-    nnfitpart = partial(nnfit, kf, X_pd, y_pd, groups_pd, opt_target, calc_test)
+    validatemodelpart = partial(validatemodel, kf, X_pd, y_pd, groups_pd, opt_target, calc_test, modeltype)
 
-    best = fmin(fn=nnfitpart,  # function to optimize
+    best = fmin(fn=validatemodelpart,  # function to optimize
                 space=space,
                 algo=tpe.suggest,  # optimization algorithm, hyperotp will select its parameters automatically
                 max_evals=max_trials,  # maximum number of iterations
@@ -334,7 +330,7 @@ for opt_target in opt_targets:
     if not os.path.isdir(os.path.join('results','hyperopt')):
         os.makedirs(os.path.join('results','hyperopt'))
 
-    hyp_res_base = os.path.join('results','hyperopt','hyperopt_results_'+"".join([ch for ch in opt_target if re.match(r'\w', ch)])+'_'+tset+'_')
+    hyp_res_base = os.path.join('results','hyperopt','hyperopt_results_'+"".join([ch for ch in opt_target if re.match(r'\w', ch)])+'_'+tset+'_'+modeltype+'_')
     cnt = 1
     while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
         cnt += 1
