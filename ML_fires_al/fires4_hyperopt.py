@@ -190,7 +190,7 @@ def get_filename(opt_target, modeltype, desc, aggr='mean'):
         cnt += 1
     return '%s%d.csv' % (base_name, cnt)
 
-def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modeltype, params):
+def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modeltype, hpresfile, allresfile, params):
 
     # the function gets a set of variable parameters in "param"
     '''
@@ -215,8 +215,6 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
     groups = groups_pd.values
 
     start_folds = time.time()
-    hpresfile = None
-    allresfile = None
     for train_index, test_index in cv.split(X, y, groups):
         cnt += 1
         print("Fitting Fold %d" % cnt)
@@ -287,10 +285,6 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
     mean_metrics['params'] = '%s' % params
 
     print('Mean %s : %s' % (optimize_target,mean_metrics[optimize_target]))
-    if hpresfile is None:
-        hpresfile = get_filename(opt_target, modeltype, desc, aggr='mean')
-    if allresfile is None:
-        allresfile = get_filename(opt_target, modeltype, desc, aggr='all')
     cv_common.writemetrics(metrics, mean_metrics, hpresfile, allresfile)
 
     return {
@@ -315,8 +309,10 @@ dsfile = testsets[tset]
 X_pd, y_pd, groups_pd = load_dataset()
 
 for opt_target in opt_targets:
+    hpresfile = get_filename(opt_target, modeltype, desc, aggr='mean')
+    allresfile = get_filename(opt_target, modeltype, desc, aggr='all')
     trials = Trials()
-    validatemodelpart = partial(validatemodel, kf, X_pd, y_pd, groups_pd, opt_target, calc_test, modeltype)
+    validatemodelpart = partial(validatemodel, kf, X_pd, y_pd, groups_pd, opt_target, calc_test, modeltype, hpresfile, allresfile)
 
     best = fmin(fn=validatemodelpart,  # function to optimize
                 space=space,
