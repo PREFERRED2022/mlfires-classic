@@ -1,36 +1,19 @@
 #!/usr/bin/env python
 from hyperopt import Trials, fmin, tpe, hp, STATUS_OK
-from pandas import read_csv
 from sklearn.model_selection import train_test_split, KFold, GroupKFold
-from sklearn.preprocessing import LabelEncoder
-import tensorflow as tf
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense, Dropout
 import tensorflow.keras.metrics
-from tensorflow.keras.utils import to_categorical
 import numpy as np
-from pandas import concat
-from pandas import DataFrame
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
 import pandas as pd
 import normdataset
 from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
-from tensorflow import summary
 import os
-import matplotlib.pyplot as plt
+import re
 from sklearn.metrics import accuracy_score, precision_score, f1_score, recall_score
 import time
-import json
 import space
 from functools import partial
-import re
 import manage_model
-
-num_folds = 10
-# kf = KFold(n_splits=num_folds, shuffle=True)
-kf = GroupKFold(n_splits=num_folds)
-random_state = 42
+import cv_common
 
 def drop_all0_features(df):
     for c in df.columns:
@@ -200,6 +183,13 @@ def calc_metrics(model, X, y, aucmetric, dontcalc = False):
 
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2
 
+def get_filename(opt_target, modeltype, desc, aggr='mean'):
+    base_name = os.path.join('results', 'hyperopt', 'hyperopt_results_'+ modeltype + '_' + desc + '_'+ aggr+'_'+"".join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_')
+    cnt = 1
+    while os.path.exists('%s%d.csv' % (base_name, cnt)):
+        cnt += 1
+    return '%s%d.csv' % (base_name, cnt)
+
 def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modeltype, params):
 
     # the function gets a set of variable parameters in "param"
@@ -225,6 +215,8 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
     groups = groups_pd.values
 
     start_folds = time.time()
+    hpresfile = None
+    allresfile = None
     for train_index, test_index in cv.split(X, y, groups):
         cnt += 1
         print("Fitting Fold %d" % cnt)
@@ -271,6 +263,7 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
 
         metrics.append(
             {#'loss val.': loss_test, 'loss train': loss_train,
+             'fold': 'fold %d'%cnt,
              'accuracy val.': acc_1_test, 'accuracy train': acc_1_train,
              'precision 1 val.': prec_1_test, 'precision 1 train': prec_1_train, 'recall 1 val.' : rec_1_test,
              'recall 1 train': rec_1_train,'f1-score 1 val.': f1_1_test, 'f1-score 1 train': f1_1_train,
@@ -279,16 +272,26 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
              'recall 0 train': rec_0_train, 'f1-score 0 val.': f1_0_test, 'f1-score 0 train': f1_0_train,
              'auc val.': auc_val,
              'auc train.': auc_train, 'hybrid1 train': hybrid1_train, 'hybrid1 val': hybrid1_test, 'hybrid2 train': hybrid2_train, 'hybrid2 val': hybrid2_test,
-             'early stop epochs': es_epochs
+             'early stop epochs': es_epochs,
+             'params': '%s'%params
              } )#'fit time':  (time.time() - start_fold_time)/60.0})
 
         #print(metrics[-1])
 
     mean_metrics = {}
     for m in metrics[0]:
+        if isinstance(metrics[0][m], str):
+            continue
         mean_metrics[m] = sum(item.get(m, 0) for item in metrics) / len(metrics)
-    mean_metrics["fit time (min)"] = (time.time() - start_folds)/60.0
+    mean_metrics["CV time (min)"] = (time.time() - start_folds)/60.0
+    mean_metrics['params'] = '%s' % params
+
     print('Mean %s : %s' % (optimize_target,mean_metrics[optimize_target]))
+    if hpresfile is None:
+        hpresfile = get_filename(opt_target, modeltype, desc, aggr='mean')
+    if allresfile is None:
+        allresfile = get_filename(opt_target, modeltype, desc, aggr='all')
+    cv_common.writemetrics(metrics, mean_metrics, hpresfile, allresfile)
 
     return {
         'loss': -mean_metrics[optimize_target],
@@ -302,7 +305,9 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-tset, testsets, space, max_trials, max_epochs, calc_test, opt_targets, modeltype = space.create_space()
+random_state = 42
+tset, testsets, num_folds, space, max_trials, calc_test, opt_targets, modeltype, desc = space.create_space()
+kf = GroupKFold(n_splits=num_folds)
 #tf.config.threading.set_inter_op_parallelism_threads(
 #    n_cpus
 #)
@@ -320,7 +325,7 @@ for opt_target in opt_targets:
                 trials=trials,  # logging
                 rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility
                 )
-
+    '''
     pd_opt = pd.DataFrame(columns=list(trials.trials[0]['result']['metrics'].keys()))
     for t in trials:
         pdrow = t['result']['metrics']
@@ -335,3 +340,4 @@ for opt_target in opt_targets:
     while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
         cnt += 1
     pd_opt.to_csv('%s%d.csv' % (hyp_res_base, cnt), index=False)
+    '''

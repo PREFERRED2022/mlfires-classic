@@ -29,8 +29,8 @@ import manage_model
 import fileutils
 import MLscores
 import sys
-from csv import DictWriter
 from check_and_prepare_dataset import load_dataset
+import cv_common
 
 num_folds = 10
 # kf = KFold(n_splits=num_folds, shuffle=True)
@@ -141,10 +141,10 @@ def calc_metrics_custom(tn, fp, fn, tp):
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
 
 
-def run_predict_and_metrics(model, X, y, dontcalc=False):
+def run_predict_and_metrics(model, modeltype, X, y, dontcalc=False):
     if dontcalc:
         return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    y_scores, y_pred = run_predict(model, X)
+    y_scores, y_pred = manage_model.run_predict(model, modeltype, X)
     return calc_metrics(y, y_scores, y_pred)
 
 
@@ -153,23 +153,6 @@ def load_files(cvset, settype, setdir):
     for dsfilepattern in cvset[settype]:
         setfiles += [f for f in fileutils.find_files(setdir, dsfilepattern, listtype="walk")]
     return setfiles
-
-
-def writemetrics(metrics, mean_metrics, hpresfile, allresfile):
-    writeheader = True if not os.path.isfile(hpresfile) else False
-    with open(hpresfile, 'a') as _f:
-        dw = DictWriter(_f, fieldnames=mean_metrics.keys())
-        if writeheader:
-            dw.writeheader()
-        dw.writerow(mean_metrics)
-    writeheader = True if not os.path.isfile(allresfile) else False
-    with open(allresfile, 'a') as _f:
-        dw = DictWriter(_f, fieldnames=metrics[0].keys())
-        if writeheader:
-            dw.writeheader()
-        for m in metrics:
-            dw.writerow(m)
-
 
 def resfilename(opt_target):
     hyp_res_base = os.path.join('results', 'hyperopt',
@@ -222,7 +205,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         '''training set metrics'''
         auc_train, acc_1_train, acc_0_train, prec_1_train, prec_0_train, rec_1_train, rec_0_train,\
         f1_1_train,f1_0_train, hybrid1_train, hybrid2_train, tn_train, fp_train, fn_train, tp_train =\
-        run_predict_and_metrics(model, X_train, y_train, not calc_test)
+        run_predict_and_metrics(model, modeltype, X_train, y_train, not calc_test)
 
         if debug:
             calc_metrics_custom(tn_train, fp_train, fn_train, tp_train)
@@ -252,7 +235,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             X_val = X_pd.values
             _y_val = y_pd.values
             _y_val = _y_val[:, 0]
-            _y_scores, _y_pred = run_predict(model, X_val)
+            _y_scores, _y_pred = manage_model.run_predict(model, modeltype, X_val)
             '''
             if y_scores is None:
                 y_scores = _y_scores
@@ -317,7 +300,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
     mean_metrics["CV time (min)"] = (time.time() - start_cv_all) / 60.0
     mean_metrics['params'] = '%s' % params
     print('Mean %s : %s' % (optimize_target, mean_metrics[optimize_target]))
-    writemetrics(metrics, mean_metrics, hyperresfile, hyperallfile)
+    cv_common.writemetrics(metrics, mean_metrics, hyperresfile, hyperallfile)
 
     return {
         'loss': -mean_metrics[optimize_target],
