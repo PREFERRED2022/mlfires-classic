@@ -98,7 +98,7 @@ def create_ds_parts(dsfile, class0nrows, dffirefile, dfpartfile, debug = False):
     #dfpart = pd.concat([X_test,y_test],axis=1)
     dfpart.to_csv(dfpartfile, index=False)
     if dffire is not None:
-        df = pd.concat([dfpartfile, dffire])
+        df = pd.concat([dfpart, dffire])
     else:
         df = dfpart
     return df
