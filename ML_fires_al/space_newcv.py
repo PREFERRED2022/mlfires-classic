@@ -49,8 +49,8 @@ def create_space():
     testsetdir = '/home/aapos/Documents/newcrossval/'
     #testsets = [{'training': ['*2010.csv'],'crossval': ['may*2010*', 'april*2010*']},
     #            {'training':['*2010.csv','*2011.csv'], 'crossval':['april*2011*']}]
-    testsets = [{'training': ['*features_norm.csv'],'crossval': ['may*2010*', 'april*2010*']},
-                {'training': ['*features_norm.csv'],'crossval':['april*2011*']}]
+    testsets = [{'training': ['*features_norm.csv'],'crossval': ['may*2010*small.csv', 'april*2010*small.csv']},
+                {'training': ['*features_norm.csv'],'crossval':['april*2011*small.csv']}]
 
     calc_train_metrics = True
     #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
@@ -58,7 +58,7 @@ def create_space():
     auc_thressholds=30
     modeltype = 'tensorflow'
     #modeltype = 'sklearn'
-    cvrownum = 0
+    cvrownum = 5000
     filedesc = 'NN'
     valst = 'val.'
     #valst = 'test'

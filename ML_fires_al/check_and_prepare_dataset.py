@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+from sklearn.model_selection import train_test_split
 
 def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col):
     df = df.dropna()
@@ -74,6 +75,34 @@ def check_categorical(df, checkcol, newcols):
         cat_col = None
     return cat_col, newcols
 
+def create_ds_parts(dsfile, class0nrows, dffirefile, dfpartfile, debug = False):
+    df = pd.read_csv(dsfile)
+    if debug:
+        print("Split dataset to fire no-fire")
+    firegroup = df.groupby('fire')
+    dfclass0 = firegroup.get_group(0)
+    dffire = None
+    if 1 in firegroup.groups:
+        if debug:
+            print("Creating fire dataset %s" % dffirefile)
+        dffire = firegroup.get_group(1)
+        dffire.to_csv(dffirefile, index=False)
+    else:
+        df[0:0].to_csv(dffirefile, header=True, index=False)
+    tsize = class0nrows / len(dfclass0.index)
+    if debug:
+        print("Stratify shuffling dataset %s" % dffirefile)
+    X_train, dfpart, y_train, y_test = train_test_split(dfclass0, dfclass0['firedate'], test_size=tsize, stratify=dfclass0['firedate'], shuffle=True)
+    if debug:
+        print("Creating no fire dataset %s" % dffirefile)
+    #dfpart = pd.concat([X_test,y_test],axis=1)
+    dfpart.to_csv(dfpartfile, index=False)
+    if dffire is not None:
+        df = pd.concat([dfpartfile, dffire])
+    else:
+        df = dfpart
+    return df
+
 # load the dataset
 def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True):
     # dsfile = 'dataset_ndvi_lu.csv'
@@ -98,28 +127,19 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True):
         dsfile = trfiles
         if class0nrows > 0:
             dffirefile = dsfile[0:-4]+"_fires.csv"
-            if os.path.isfile(dffirefile):
+            dfpartfile = dsfile[0:-4] + "_part.csv"
+            if os.path.isfile(dffirefile) and os.path.isfile(dfpartfile):
                 if debug:
                     print("Loading fire dataset %s"%dffirefile)
                 dffire = pd.read_csv(dffirefile)
                 if debug:
                     print("Loading no-fire dataset %s"%dffirefile)
-                dfpart = pd.read_csv(dsfile, nrows=class0nrows)
-                dfpart = dfpart[dfpart['fire']!=1]
+                #dfpart = pd.read_csv(dsfile, nrows=class0nrows)
+                #dfpart = dfpart[dfpart['fire']!=1]
+                dfpart = pd.read_csv(dfpartfile)
                 df = pd.concat([dfpart, dffire])
             else:
-                df = pd.read_csv(dsfile)
-                if debug:
-                    print("Split dataset to fire no-fire")
-                firegroup = df.groupby('fire')
-                dfpart = firegroup.get_group(0).head(class0nrows)
-                if 1 in firegroup.groups:
-                    if debug:
-                        print("Creating fire dataset %s" % dffirefile)
-                    firegroup.get_group(1).to_csv(dffirefile, index=False)
-                    df = pd.concat([dfpart, firegroup.get_group(1)])
-                else:
-                    df = dfpart
+                df = create_ds_parts(dsfile, class0nrows, dffirefile, dfpartfile, debug)
         else:
             df = pd.read_csv(dsfile)
 
