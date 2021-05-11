@@ -144,6 +144,8 @@ def calc_metrics_custom(tn, fp, fn, tp):
 def run_predict_and_metrics(model, modeltype, X, y, dontcalc=False):
     if dontcalc:
         return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    if debug:
+        print("Running prediction...")
     y_scores, y_pred = manage_model.run_predict(model, modeltype, X)
     return calc_metrics(y, y_scores, y_pred)
 

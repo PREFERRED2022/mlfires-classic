@@ -94,7 +94,7 @@ def create_ds_parts(dsfile, class0nrows, dffirefile, dfpartfile, debug = False):
         print("Stratify shuffling dataset %s" % dffirefile)
     X_train, dfpart, y_train, y_test = train_test_split(dfclass0, dfclass0['firedate'], test_size=tsize, stratify=dfclass0['firedate'], shuffle=True)
     if debug:
-        print("Creating no fire dataset %s" % dffirefile)
+        print("Creating no fire dataset %s" % dfpartfile)
     #dfpart = pd.concat([X_test,y_test],axis=1)
     dfpart.to_csv(dfpartfile, index=False)
     if dffire is not None:
@@ -133,7 +133,7 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True):
                     print("Loading fire dataset %s"%dffirefile)
                 dffire = pd.read_csv(dffirefile)
                 if debug:
-                    print("Loading no-fire dataset %s"%dffirefile)
+                    print("Loading no-fire dataset %s"%dfpartfile)
                 #dfpart = pd.read_csv(dsfile, nrows=class0nrows)
                 #dfpart = dfpart[dfpart['fire']!=1]
                 dfpart = pd.read_csv(dfpartfile)
@@ -142,6 +142,10 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True):
                 df = create_ds_parts(dsfile, class0nrows, dffirefile, dfpartfile, debug)
         else:
             df = pd.read_csv(dsfile)
+
+    print('before nan drop: %d' % len(df.index))
+    df = df.dropna()
+    print('after nan drop: %d' % len(df.index))
 
     X_columns_upper = [c.upper() for c in X_columns]
     newcols = [c for c in df.columns if
