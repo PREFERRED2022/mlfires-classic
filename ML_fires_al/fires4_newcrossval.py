@@ -237,6 +237,9 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             X_val = X_pd.values
             _y_val = y_pd.values
             _y_val = _y_val[:, 0]
+            X_pd = None; y_pd = None; groups_pd = None
+            if debug:
+                print("Running prediction...")
             _y_scores, _y_pred = manage_model.run_predict(model, modeltype, X_val)
             '''
             if y_scores is None:
