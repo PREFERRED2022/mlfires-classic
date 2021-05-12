@@ -58,7 +58,7 @@ def create_space():
     auc_thressholds=30
     modeltype = 'tensorflow'
     #modeltype = 'sklearn'
-    cvrownum = 5000
+    cvrownum = 0
     filedesc = 'NN'
     valst = 'val.'
     #valst = 'test'

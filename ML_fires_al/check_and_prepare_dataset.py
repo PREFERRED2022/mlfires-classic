@@ -3,7 +3,10 @@ import os
 from sklearn.model_selection import train_test_split
 
 def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col):
+    print('before nan drop: %d' % len(df.index))
     df = df.dropna()
+    print('after nan drop: %d' % len(df.index))
+
     X_unnorm, y_int = df[X_columns], df[y_columns]
 
     # categories to binary
@@ -119,13 +122,18 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True):
     y_columns = ['fire']
     # if not os.path.exists(os.path.join(dsetfolder, dsready)):
     if isinstance(trfiles, list):
+        if debug:
+            print("Loading full dataset ...")
         dflist=[]
         for dsfile in trfiles:
+            if debug:
+                print("Loading dataset file %s" % dsfile)
             dflist.append(pd.read_csv(dsfile))
-        df=pd.concat(dflist)
+        df = pd.concat(dflist)
     else:
         dsfile = trfiles
         if class0nrows > 0:
+            print("Loading shuffled, stratified %d rows of dataset %s" % (class0nrows,dsfile))
             dffirefile = dsfile[0:-4]+"_fires.csv"
             dfpartfile = dsfile[0:-4] + "_part.csv"
             if os.path.isfile(dffirefile) and os.path.isfile(dfpartfile):
@@ -141,11 +149,10 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True):
             else:
                 df = create_ds_parts(dsfile, class0nrows, dffirefile, dfpartfile, debug)
         else:
+            if debug:
+                print("Loading full dataset %s" % dsfile)
             df = pd.read_csv(dsfile)
 
-    print('before nan drop: %d' % len(df.index))
-    df = df.dropna()
-    print('after nan drop: %d' % len(df.index))
 
     X_columns_upper = [c.upper() for c in X_columns]
     newcols = [c for c in df.columns if
@@ -160,6 +167,7 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True):
     firedate_col = [c for c in df.columns if firedatecheck.upper() in c.upper()][0]
     X, y, groupspd = prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col)
     print("Ignored columns from csv %s"%([c for c in df.columns if c not in X.columns]))
+    df = None
     X_columns = X.columns
     if len(featuredrop) > 0:
         X = X.drop(columns=[c for c in X.columns if any([fd in c for fd in featuredrop])])
