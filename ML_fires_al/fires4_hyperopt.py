@@ -139,7 +139,6 @@ def load_dataset():
         y = featdf[y_columns]
         groupspd = featdf[firedate_col]
 
-
     #drop_all0_features(featdf)
 
     return X, y, groupspd
