@@ -3,6 +3,7 @@ import os
 from sklearn.model_selection import train_test_split
 
 def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col):
+    df = df[X_columns+y_columns+[firedate_col]]
     print('before nan drop: %d' % len(df.index))
     df = df.dropna()
     print('after nan drop: %d' % len(df.index))
