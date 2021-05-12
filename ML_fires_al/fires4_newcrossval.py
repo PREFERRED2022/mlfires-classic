@@ -99,7 +99,14 @@ def calc_metrics_custom(tn, fp, fn, tp, y_scores, y):
         print("calulating merics (custom)")
     if debug:
         print("(input) tn : %d, fp : %d, fn : %d, tp : %d" % (tn, fp, fn, tp))
-    auc = 0
+    if debug:
+        print("calulating auc...")
+    if numaucthres > 0:
+        aucmetric = tensorflow.metrics.AUC(num_thresholds=numaucthres)
+        aucmetric.update_state(y, y_scores[:, 1])
+        auc = float(aucmetric.result())
+    else:
+        auc = 0.0
     if debug:
         print("auc : %.2f" % auc)
     ##############################################
@@ -140,14 +147,7 @@ def calc_metrics_custom(tn, fp, fn, tp, y_scores, y):
     if debug:
         print("hybrid 1 : %.2f" % hybrid1)
         print("hybrid 2 : %.2f" % hybrid2)
-    if debug:
-        print("calulating auc...")
-    if numaucthres>0:
-        aucmetric = tensorflow.metrics.AUC(num_thresholds=numaucthres)
-        aucmetric.update_state(y, y_scores[:, 1])
-        auc = float(aucmetric.result())
-    else:
-        auc = 0.0
+
 
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
 
@@ -158,7 +158,7 @@ def run_predict_and_metrics(model, modeltype, X, y, dontcalc=False):
     if debug:
         print("Running prediction...")
     y_scores, y_pred = manage_model.run_predict(model, modeltype, X)
-    return calc_metrics(y, y_scores, y_pred) + (y_scores, y_pred)
+    return calc_metrics(y, y_scores, y_pred) + tuple([y_scores])
 
 
 def load_files(cvset, settype, setdir):
@@ -217,11 +217,11 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
 
         '''training set metrics'''
         auc_train, acc_1_train, acc_0_train, prec_1_train, prec_0_train, rec_1_train, rec_0_train,\
-        f1_1_train,f1_0_train, hybrid1_train, hybrid2_train, tn_train, fp_train, fn_train, tp_train, y_scores, y_pred=\
+        f1_1_train,f1_0_train, hybrid1_train, hybrid2_train, tn_train, fp_train, fn_train, tp_train, y_scores =\
         run_predict_and_metrics(model, modeltype, X_train, y_train, not calc_test)
 
         if debug:
-            calc_metrics_custom(tn_train, fp_train, fn_train, tp_train, y_scores, y_pred)
+            calc_metrics_custom(tn_train, fp_train, fn_train, tp_train, y_scores, y_train)
         if modeltype == 'tensorflow':
             es_epochs = len(res.history['loss'])
         else:
@@ -229,7 +229,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
 
         start_cv = time.time()
         tn = 0; fp = 0; fn = 0; tp = 0;
-        y_scores = None; y_pred = None
+        y_scores = None; y_pred = None; y_val = None
         cvfiles = load_files(cvset, 'crossval', testsetdir)
         if len(cvfiles) == 0:
             print("No Validation dataset(s) found")
@@ -277,7 +277,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
 
         '''validation set metrics'''
         auc_val, acc_1_val, acc_0_val, prec_1_val, prec_0_val, rec_1_val, rec_0_val, f1_1_val, f1_0_val, hybrid1_val, hybrid2_val, \
-        tn_val, fp_val, fn_val, tp_val = calc_metrics_custom(tn, fp, fn, tp, y_scores, y_pred)
+        tn_val, fp_val, fn_val, tp_val = calc_metrics_custom(tn, fp, fn, tp, y_scores, y_val)
 
         print("Validation metrics time (min): %.1f" % ((time.time() - start_cv) / 60.0))
         start_time = time.time()
