@@ -30,9 +30,11 @@ def create_space():
              #'metric': hp.choice('metric',['accuracy', 'sparse'])
              #'metric': hp.choice('metric', ['tn'])
              'metric': hp.choice('metric',['accuracy']),
-             'optimizer': hp.choice('optimizer',[{'name': 'Adam', 'learning_rate_adam':hp.uniform('learning_rate_adam', 0.0001, 1),\
-                                                  'beta_1':hp.uniform('beta_1', 0.0001, 1), 'beta_2':hp.uniform('beta_2', 0.0001, 1),\
-                                                  'amsgrad': hp.choice('amsgrad', [True, False])},
+             'optimizer': hp.choice('optimizer',[{'name': 'Adam',
+                                                  'adam_params':hp.choice('adam_params',
+                                                   [None,{'learning_rate_adam':hp.uniform('learning_rate_adam', 0.0001, 1),\
+                                                   'beta_1':hp.uniform('beta_1', 0.0001, 1), 'beta_2':hp.uniform('beta_2', 0.0001, 1),\
+                                                   'amsgrad': hp.choice('amsgrad', [True, False])}])},
                                                  {'name': 'SGD', 'learning_rate_SGD':hp.uniform('learning_rate_SGD', 0.0001, 1)}]),
              'max_epochs': hp.choice('max_epochs', [2000]),
              'ES_monitor':hp.choice('ES_monitor', ['val_loss']),#'val_loss','loss'

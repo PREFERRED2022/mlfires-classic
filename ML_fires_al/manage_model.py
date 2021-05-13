@@ -56,8 +56,11 @@ def create_NN_model(params, X):
 
     if params['optimizer']['name']=='Adam':
         # adam = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, amsgrad=False)
-        opt = Adam(learning_rate=params['optimizer']['learning_rate_adam'], beta_1=params['optimizer']['beta_1'], beta_2=params['optimizer']['beta_2'],\
-                   amsgrad=params['optimizer']['amsgrad'])
+        if params['optimizer']['adam_params'] is None:
+            opt = Adam()
+        else:
+            opt = Adam(learning_rate=params['optimizer']['adam_params']['learning_rate_adam'], beta_1=params['optimizer']['adam_params']['beta_1'],
+                       beta_2=params['optimizer']['adam_params']['beta_2'],amsgrad=params['optimizer']['adam_params']['amsgrad'])
     elif params['optimizer']['name']=='SGD':
         opt = SGD(learning_rate=params['optimizer']['learning_rate_SGD'])
 
