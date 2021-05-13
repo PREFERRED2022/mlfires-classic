@@ -2,7 +2,7 @@ from hyperopt import hp
 
 def create_space():
     newfeatures = ['x', 'y', 'month', 'wkd', 'lst', 'dew', 'freq', 'f81']
-    '''
+
     space = {'n_internal_layers': hp.choice('n_internal_layers',
                 [
                     #(0, {'layer_1_0_nodes': hp.quniform('layer_1_0_nodes', 10, 310, 50)}),
@@ -29,10 +29,20 @@ def create_space():
                                                        ['lst'], ['dew'], ['lst', 'dew'], newfeatures+['dir_','aspect', 'corine']]),
              #'metric': hp.choice('metric',['accuracy', 'sparse'])
              #'metric': hp.choice('metric', ['tn'])
-             'metric': hp.choice('metric',['accuracy'])
+             'metric': hp.choice('metric',['accuracy']),
+             'optimizer': hp.choice('optimizer',[{'name': 'Adam', 'learning_rate_adam':hp.uniform('learning_rate_adam', 0.0001, 1),\
+                                                  'beta_1':hp.uniform('beta_1', 0.0001, 1), 'beta_2':hp.uniform('beta_2', 0.0001, 1),\
+                                                  'amsgrad': hp.choice('amsgrad', [True, False])},
+                                                 {'name': 'SGD', 'learning_rate_SGD':hp.uniform('learning_rate_SGD', 0.0001, 1)}]),
+             'max_epochs': hp.choice('max_epochs', [2000]),
+             'ES_monitor':hp.choice('ES_monitor', ['val_loss']),#'val_loss','loss'
+             'ES_patience':hp.choice('ES_patience', [10]),
+             'ES_mindelta':hp.choice('ES_mindelta', [0.002]),
+             'batch_size':hp.choice('batch_size', [512])
 
              #'feature_drop': hp.choice('feature_drop', ['bin'])
              }
+    '''
     space = {'algo': hp.choice('algo', ['RF']),
              'n_estimators': hp.quniform('n_estimators', 50, 1050, 100),
              #'n_estimators': hp.choice('n_estimators', [50, 100, 120, 150, 170, 200, 250, 350, 500, 750, 1000, 1400, 1500]),
@@ -49,7 +59,6 @@ def create_space():
              'feature_drop': hp.choice('feature_drop', [['wkd', 'month']]),
              'class_weight':hp.choice('class_weight',[{0:1,1:1}, {0:1,1:9},{0:1,1:300},{0:1,1:400},{0:1,1:500},{0:1,1:1000}])
              }
-    '''
     space = {'algo': hp.choice('algo', ['RF']),
              'n_estimators': hp.choice('n_estimators', [120]),
              'min_samples_split': hp.choice('min_samples_split', [150]),
@@ -61,7 +70,8 @@ def create_space():
              'class_weight': hp.choice('class_weight', [{0: 2, 1: 8}]),
              'feature_drop': hp.choice('feature_drop', [['wkd', 'month']]),
              }
-    max_trials = 1
+    '''
+    max_trials = 5
     #dsfile = 'dataset_1_10_corine_level2_onehotenc.csv'
     #dsfile = 'dataset_corine_level2_onehotenc.csv'
     #testsets = {'balanced':'/home/aapos/Documents/newcrossval/datasets/randomnofire/old_random_new_features_norm.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
@@ -70,8 +80,8 @@ def create_space():
     calc_train_metrics = True
     #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['auc val.']
-    #modeltype = 'tensorflow'
-    modeltype = 'sklearn'
+    modeltype = 'tensorflow'
+    #modeltype = 'sklearn'
     description = 'RF'
     nfolds = 5
     return 'balanced', testsets, nfolds, space, max_trials, calc_train_metrics, opt_targets, modeltype, description

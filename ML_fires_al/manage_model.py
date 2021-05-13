@@ -3,6 +3,8 @@ from tensorflow.keras.layers import Dense, Dropout
 import tensorflow.keras.metrics
 from sklearn.ensemble import RandomForestClassifier
 import numpy as np
+from tensorflow.keras.optimizers import Adam, SGD
+from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
 
 
 def run_predict(model, modeltype, X):
@@ -14,6 +16,23 @@ def run_predict(model, modeltype, X):
     predict_class_v = np.vectorize(predict_class)
     y_pred = predict_class_v(y_scores[:, 1])
     return y_scores, y_pred
+
+def create_model(modeltype, params, X_train):
+    if modeltype == 'tensorflow':
+        model = create_NN_model(params, X_train)
+    elif modeltype == 'sklearn':
+        model = create_sklearn_model(params, X_train)
+    return model
+
+def fit_model(modeltype, model, params, X_train, y_train, X_val, y_val):
+    if modeltype == 'tensorflow':
+        es = EarlyStopping(monitor=params['ES_monitor'], patience=params['ES_patience'], min_delta=params['ES_mindelta'])
+        res = model.fit(X_train, y_train, batch_size=params['batch_size'], epochs=params['max_epochs'], verbose=0, callbacks=[es],
+                        validation_data=(X_val, y_val), class_weight=params['class_weights'])
+    elif modeltype == 'sklearn':
+        res = model.fit(X_train, y_train)
+    return model, res
+
 
 def create_NN_model(params, X):
     # define model
@@ -35,9 +54,12 @@ def create_NN_model(params, X):
 
     # compile the model
 
-    from tensorflow.keras.optimizers import Adam
-
-    adam = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, amsgrad=False)
+    if params['optimizer']['name']=='Adam':
+        # adam = Adam(learning_rate=0.0001, beta_1=0.9, beta_2=0.999, amsgrad=False)
+        opt = Adam(learning_rate=params['optimizer']['learning_rate_adam'], beta_1=params['optimizer']['beta_1'], beta_2=params['optimizer']['beta_2'],\
+                   amsgrad=params['optimizer']['amsgrad'])
+    elif params['optimizer']['name']=='SGD':
+        opt = SGD(learning_rate=params['optimizer']['learning_rate_SGD'])
 
     if params['metric'] == 'accuracy':
         metrics = ['accuracy']
@@ -45,7 +67,7 @@ def create_NN_model(params, X):
         metrics = [tensorflow.metrics.SparseCategoricalAccuracy()]
     #elif params['metric'] == 'tn':
         #metrics = [tensorflow.metrics.TrueNegatives(),tensorflow.metrics.TruePositives()]
-    model.compile(optimizer=adam, loss='sparse_categorical_crossentropy', metrics=metrics)  # , AUC(multi_label=False)])
+    model.compile(optimizer=opt, loss='sparse_categorical_crossentropy', metrics=metrics)  # , AUC(multi_label=False)])
 
     return model
 

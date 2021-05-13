@@ -225,15 +225,21 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
         y_train = y_train[:,0]
         start_time = time.time()
         es_epochs = 0
+        model = manage_model.create_model(modeltype, params, X_train)
+        model, res = manage_model.fit_model(modeltype, model, params, X_train, y_train, X_val, y_val)
+        if modeltype == 'tensorflow':
+            es_epochs = len(res.history['loss'])
+        '''
         if modeltype == 'tensorflow':
             model = manage_model.create_NN_model(params, X_train)
-            es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
-            res = model.fit(X_train, y_train, batch_size=512, epochs=params['max_epochs'], verbose=0, callbacks=[es],
+            es = EarlyStopping(monitor='val_loss',  patience=10, min_delta=0.0002)
+            res = model.fit(X_train, y_train, batch_size=512, epochs=params['max_epochs'], verbose=1, callbacks=[es],
                             validation_data=(X_val, y_val), class_weight=params['class_weights'])
             es_epochs = len(res.history['loss'])
         elif modeltype == 'sklearn':
             model = manage_model.create_sklearn_model(params, X_train)
             model.fit(X_train, y_train)
+        '''
         print("Fit time (min): %.1f"%((time.time() - start_time)/60.0))
         start_time = time.time()
         #print("epochs run: %d" % es_epochs)
