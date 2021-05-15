@@ -213,9 +213,9 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
     start_folds = time.time()
     for train_index, test_index in cv.split(X, y, groups):
         cnt += 1
+        '''Fitting'''
         print("Fitting Fold %d" % cnt)
         start_fold_time = time.time()
-        # print("TRAIN:", train_index, "TEST:", test_index)
         X_train, X_val = X[train_index], X[test_index]
         y_train, y_val = y[train_index], y[test_index]
         y_val = y_val[:,0]
@@ -229,60 +229,34 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
 
         print("Fit time (min): %.1f"%((time.time() - start_time)/60.0))
         start_time = time.time()
-        #print("epochs run: %d" % es_epochs)
-
-        #aucmetric = tensorflow.metrics.AUC()
 
         '''training set metrics'''
-        '''
-        auc_train,acc_1_train,acc_0_train,prec_1_train, prec_0_train,rec_1_train, rec_0_train,f1_1_train,f1_0_train,hybrid1_train,hybrid2_train \
-            = calc_metrics(model, X_train, y_train, aucmetric, not calc_test)
-        '''
-        auc_train, acc_1_train, acc_0_train, prec_1_train, prec_0_train, rec_1_train, rec_0_train, f1_1_train, f1_0_train, hybrid1_train, hybrid2_train, \
-        tn_train, fp_train, fn_train, tp_train, y_scores = run_predict_and_metrics(model, modeltype, X_train, y_train, not calc_test)
-        #run_predict_and_metrics(model, modeltype, X, y, dontcalc=False, numaucthres=200, debug=True):
-
-        '''validation set metrics'''
-        y_scores, y_pred = run_predict(model, modeltype, X_val)
-        '''
-        auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test \
-            = calc_metrics(model, X_val, y_val, aucmetric, False)
-        '''
-        auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test, \
-        tn_val, fp_val, fn_val, tp_val, y_scores = run_predict_and_metrics(model, modeltype, X_val, y_val)
-
-        print("Validation metrics time (min): %.1f"%((time.time() - start_time)/60.0))
+        metrics_dict_train, y_scores = run_predict_and_metrics(model, modeltype, X_train, y_train, 'train', not calc_test)
+        print("Training metrics time (min): %.1f"%((time.time() - start_time)/60.0))
         start_time = time.time()
 
-        print("Training metrics time (min): %.1f"%((time.time() - start_time)/60.0))
-        print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_test,rec_0_test))
+        '''validation set metrics'''
+        mset = 'val.'
+        metrics_dict_val, y_scores = run_predict_and_metrics(model, modeltype, X_val, y_val, mset)
 
-        metrics.append(
-            {#'loss val.': loss_test, 'loss train': loss_train,
-             'fold': 'fold %d'%cnt,
-             'accuracy val.': acc_1_test, 'accuracy train': acc_1_train,
-             'precision 1 val.': prec_1_test, 'precision 1 train': prec_1_train, 'recall 1 val.' : rec_1_test,
-             'recall 1 train': rec_1_train,'f1-score 1 val.': f1_1_test, 'f1-score 1 train': f1_1_train,
-             'accuracy 0 val.': acc_0_test, 'accuracy 0 train': acc_0_train,
-             'precision 0 val.': prec_0_test, 'precision 0 train': prec_0_train, 'recall 0 val.': rec_0_test,
-             'recall 0 train': rec_0_train, 'f1-score 0 val.': f1_0_test, 'f1-score 0 train': f1_0_train,
-             'auc val.': auc_val,
-             'auc train.': auc_train, 'hybrid1 train': hybrid1_train, 'hybrid1 val': hybrid1_test, 'hybrid2 train': hybrid2_train, 'hybrid2 val': hybrid2_test,
-             'early stop epochs': es_epochs,
-             'params': '%s'%params
-             } )#'fit time':  (time.time() - start_fold_time)/60.0})
+        print("Validation metrics time (min): %.1f"%((time.time() - start_time)/60.0))
+        print("Recall 1 val: %.3f, Recall 0 val: %.3f" % (metrics_dict_val['recall 1 %s'%mset],metrics_dict_val['recall 0 %s'%mset]))
 
-        #print(metrics[-1])
+        metrics_dict_fold = {}
+        metrics_dict_fold['fold'] = 'fold %d'%cnt
+        metrics_dict_fold = {**metrics_dict_fold, **metrics_dict_train, **metrics_dict_val}
+        if modeltype=='tensorflow':
+            metrics_dict_fold['early stop epochs'] = es_epochs
+        metrics_dict_fold['params']='%s'%params
+        metrics_dict_fold['CV fold fit time']=(time.time() - start_fold_time)/60.0
+        metrics.append(metrics_dict_fold)
 
     mean_metrics = {}
-    for m in metrics[0]:
-        if isinstance(metrics[0][m], str):
-            continue
-        mean_metrics[m] = sum(item.get(m, 0) for item in metrics) / len(metrics)
+    mean_metrics = metrics_aggr(metrics, mean_metrics)
     mean_metrics["CV time (min)"] = (time.time() - start_folds)/60.0
     mean_metrics['params'] = '%s' % params
 
-    print('Mean %s : %s' % (optimize_target,mean_metrics[optimize_target]))
+    print('Mean %s : %.4f' % (optimize_target,mean_metrics[optimize_target]))
     cv_common.writemetrics(metrics, mean_metrics, hpresfile, allresfile)
 
     return {

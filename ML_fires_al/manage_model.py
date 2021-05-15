@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
-from MLscores import calc_metrics
+from MLscores import calc_metrics, metrics_dict
 
 def run_predict(model, modeltype, X):
     if modeltype == 'tensorflow':
@@ -17,13 +17,15 @@ def run_predict(model, modeltype, X):
     y_pred = predict_class_v(y_scores[:, 1])
     return y_scores, y_pred
 
-def run_predict_and_metrics(model, modeltype, X, y, dontcalc=False, numaucthres=200, debug=True):
+def run_predict_and_metrics(model, modeltype, X, y, metricset, dontcalc=False, numaucthres=200, debug=True):
     if dontcalc:
-        return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        zerostuple = tuple([0]*16)
+        return metrics_dict(*zerostuple, metricset)
     if debug:
         print("Running prediction...")
     y_scores, y_pred = run_predict(model, modeltype, X)
-    return calc_metrics(y, y_scores, y_pred, numaucthres=numaucthres, debug=debug) + tuple([y_scores])
+    metricsdict = metrics_dict(*calc_metrics(y, y_scores, y_pred, numaucthres=numaucthres, debug=debug), metricset)
+    return metricsdict, y_scores
 
 def create_model(modeltype, params, X_train):
     if modeltype == 'tensorflow':
@@ -88,6 +90,6 @@ def create_sklearn_model(params, X):
         max_feat = int(n_features/10*params['max_features'])
         model = RandomForestClassifier(max_depth=params['max_depth'], n_estimators=params['n_estimators'], min_samples_split=params['min_samples_split'], \
                                        min_samples_leaf=params['min_samples_leaf'],criterion=params['criterion'],max_features=max_feat,
-                                       bootstrap=params['bootstrap'], class_weight=params['class_weight']
+                                       bootstrap=params['bootstrap'], class_weight=params['class_weights']
                                        )
     return model

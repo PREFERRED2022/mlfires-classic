@@ -26,11 +26,28 @@ def npv(tn,fn):
         return -1000
     return tn/(tn+fn)
 
-def hybridrecall(w1, w0, rec1, rec0):
-    if rec1 > 0 and rec0 > 0:
-        return (w1 + w0) / (w1 / rec1 + w0 / rec0)
+def hybridrecall(w1, w0, rec1, rec0, hybtype = 'hybrid'):
+    if hybtype == 'hybrid':
+        if rec1 > 0 and rec0 > 0:
+            return (w1 + w0) / (w1 / rec1 + w0 / rec0)
+        else:
+            return -1000
+    elif hybtype == 'NH':
+        return w1*rec1 + w0*rec0
     else:
         return -1000
+
+def calc_all_hybrids(rec_1, rec_0, debug=True):
+    hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
+    hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
+    nh1 = hybridrecall(2, 1, rec_1, rec_0, 'NH')
+    nh2 = hybridrecall(5, 1, rec_1, rec_0, 'NH')
+    if debug:
+        print("hybrid 1 : %.2f" % hybrid1)
+        print("hybrid 2 : %.2f" % hybrid2)
+        print("NH 1 : %.2f" % nh1)
+        print("NH 2 : %.2f" % nh2)
+    return hybrid1, hybrid2, nh1, nh2
 
 def cmvals(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
@@ -72,11 +89,11 @@ def calc_metrics(y, y_scores, y_pred, numaucthres=200, debug=True):
         print("auc : %.2f" % auc)
     if debug:
         print("calulating accuracy...")
-    acc_1 = accuracy_score(y, y_pred)
-    acc_0 = accuracy_score(1 - y, 1 - y_pred)
+    acc = accuracy_score(y, y_pred)
+    #acc_0 = accuracy_score(1 - y, 1 - y_pred)
     if debug:
-        print("accuracy 1 : %.2f" % acc_1)
-        print("accuracy 0 : %.2f" % acc_0)
+        print("accuracy : %.2f" % acc)
+        #print("accuracy 0 : %.2f" % acc_0)
     if debug:
         print("calulating recall...")
     rec_1 = recall_score(y, y_pred)
@@ -100,13 +117,29 @@ def calc_metrics(y, y_scores, y_pred, numaucthres=200, debug=True):
         print("f1 0 : %.2f" % f1_0)
     if debug:
         print("calulating hybrids...")
-    hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
-    hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
-    if debug:
-        print("hybrid 1 : %.2f" % hybrid1)
-        print("hybrid 2 : %.2f" % hybrid2)
+    hybrid1, hybrid2, nh1, nh2 = calc_all_hybrids(rec_1, rec_0, debug)
     # tp0 = tn1 tn0 = tp1 fp0 = fn1 fn0 = fp1
-    return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
+    return auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, nh1, nh2, tn, fp, fn, tp
+
+def metrics_dict(auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, nh1, nh2, tn, fp, fn, tp, metricset):
+    dictmetrics = { 'accuracy %s' % metricset: acc,
+        'precision 1 %s' % metricset: prec_1,
+        'recall 1 %s' % metricset: rec_1,
+        'f1-score 1 %s' % metricset: f1_1,
+        'precision 0 %s' % metricset: prec_0,
+        'recall 0 %s' % metricset: rec_0,
+        'f1-score 0 %s' % metricset: f1_0,
+        'auc %s' % metricset: auc,
+        'hybrid1 %s'%metricset: hybrid1,
+        'hybrid2 %s'%metricset: hybrid2,
+        'NH 1 %s' % metricset: nh1,
+        'NH 2 %s' % metricset: nh2,
+        'TN %s' % metricset: tn,
+        'FP %s' % metricset: fp,
+        'FN %s' % metricset: fn,
+        'TP %s' % metricset: tp,
+    }
+    return dictmetrics
 
 
 def calc_metrics_custom(tn, fp, fn, tp, y_scores, y, numaucthres=200, debug=True):
@@ -129,11 +162,11 @@ def calc_metrics_custom(tn, fp, fn, tp, y_scores, y, numaucthres=200, debug=True
     ##############################################
     if debug:
         print("calulating accuracy...")
-    acc_1 = accuracy(tp, tn, fp, fn)
-    acc_0 = accuracy(tn, tp, fn, fp)
+    acc = accuracy(tp, tn, fp, fn)
+    #acc_0 = accuracy(tn, tp, fn, fp)
     if debug:
-        print("accuracy 1 : %.2f" % acc_1)
-        print("accuracy 0 : %.2f" % acc_0)
+        print("accuracy : %.2f" % acc)
+        #print("accuracy 0 : %.2f" % acc_0)
     if debug:
         print("calulating recall ...")
     rec_1 = recall(tp, fn)
@@ -157,12 +190,9 @@ def calc_metrics_custom(tn, fp, fn, tp, y_scores, y, numaucthres=200, debug=True
         print("f1 0 : %.2f" % f1_0)
     if debug:
         print("calulating hybrids ...")
-    hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
-    hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
-    if debug:
-        print("hybrid 1 : %.2f" % hybrid1)
-        print("hybrid 2 : %.2f" % hybrid2)
-    return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
+    hybrid1, hybrid2, nh1, nh2 = calc_all_hybrids(rec_1, rec_0, debug)
+
+    return auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, nh1, nh2, tn, fp, fn, tp
 
 def metrics_aggr(metrics, mean_metrics):
     for m in metrics[0]:

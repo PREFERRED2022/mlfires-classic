@@ -19,10 +19,13 @@ def create_space():
                 ]
                 ),
              'dropout': hp.choice('dropout',[False]),
-             #'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
+             #'class_weights_type': hp.choice('class_weights_type',['dictlist','classlist']),
+             #'class_0_weight': hp.quniform('class_0_weight', 1,1,1),
+             #'class_1_weight':hp.quniform('class_1_weight', 1,100,1),
              #'class_weights': hp.choice('class_weights', [{0:1, 1:5}, {0:1, 1:10}, {0:1, 1:50}, {0:1, 1:1}]),
              #'class_weights': hp.choice('class_weights', [{0:1, 1:1}, {0:2,1:3}, {0:3,1:7}, {0:1,1:4}, {0:1,1:9}, {0:1, 1:25}, {0:1, 1:50}, {0:1, 1:100} , {0:1, 1:200}]),
-             'class_weights': hp.choice('class_weights', [{0: 1, 1: 1}]),
+             #'class_weights': hp.choice('class_weights', [{0: 1, 1: 1}]),
+             'class_weights': {0: hp.choice('class_0_weight', [1]), 1: hp.quniform('class_1_weight', 1,100,1)},
 
              #'feature_drop': hp.choice('feature_drop',['','bin','DIR','COR']),
              'feature_drop': hp.choice('feature_drop', [[], newfeatures, ['x'], ['y'], ['x', 'y'], ['month', 'wkd'],['dir_'], ['aspect'], ['corine'], \
