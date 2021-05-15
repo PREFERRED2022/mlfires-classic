@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
-
+from MLscores import calc_metrics
 
 def run_predict(model, modeltype, X):
     if modeltype == 'tensorflow':
@@ -16,6 +16,14 @@ def run_predict(model, modeltype, X):
     predict_class_v = np.vectorize(predict_class)
     y_pred = predict_class_v(y_scores[:, 1])
     return y_scores, y_pred
+
+def run_predict_and_metrics(model, modeltype, X, y, dontcalc=False, numaucthres=200, debug=True):
+    if dontcalc:
+        return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    if debug:
+        print("Running prediction...")
+    y_scores, y_pred = run_predict(model, modeltype, X)
+    return calc_metrics(y, y_scores, y_pred, numaucthres=numaucthres, debug=debug) + tuple([y_scores])
 
 def create_model(modeltype, params, X_train):
     if modeltype == 'tensorflow':

@@ -1,33 +1,19 @@
 #!/usr/bin/env python
 from hyperopt import Trials, fmin, tpe, hp, STATUS_OK
-from pandas import read_csv
-from sklearn.model_selection import train_test_split, KFold, GroupKFold
-from sklearn.preprocessing import LabelEncoder
-import tensorflow as tf
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense, Dropout
+from sklearn.model_selection import GroupKFold
 import tensorflow.keras.metrics
-from tensorflow.keras.utils import to_categorical
 import numpy as np
-from pandas import concat
-from pandas import DataFrame
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
 import pandas as pd
-import normdataset
 from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
-from tensorflow import summary
 import os
-import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, precision_score, f1_score, recall_score
 import time
-import json
 import space_newcv
 from functools import partial
 import re
-import manage_model
+from manage_model import create_model, run_predict, run_predict_and_metrics, create_NN_model, create_sklearn_model
 import fileutils
-import MLscores
+from MLscores import calc_metrics, calc_metrics_custom, cmvals, metrics_aggr
 import sys
 from check_and_prepare_dataset import load_dataset
 import cv_common
@@ -36,131 +22,15 @@ num_folds = 10
 # kf = KFold(n_splits=num_folds, shuffle=True)
 kf = GroupKFold(n_splits=num_folds)
 random_state = 42
-
-
-def calc_metrics(y, y_scores, y_pred):
-    if debug:
-        print("calulating merics from scores (sklearn)")
-        print("calulating tn, fp, fn, tp")
-    tn, fp, fn, tp = MLscores.cmvals(y, y_pred)
-    if debug:
-        print("tn : %d, fp : %d, fn : %d, tp : %d" % (tn, fp, fn, tp))
-    if debug:
-        print("calulating auc...")
-    if numaucthres>0:
-        aucmetric = tensorflow.metrics.AUC(num_thresholds=numaucthres)
-        aucmetric.update_state(y, y_scores[:, 1])
-        auc = float(aucmetric.result())
-    else:
-        auc = 0.0
-    if debug:
-        print("auc : %.2f" % auc)
-    if debug:
-        print("calulating accuracy...")
-    acc_1 = accuracy_score(y, y_pred)
-    acc_0 = accuracy_score(1 - y, 1 - y_pred)
-    if debug:
-        print("accuracy 1 : %.2f" % acc_1)
-        print("accuracy 0 : %.2f" % acc_0)
-    if debug:
-        print("calulating recall...")
-    rec_1 = recall_score(y, y_pred)
-    rec_0 = recall_score(1 - y, 1 - y_pred)
-    if debug:
-        print("recall 1 : %.2f" % rec_1)
-        print("recall 0 : %.2f" % rec_0)
-    if debug:
-        print("calulating precision...")
-    prec_1 = precision_score(y, y_pred)
-    prec_0 = precision_score(1 - y, 1 - y_pred)
-    if debug:
-        print("precision 1 : %.2f" % prec_1)
-        print("precision 0 : %.2f" % prec_0)
-    if debug:
-        print("calulating f1 score...")
-    f1_1 = f1_score(y, y_pred)
-    f1_0 = f1_score(1 - y, 1 - y_pred)
-    if debug:
-        print("f1 1 : %.2f" % f1_1)
-        print("f1 0 : %.2f" % f1_0)
-    if debug:
-        print("calulating hybrids...")
-    hybrid1 = MLscores.hybridrecall(2, 1, rec_1, rec_0)
-    hybrid2 = MLscores.hybridrecall(5, 1, rec_1, rec_0)
-    if debug:
-        print("hybrid 1 : %.2f" % hybrid1)
-        print("hybrid 2 : %.2f" % hybrid2)
-    # tp0 = tn1 tn0 = tp1 fp0 = fn1 fn0 = fp1
-    return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
-
-
-def calc_metrics_custom(tn, fp, fn, tp, y_scores, y):
-    if debug:
-        print("calulating merics (custom)")
-    if debug:
-        print("(input) tn : %d, fp : %d, fn : %d, tp : %d" % (tn, fp, fn, tp))
-    if debug:
-        print("calulating auc...")
-    if numaucthres > 0:
-        aucmetric = tensorflow.metrics.AUC(num_thresholds=numaucthres)
-        aucmetric.update_state(y, y_scores[:, 1])
-        auc = float(aucmetric.result())
-    else:
-        auc = 0.0
-    if debug:
-        print("auc : %.2f" % auc)
-    ##############################################
-    # tp0 = tn1, tn0 = tp1, fp0 = fn1, fn0 = fp1 #
-    ##############################################
-    if debug:
-        print("calulating accuracy...")
-    acc_1 = MLscores.accuracy(tp, tn, fp, fn)
-    acc_0 = MLscores.accuracy(tn, tp, fn, fp)
-    if debug:
-        print("accuracy 1 : %.2f" % acc_1)
-        print("accuracy 0 : %.2f" % acc_0)
-    if debug:
-        print("calulating recall ...")
-    rec_1 = MLscores.recall(tp, fn)
-    rec_0 = MLscores.recall(tn, fp)
-    if debug:
-        print("recall 1 : %.2f" % rec_1)
-        print("recall 0 : %.2f" % rec_0)
-    if debug:
-        print("calulating precision...")
-    prec_1 = MLscores.precision(tp, fp)
-    prec_0 = MLscores.precision(tn, fn)
-    if debug:
-        print("precision 1 : %.2f" % prec_1)
-        print("precision 0 : %.2f" % prec_0)
-    if debug:
-        print("calulating f1_score...")
-    f1_1 = MLscores.f1(tp, fp, fn)
-    f1_0 = MLscores.f1(tn, fn, fp)
-    if debug:
-        print("f1 1 : %.2f" % f1_1)
-        print("f1 0 : %.2f" % f1_0)
-    if debug:
-        print("calulating hybrids ...")
-    hybrid1 = MLscores.hybridrecall(2, 1, rec_1, rec_0)
-    hybrid2 = MLscores.hybridrecall(5, 1, rec_1, rec_0)
-    if debug:
-        print("hybrid 1 : %.2f" % hybrid1)
-        print("hybrid 2 : %.2f" % hybrid2)
-
-
-    return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
-
-
+'''
 def run_predict_and_metrics(model, modeltype, X, y, dontcalc=False):
     if dontcalc:
         return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     if debug:
         print("Running prediction...")
     y_scores, y_pred = manage_model.run_predict(model, modeltype, X)
-    return calc_metrics(y, y_scores, y_pred) + tuple([y_scores])
-
-
+    return calc_metrics(y, y_scores, y_pred) + tuple([y_scores], numaucthres=numaucthres, debug=debug)
+'''
 def load_files(cvset, settype, setdir):
     setfiles = []
     for dsfilepattern in cvset[settype]:
@@ -205,12 +75,12 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         start_fit = time.time()
 
         if modeltype == 'tensorflow':
-            model = manage_model.create_NN_model(params, X_train)
+            model = create_NN_model(params, X_train)
             es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
             res = model.fit(X_train, y_train, batch_size=512, epochs=params['max_epochs'], verbose=0, callbacks=[es],
                             class_weight=params['class_weights'])
         elif modeltype == 'sklearn':
-            model = manage_model.create_sklearn_model(params, X_train)
+            model = create_sklearn_model(params, X_train)
             model.fit(X_train, y_train)
 
         print("Fit time (min): %.1f" % ((time.time() - start_fit) / 60.0))
@@ -221,7 +91,8 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         run_predict_and_metrics(model, modeltype, X_train, y_train, not calc_test)
 
         if debug:
-            calc_metrics_custom(tn_train, fp_train, fn_train, tp_train, y_scores, y_train)
+            calc_metrics_custom(tn_train, fp_train, fn_train, tp_train, y_scores, y_train, numaucthres=numaucthres,
+                                debug=debug)
         if modeltype == 'tensorflow':
             es_epochs = len(res.history['loss'])
         else:
@@ -252,7 +123,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             X_pd = None; y_pd = None; groups_pd = None
             if debug:
                 print("Running prediction...")
-            _y_scores, _y_pred = manage_model.run_predict(model, modeltype, X_val)
+            _y_scores, _y_pred = run_predict(model, modeltype, X_val)
             if numaucthres>0:
                 if y_scores is None:
                     y_scores = _y_scores
@@ -264,7 +135,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
                     y_val = np.concatenate((y_val, _y_val))
             if debug:
                 print("confusion matrix retrieval...")
-            _tn, _fp, _fn, _tp = MLscores.cmvals(_y_val, _y_pred)
+            _tn, _fp, _fn, _tp = cmvals(_y_val, _y_pred)
             if debug:
                 print("file tn : %d, fp : %d, fn : %d, tp : %d" % (_tn, _fp, _fn, _tp))
             tn += _tn;
@@ -304,6 +175,8 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
                 'params': '%s' % params
             })  # 'fit time':  (time.time() - start_fold_time)/60.0})
     mean_metrics = {}
+    metrics_aggr(metrics, mean_metrics)
+    '''
     for m in metrics[0]:
         if isinstance(metrics[0][m], str):
             continue
@@ -313,6 +186,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             mean_metrics[m] = metricsum
         else:
             mean_metrics[m] = metricsum / len(metrics)
+    '''
     mean_metrics["CV time (min)"] = (time.time() - start_cv_all) / 60.0
     mean_metrics['params'] = '%s' % params
     print('Mean %s : %s' % (optimize_target, mean_metrics[optimize_target]))

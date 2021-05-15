@@ -2,6 +2,8 @@ from csv import DictWriter
 import os
 
 def writemetrics(metrics, mean_metrics, hpresfile, allresfile):
+    if not os.path.exists(os.path.dirname(hpresfile)):
+        os.makedirs(os.path.dirname(hpresfile))
     writeheader = True if not os.path.isfile(hpresfile) else False
     with open(hpresfile, 'a') as _f:
         dw = DictWriter(_f, fieldnames=mean_metrics.keys(), quotechar='"')

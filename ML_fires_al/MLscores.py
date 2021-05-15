@@ -1,4 +1,5 @@
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, accuracy_score, recall_score, f1_score, precision_score
+from tensorflow.keras.metrics import AUC
 
 def recall(tp,fn):
     if tp+fn == 0:
@@ -30,6 +31,7 @@ def hybridrecall(w1, w0, rec1, rec0):
         return (w1 + w0) / (w1 / rec1 + w0 / rec0)
     else:
         return -1000
+
 def cmvals(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
     if cm.shape[0]==1 and y_true[0]==0:
@@ -50,3 +52,126 @@ def cmvals(y_true, y_pred):
     else:
         tn=fp=fn=tp=None
     return tn, fp, fn, tp
+
+def calc_metrics(y, y_scores, y_pred, numaucthres=200, debug=True):
+    if debug:
+        print("calulating merics from scores (sklearn)")
+        print("calulating tn, fp, fn, tp")
+    tn, fp, fn, tp = cmvals(y, y_pred)
+    if debug:
+        print("tn : %d, fp : %d, fn : %d, tp : %d" % (tn, fp, fn, tp))
+    if debug:
+        print("calulating auc...")
+    if numaucthres>0:
+        aucmetric = AUC(num_thresholds=numaucthres)
+        aucmetric.update_state(y, y_scores[:, 1])
+        auc = float(aucmetric.result())
+    else:
+        auc = 0.0
+    if debug:
+        print("auc : %.2f" % auc)
+    if debug:
+        print("calulating accuracy...")
+    acc_1 = accuracy_score(y, y_pred)
+    acc_0 = accuracy_score(1 - y, 1 - y_pred)
+    if debug:
+        print("accuracy 1 : %.2f" % acc_1)
+        print("accuracy 0 : %.2f" % acc_0)
+    if debug:
+        print("calulating recall...")
+    rec_1 = recall_score(y, y_pred)
+    rec_0 = recall_score(1 - y, 1 - y_pred)
+    if debug:
+        print("recall 1 : %.2f" % rec_1)
+        print("recall 0 : %.2f" % rec_0)
+    if debug:
+        print("calulating precision...")
+    prec_1 = precision_score(y, y_pred)
+    prec_0 = precision_score(1 - y, 1 - y_pred)
+    if debug:
+        print("precision 1 : %.2f" % prec_1)
+        print("precision 0 : %.2f" % prec_0)
+    if debug:
+        print("calulating f1 score...")
+    f1_1 = f1_score(y, y_pred)
+    f1_0 = f1_score(1 - y, 1 - y_pred)
+    if debug:
+        print("f1 1 : %.2f" % f1_1)
+        print("f1 0 : %.2f" % f1_0)
+    if debug:
+        print("calulating hybrids...")
+    hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
+    hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
+    if debug:
+        print("hybrid 1 : %.2f" % hybrid1)
+        print("hybrid 2 : %.2f" % hybrid2)
+    # tp0 = tn1 tn0 = tp1 fp0 = fn1 fn0 = fp1
+    return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
+
+
+def calc_metrics_custom(tn, fp, fn, tp, y_scores, y, numaucthres=200, debug=True):
+    if debug:
+        print("calulating merics (custom)")
+    if debug:
+        print("(input) tn : %d, fp : %d, fn : %d, tp : %d" % (tn, fp, fn, tp))
+    if debug:
+        print("calulating auc...")
+    if numaucthres > 0:
+        aucmetric = AUC(num_thresholds=numaucthres)
+        aucmetric.update_state(y, y_scores[:, 1])
+        auc = float(aucmetric.result())
+    else:
+        auc = 0.0
+    if debug:
+        print("auc : %.2f" % auc)
+    ##############################################
+    # tp0 = tn1, tn0 = tp1, fp0 = fn1, fn0 = fp1 #
+    ##############################################
+    if debug:
+        print("calulating accuracy...")
+    acc_1 = accuracy(tp, tn, fp, fn)
+    acc_0 = accuracy(tn, tp, fn, fp)
+    if debug:
+        print("accuracy 1 : %.2f" % acc_1)
+        print("accuracy 0 : %.2f" % acc_0)
+    if debug:
+        print("calulating recall ...")
+    rec_1 = recall(tp, fn)
+    rec_0 = recall(tn, fp)
+    if debug:
+        print("recall 1 : %.2f" % rec_1)
+        print("recall 0 : %.2f" % rec_0)
+    if debug:
+        print("calulating precision...")
+    prec_1 = precision(tp, fp)
+    prec_0 = precision(tn, fn)
+    if debug:
+        print("precision 1 : %.2f" % prec_1)
+        print("precision 0 : %.2f" % prec_0)
+    if debug:
+        print("calulating f1_score...")
+    f1_1 = f1(tp, fp, fn)
+    f1_0 = f1(tn, fn, fp)
+    if debug:
+        print("f1 1 : %.2f" % f1_1)
+        print("f1 0 : %.2f" % f1_0)
+    if debug:
+        print("calulating hybrids ...")
+    hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
+    hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
+    if debug:
+        print("hybrid 1 : %.2f" % hybrid1)
+        print("hybrid 2 : %.2f" % hybrid2)
+    return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, tn, fp, fn, tp
+
+def metrics_aggr(metrics, mean_metrics):
+    for m in metrics[0]:
+        if isinstance(metrics[0][m], str):
+            continue
+        metricsum = sum([item.get(m, 0) for item in metrics if item.get(m) >= 0])
+        cmvalsts = ['TN', 'FP', 'FN', 'TP']
+        if any([st in m for st in cmvalsts]):
+            mean_metrics[m] = metricsum
+        else:
+            mean_metrics[m] = metricsum / len(metrics)
+    return mean_metrics

@@ -5,15 +5,15 @@ import tensorflow.keras.metrics
 import numpy as np
 import pandas as pd
 import normdataset
-from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
 import os
 import re
 from sklearn.metrics import accuracy_score, precision_score, f1_score, recall_score
 import time
 import space
 from functools import partial
-import manage_model
+from manage_model import create_model, run_predict_and_metrics, run_predict, fit_model
 import cv_common
+from MLscores import calc_metrics, calc_metrics_custom, cmvals, metrics_aggr
 
 def drop_all0_features(df):
     for c in df.columns:
@@ -142,7 +142,7 @@ def load_dataset():
     #drop_all0_features(featdf)
 
     return X, y, groupspd
-
+'''
 def hybridrecall(w1, w0, rec1, rec0):
     if rec1 != 0 and rec0 != 0:
         return (w1+w0) / (w1 / rec1 + w0 / rec0)
@@ -157,10 +157,6 @@ def calc_metrics(model, X, y, aucmetric, dontcalc = False):
     if dontcalc:
         return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     y_scores, y_pred = manage_model.run_predict(model, modeltype, X)
-    #y_scores = model.predict(X)
-    predict_class = lambda p: int(round(p))
-    predict_class_v = np.vectorize(predict_class)
-    #y_pred = predict_class_v(y_scores[:, 1])
 
     aucmetric.update_state(y, y_scores[:, 1])
     auc = float(aucmetric.result())
@@ -181,6 +177,7 @@ def calc_metrics(model, X, y, aucmetric, dontcalc = False):
     hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
 
     return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2
+'''
 
 def get_filename(opt_target, modeltype, desc, aggr='mean'):
     base_name = os.path.join('results', 'hyperopt', 'hyperopt_results_'+ modeltype + '_' + desc + '_'+ aggr+'_'+"".join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_')
@@ -225,41 +222,37 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
         y_train = y_train[:,0]
         start_time = time.time()
         es_epochs = 0
-        model = manage_model.create_model(modeltype, params, X_train)
-        model, res = manage_model.fit_model(modeltype, model, params, X_train, y_train, X_val, y_val)
+        model = create_model(modeltype, params, X_train)
+        model, res = fit_model(modeltype, model, params, X_train, y_train, X_val, y_val)
         if modeltype == 'tensorflow':
             es_epochs = len(res.history['loss'])
-        '''
-        if modeltype == 'tensorflow':
-            model = manage_model.create_NN_model(params, X_train)
-            es = EarlyStopping(monitor='val_loss',  patience=10, min_delta=0.0002)
-            res = model.fit(X_train, y_train, batch_size=512, epochs=params['max_epochs'], verbose=1, callbacks=[es],
-                            validation_data=(X_val, y_val), class_weight=params['class_weights'])
-            es_epochs = len(res.history['loss'])
-        elif modeltype == 'sklearn':
-            model = manage_model.create_sklearn_model(params, X_train)
-            model.fit(X_train, y_train)
-        '''
+
         print("Fit time (min): %.1f"%((time.time() - start_time)/60.0))
         start_time = time.time()
         #print("epochs run: %d" % es_epochs)
 
-        aucmetric = tensorflow.metrics.AUC()
+        #aucmetric = tensorflow.metrics.AUC()
+
+        '''training set metrics'''
+        '''
+        auc_train,acc_1_train,acc_0_train,prec_1_train, prec_0_train,rec_1_train, rec_0_train,f1_1_train,f1_0_train,hybrid1_train,hybrid2_train \
+            = calc_metrics(model, X_train, y_train, aucmetric, not calc_test)
+        '''
+        auc_train, acc_1_train, acc_0_train, prec_1_train, prec_0_train, rec_1_train, rec_0_train, f1_1_train, f1_0_train, hybrid1_train, hybrid2_train, \
+        tn_train, fp_train, fn_train, tp_train, y_scores = run_predict_and_metrics(model, modeltype, X_train, y_train, not calc_test)
+        #run_predict_and_metrics(model, modeltype, X, y, dontcalc=False, numaucthres=200, debug=True):
 
         '''validation set metrics'''
-        #loss_test, acc_test = model.evaluate(X_val, y_val, batch_size=512, verbose=0)
-        #y_pred = model.predict_classes(X_val)
-
+        y_scores, y_pred = run_predict(model, modeltype, X_val)
+        '''
         auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test \
             = calc_metrics(model, X_val, y_val, aucmetric, False)
+        '''
+        auc_val,acc_1_test,acc_0_test,prec_1_test, prec_0_test,rec_1_test, rec_0_test,f1_1_test,f1_0_test,hybrid1_test,hybrid2_test, \
+        tn_val, fp_val, fn_val, tp_val, y_scores = run_predict_and_metrics(model, modeltype, X_val, y_val)
 
         print("Validation metrics time (min): %.1f"%((time.time() - start_time)/60.0))
         start_time = time.time()
-
-        '''training set metrics'''
-        auc_train,acc_1_train,acc_0_train,prec_1_train, prec_0_train,rec_1_train, rec_0_train,f1_1_train,f1_0_train,hybrid1_train,hybrid2_train \
-            = calc_metrics(model, X_train, y_train, aucmetric, not calc_test)
-
 
         print("Training metrics time (min): %.1f"%((time.time() - start_time)/60.0))
         print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_test,rec_0_test))

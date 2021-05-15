@@ -73,18 +73,15 @@ def create_space():
              'feature_drop': hp.choice('feature_drop', [['wkd', 'month']]),
              }
     '''
-    max_trials = 5
-    #dsfile = 'dataset_1_10_corine_level2_onehotenc.csv'
-    #dsfile = 'dataset_corine_level2_onehotenc.csv'
+    max_trials = 2
     #testsets = {'balanced':'/home/aapos/Documents/newcrossval/datasets/randomnofire/old_random_new_features_norm.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
-    testsets = {'balanced':'/home/aapos/Documents/newcrossval/datasets/randomnofire/oldrandomnewfeat.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
-    dstestfile = '/home/sgirtsou/Documents/test_datasets_19/test_datasets_2019_dummies/august_2019_dataset_fire_sh_dummies.csv'
+    testsets = {'balanced':'/home/aapostolakis/Documents/ffpdata/newcrossval/datasets/randomnofire/oldrandomnewfeat.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
     calc_train_metrics = True
     #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['auc val.']
     modeltype = 'tensorflow'
     #modeltype = 'sklearn'
-    description = 'RF'
+    description = 'NN'
     nfolds = 5
     return 'balanced', testsets, nfolds, space, max_trials, calc_train_metrics, opt_targets, modeltype, description
 
