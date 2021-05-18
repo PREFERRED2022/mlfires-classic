@@ -13,7 +13,7 @@ from functools import partial
 import re
 from manage_model import create_model, run_predict, run_predict_and_metrics, create_NN_model, create_sklearn_model
 import fileutils
-from MLscores import calc_metrics, calc_metrics_custom, cmvals, metrics_aggr
+from MLscores import calc_metrics, calc_metrics_custom, cmvals, metrics_aggr, metrics_dict
 import sys
 from check_and_prepare_dataset import load_dataset
 import cv_common
@@ -86,13 +86,20 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         print("Fit time (min): %.1f" % ((time.time() - start_fit) / 60.0))
 
         '''training set metrics'''
+        '''
         auc_train, acc_1_train, acc_0_train, prec_1_train, prec_0_train, rec_1_train, rec_0_train,\
         f1_1_train,f1_0_train, hybrid1_train, hybrid2_train, tn_train, fp_train, fn_train, tp_train, y_scores =\
         run_predict_and_metrics(model, modeltype, X_train, y_train, not calc_test)
+        '''
+        start_time_trmetrics = time.time()
+        mset = 'train'
+        metrics_dict_train, y_scores = run_predict_and_metrics(model, modeltype, X_train, y_train, 'train', not calc_test)
+        print("Training metrics time (min): %.1f"%((time.time() - start_time_trmetrics)/60.0))
 
         if debug:
-            calc_metrics_custom(tn_train, fp_train, fn_train, tp_train, y_scores, y_train, numaucthres=numaucthres,
-                                debug=debug)
+            calc_metrics_custom(metrics_dict_train['TN %s' % mset], metrics_dict_train['FP %s' % mset],\
+                                metrics_dict_train['FN %s' % mset], metrics_dict_train['TP %s' % mset], y_scores, y_train,\
+                                numaucthres=numaucthres, debug=debug)
         if modeltype == 'tensorflow':
             es_epochs = len(res.history['loss'])
         else:
@@ -147,13 +154,25 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             print("Predict time (min): %.1f" % ((time.time() - start_predict_file) / 60.0))
 
         '''validation set metrics'''
+        msetval = valst
+        '''
         auc_val, acc_1_val, acc_0_val, prec_1_val, prec_0_val, rec_1_val, rec_0_val, f1_1_val, f1_0_val, hybrid1_val, hybrid2_val, \
         tn_val, fp_val, fn_val, tp_val = calc_metrics_custom(tn, fp, fn, tp, y_scores, y_val)
+        '''
+        metrics_dict_val = metrics_dict(*calc_metrics_custom(tn, fp, fn, tp, y_scores, y_val, numaucthres=numaucthres, debug=debug), msetval)
 
         print("Validation metrics time (min): %.1f" % ((time.time() - start_cv) / 60.0))
-        start_time = time.time()
 
-        print("Recall 1 val: %s, Recall 0 val: %s" % (rec_1_val, rec_0_val))
+        print("Recall 1 val: %.3f, Recall 0 val: %.3f" % (metrics_dict_val['recall 1 %s'%msetval], metrics_dict_val['recall 0 %s'%msetval]))
+        metrics_dict_fold = {}
+        metrics_dict_fold['fold'] = '%s'%cvfiles
+        metrics_dict_fold = {**metrics_dict_fold, **metrics_dict_train, **metrics_dict_val}
+        if modeltype=='tensorflow':
+            metrics_dict_fold['early stop epochs'] = es_epochs
+        metrics_dict_fold['params']='%s'%params
+        metrics_dict_fold['CV Fit and predict min.']=(time.time() - start_cv)/60.0
+        metrics.append(metrics_dict_fold)
+        '''
         metrics.append(
             {
                 'training set': '%s' % cvset['training'],
@@ -174,6 +193,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
                 'early stop epochs': es_epochs,
                 'params': '%s' % params
             })  # 'fit time':  (time.time() - start_fold_time)/60.0})
+            '''
     mean_metrics = {}
     metrics_aggr(metrics, mean_metrics)
     '''

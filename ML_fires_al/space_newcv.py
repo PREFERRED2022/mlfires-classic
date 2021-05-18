@@ -27,7 +27,20 @@ def create_space():
              'max_epochs': hp.choice('max_epochs', [20]),
              #'metric': hp.choice('metric',['accuracy', 'sparse'])
              #'metric': hp.choice('metric', ['tn'])
-             'metric': hp.choice('metric',['accuracy'])
+             'metric': hp.choice('metric',['accuracy']),
+             'optimizer': hp.choice('optimizer', [{'name': 'Adam',
+                                                   'adam_params': hp.choice('adam_params',
+                                                                            [None, {'learning_rate_adam': hp.uniform(
+                                                                                'learning_rate_adam', 0.0001, 1), \
+                                                                                    'beta_1': hp.uniform('beta_1',
+                                                                                                         0.0001, 1),
+                                                                                    'beta_2': hp.uniform('beta_2',
+                                                                                                         0.0001, 1), \
+                                                                                    'amsgrad': hp.choice('amsgrad',
+                                                                                                         [True,
+                                                                                                          False])}])},
+                                                  {'name': 'SGD',
+                                                   'learning_rate_SGD': hp.uniform('learning_rate_SGD', 0.0001, 1)}]),
 
              #'feature_drop': hp.choice('feature_drop', ['bin'])
              }
@@ -45,22 +58,22 @@ def create_space():
             }
     '''
     max_trials = 1
-    trainsetdir = '/home/aapos/Documents/newcrossval/datasets/'
-    testsetdir = '/home/aapos/Documents/newcrossval/'
+    trainsetdir = '/home/aapostolakis/Documents/ffpdata/newcrossval/datasets/'
+    testsetdir = '/home/aapostolakis/Documents/ffpdata/newcrossval/'
     #testsets = [{'training': ['*2010.csv'],'crossval': ['may*2010*', 'april*2010*']},
     #            {'training':['*2010.csv','*2011.csv'], 'crossval':['april*2011*']}]
     testsets = [{'training': ['*features_norm.csv'],'crossval': ['may*2010*small.csv', 'april*2010*small.csv']},
                 {'training': ['*features_norm.csv'],'crossval':['april*2011*small.csv']}]
 
     calc_train_metrics = True
-    #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
-    opt_targets = ['hybrid1 val']
+    valst = 'val.'
+    #opt_targets = ['hybrid1 %s'%valst, 'hybrid2 %s'%valst, 'f1-score 1 %s'%valst, 'auc %s'%valst, 'recall 1 %s'%valst]
+    opt_targets = ['hybrid1 %s'%valst]
     auc_thressholds=30
     modeltype = 'tensorflow'
     #modeltype = 'sklearn'
     cvrownum = 0
     filedesc = 'NN'
-    valst = 'val.'
     #valst = 'test'
     return testsets, space, max_trials, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
            modeltype, cvrownum, filedesc, valst, True
