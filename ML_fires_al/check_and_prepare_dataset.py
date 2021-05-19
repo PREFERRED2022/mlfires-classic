@@ -8,7 +8,9 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
     df = df.dropna()
     print('after nan drop: %d' % len(df.index))
 
+    print('renaming "x": "xpos", "y": "ypos"')
     X_unnorm, y_int = df[X_columns], df[y_columns]
+    X_unnorm = X_unnorm.rename(columns={'x': 'xpos', 'y': 'ypos'})
 
     # categories to binary
     if domdir_col:
@@ -50,6 +52,8 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
     X = X_unnorm
     y = y_int
     groupspd = df[firedate_col]
+
+
 
     return X, y, groupspd
 
@@ -153,7 +157,6 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True):
             if debug:
                 print("Loading full dataset %s" % dsfile)
             df = pd.read_csv(dsfile)
-
 
     X_columns_upper = [c.upper() for c in X_columns]
     newcols = [c for c in df.columns if

@@ -47,6 +47,7 @@ def create_space():
 
              #'feature_drop': hp.choice('feature_drop', ['bin'])
              }
+
     '''
     space = {'algo': hp.choice('algo', ['RF']),
              'n_estimators': hp.quniform('n_estimators', 50, 1050, 100),
@@ -80,7 +81,7 @@ def create_space():
     #testsets = {'balanced':'/home/aapos/Documents/newcrossval/datasets/randomnofire/old_random_new_features_norm.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
     testsets = {'balanced':'/home/aapostolakis/Documents/ffpdata/newcrossval/datasets/randomnofire/oldrandomnewfeat.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
     calc_train_metrics = True
-    #opt_targets = ['hybrid1 val', 'hybrid2 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
+    #opt_targets = ['hybrid2 val', 'hybrid5 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['auc val.']
     modeltype = 'tensorflow'
     #modeltype = 'sklearn'

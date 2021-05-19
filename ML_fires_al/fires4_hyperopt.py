@@ -142,42 +142,6 @@ def load_dataset():
     #drop_all0_features(featdf)
 
     return X, y, groupspd
-'''
-def hybridrecall(w1, w0, rec1, rec0):
-    if rec1 != 0 and rec0 != 0:
-        return (w1+w0) / (w1 / rec1 + w0 / rec0)
-    elif rec1 == 0 and rec0 == 0:
-        return 0
-    elif rec1 == 0:
-        return rec0
-    elif rec0 == 0:
-        return rec1
-
-def calc_metrics(model, X, y, aucmetric, dontcalc = False):
-    if dontcalc:
-        return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    y_scores, y_pred = manage_model.run_predict(model, modeltype, X)
-
-    aucmetric.update_state(y, y_scores[:, 1])
-    auc = float(aucmetric.result())
-
-    acc_1 = accuracy_score(y, y_pred)
-    acc_0 = accuracy_score(1 - y, 1 - y_pred)
-
-    prec_1 = precision_score(y, y_pred)
-    prec_0 = precision_score(1 - y, 1 - y_pred)
-
-    rec_1 = recall_score(y, y_pred)
-    rec_0 = recall_score(1 - y, 1 - y_pred)
-
-    f1_1 = f1_score(y, y_pred)
-    f1_0 = f1_score(1 - y, 1 - y_pred)
-
-    hybrid1 = hybridrecall(2, 1, rec_1, rec_0)
-    hybrid2 = hybridrecall(5, 1, rec_1, rec_0)
-
-    return auc, acc_1, acc_0, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2
-'''
 
 def get_filename(opt_target, modeltype, desc, aggr='mean'):
     base_name = os.path.join('results', 'hyperopt', 'hyperopt_results_'+ modeltype + '_' + desc + '_'+ aggr+'_'+"".join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_')
@@ -293,19 +257,4 @@ for opt_target in opt_targets:
                 trials=trials,  # logging
                 rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility
                 )
-    '''
-    pd_opt = pd.DataFrame(columns=list(trials.trials[0]['result']['metrics'].keys()))
-    for t in trials:
-        pdrow = t['result']['metrics']
-        pdrow['params'] = t['result']['params']
-        pd_opt = pd_opt.append(pdrow, ignore_index=True)
 
-    if not os.path.isdir(os.path.join('results','hyperopt')):
-        os.makedirs(os.path.join('results','hyperopt'))
-
-    hyp_res_base = os.path.join('results','hyperopt','hyperopt_results_'+"".join([ch for ch in opt_target if re.match(r'\w', ch)])+'_'+tset+'_'+modeltype+'_')
-    cnt = 1
-    while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
-        cnt += 1
-    pd_opt.to_csv('%s%d.csv' % (hyp_res_base, cnt), index=False)
-    '''

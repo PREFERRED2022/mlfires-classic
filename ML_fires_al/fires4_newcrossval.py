@@ -18,36 +18,23 @@ import sys
 from check_and_prepare_dataset import load_dataset
 import cv_common
 
-num_folds = 10
-# kf = KFold(n_splits=num_folds, shuffle=True)
-kf = GroupKFold(n_splits=num_folds)
-random_state = 42
-'''
-def run_predict_and_metrics(model, modeltype, X, y, dontcalc=False):
-    if dontcalc:
-        return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    if debug:
-        print("Running prediction...")
-    y_scores, y_pred = manage_model.run_predict(model, modeltype, X)
-    return calc_metrics(y, y_scores, y_pred) + tuple([y_scores], numaucthres=numaucthres, debug=debug)
-'''
 def load_files(cvset, settype, setdir):
     setfiles = []
     for dsfilepattern in cvset[settype]:
         setfiles += [f for f in fileutils.find_files(setdir, dsfilepattern, listtype="walk")]
     return setfiles
 
-def resfilename(opt_target):
+def resfilename(opt_target, runmode):
     hyp_res_base = os.path.join('results', 'hyperopt',
-                                'hyperopt_results_' + "".join(
-                                    [ch for ch in opt_target if re.match(r'\w', ch)]) + '_' + filedesc + '_')
+                                'hyperopt_results_' +
+                                ''.join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_'
+                                + filedesc + '_')
     cnt = 1
     while os.path.exists('%s%d.csv' % (hyp_res_base, cnt)):
         cnt += 1
     hyperresfile = '%s%d.csv' % (hyp_res_base, cnt)
     hyperallfile = '%sall_%d.csv' % (hyp_res_base, cnt)
     return hyperresfile, hyperallfile
-
 
 def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyperallfile, params):
     if len(cvsets) == 0:
@@ -59,7 +46,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
 
     start_cv_all = time.time()
     for cvset in cvsets:
-        print('Cross Validation Set: %s' % cvset)
+        print('%s Set: %s' % (runmode,cvset))
         trfiles = load_files(cvset, 'training', trainsetdir)
         if len(trfiles) == 0:
             print("No training dataset(s) found")
@@ -86,11 +73,6 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         print("Fit time (min): %.1f" % ((time.time() - start_fit) / 60.0))
 
         '''training set metrics'''
-        '''
-        auc_train, acc_1_train, acc_0_train, prec_1_train, prec_0_train, rec_1_train, rec_0_train,\
-        f1_1_train,f1_0_train, hybrid1_train, hybrid2_train, tn_train, fp_train, fn_train, tp_train, y_scores =\
-        run_predict_and_metrics(model, modeltype, X_train, y_train, not calc_test)
-        '''
         start_time_trmetrics = time.time()
         mset = 'train'
         metrics_dict_train, y_scores = run_predict_and_metrics(model, modeltype, X_train, y_train, 'train', not calc_test)
@@ -154,61 +136,22 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             print("Predict time (min): %.1f" % ((time.time() - start_predict_file) / 60.0))
 
         '''validation set metrics'''
-        msetval = valst
-        '''
-        auc_val, acc_1_val, acc_0_val, prec_1_val, prec_0_val, rec_1_val, rec_0_val, f1_1_val, f1_0_val, hybrid1_val, hybrid2_val, \
-        tn_val, fp_val, fn_val, tp_val = calc_metrics_custom(tn, fp, fn, tp, y_scores, y_val)
-        '''
+        msetval = runmode
         metrics_dict_val = metrics_dict(*calc_metrics_custom(tn, fp, fn, tp, y_scores, y_val, numaucthres=numaucthres, debug=debug), msetval)
-
         print("Validation metrics time (min): %.1f" % ((time.time() - start_cv) / 60.0))
-
         print("Recall 1 val: %.3f, Recall 0 val: %.3f" % (metrics_dict_val['recall 1 %s'%msetval], metrics_dict_val['recall 0 %s'%msetval]))
         metrics_dict_fold = {}
-        metrics_dict_fold['fold'] = '%s'%cvfiles
+        metrics_dict_fold['fold'] = '%s'%cvset['crossval']
         metrics_dict_fold = {**metrics_dict_fold, **metrics_dict_train, **metrics_dict_val}
         if modeltype=='tensorflow':
             metrics_dict_fold['early stop epochs'] = es_epochs
         metrics_dict_fold['params']='%s'%params
         metrics_dict_fold['CV Fit and predict min.']=(time.time() - start_cv)/60.0
         metrics.append(metrics_dict_fold)
-        '''
-        metrics.append(
-            {
-                'training set': '%s' % cvset['training'],
-                '%s set' % valst: '%s' % cvset['crossval'],
-                'accuracy %s' % valst: acc_1_val, 'accuracy train': acc_1_train,
-                'precision 1 %s' % valst: prec_1_val, 'precision 1 train': prec_1_train,
-                'recall 1 %s' % valst: rec_1_val,
-                'recall 1 train': rec_1_train, 'f1-score 1 %s' % valst: f1_1_val, 'f1-score 1 train': f1_1_train,
-                'accuracy 0 %s' % valst: acc_0_val, 'accuracy 0 train': acc_0_train,
-                'precision 0 %s' % valst: prec_0_val, 'precision 0 train': prec_0_train,
-                'recall 0 %s' % valst: rec_0_val,
-                'recall 0 train': rec_0_train, 'f1-score 0 %s' % valst: f1_0_val, 'f1-score 0 train': f1_0_train,
-                'auc %s' % valst: auc_val,
-                'auc train.': auc_train, 'hybrid1 train': hybrid1_train, 'hybrid1 val': hybrid1_val,
-                'hybrid2 train': hybrid2_train, 'hybrid2 val': hybrid2_val,
-                'TN %s' % valst: tn_val, 'FP %s' % valst: fp_val, 'FN %s' % valst: fn_val, 'TP %s' % valst: tp_val,
-                'TN train.': tn_train, 'FP train.': fp_train, 'FN train.': fn_train, 'TP train.': tp_train,
-                'early stop epochs': es_epochs,
-                'params': '%s' % params
-            })  # 'fit time':  (time.time() - start_fold_time)/60.0})
-            '''
     mean_metrics = {}
-    metrics_aggr(metrics, mean_metrics)
-    '''
-    for m in metrics[0]:
-        if isinstance(metrics[0][m], str):
-            continue
-        metricsum = sum([item.get(m, 0) for item in metrics if item.get(m) >= 0])
-        cmvalsts = ['TN', 'FP', 'FN', 'TP']
-        if any([st in m for st in cmvalsts]):
-            mean_metrics[m] = metricsum
-        else:
-            mean_metrics[m] = metricsum / len(metrics)
-    '''
+    mean_metrics = metrics_aggr(metrics, mean_metrics)
     mean_metrics["CV time (min)"] = (time.time() - start_cv_all) / 60.0
-    mean_metrics['params'] = '%s' % params
+    mean_metrics['params'] = '%s'%params
     print('Mean %s : %s' % (optimize_target, mean_metrics[optimize_target]))
     cv_common.writemetrics(metrics, mean_metrics, hyperresfile, hyperallfile)
 
@@ -225,34 +168,39 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-
-testsets, space, max_trials, calc_test, opt_targets, trainsetdir, testsetdir, numaucthres, modeltype, \
-cvrownum, filedesc, valst, debug = space_newcv.create_space()
+testsets, space, testmodels, max_trials, calc_test, opt_targets, trainsetdir, testsetdir, numaucthres, modeltype, \
+cvrownum, filedesc, runmode, debug = space_newcv.create_space()
+random_state = 42
 
 # tf.config.threading.set_inter_op_parallelism_threads(
 #    n_cpus
 # )
 
-for opt_target in opt_targets:
+if runmode == 'val.':
+    for opt_target in opt_targets:
+        trials = Trials()
+        hyperresfile, hyperallfile = resfilename(opt_target, runmode)
+        evalmodelpart = partial(evalmodel, testsets, opt_target, calc_test, modeltype, hyperresfile, hyperallfile)
 
-    trials = Trials()
-    hyperresfile, hyperallfile = resfilename(opt_target)
-    evalmodelpart = partial(evalmodel, testsets, opt_target, calc_test, modeltype, hyperresfile, hyperallfile)
+        if not os.path.isdir(os.path.join('results', 'hyperopt')):
+            os.makedirs(os.path.join('results', 'hyperopt'))
+        best = fmin(fn=evalmodelpart,  # function to optimize
+                    space=space,
+                    algo=tpe.suggest,  # optimization algorithm, hyperotp will select its parameters automatically
+                    max_evals=max_trials,  # maximum number of iterations
+                    trials=trials,  # logging
+                    rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility
+                    )
 
-    if not os.path.isdir(os.path.join('results', 'hyperopt')):
-        os.makedirs(os.path.join('results', 'hyperopt'))
-    best = fmin(fn=evalmodelpart,  # function to optimize
-                space=space,
-                algo=tpe.suggest,  # optimization algorithm, hyperotp will select its parameters automatically
-                max_evals=max_trials,  # maximum number of iterations
-                trials=trials,  # logging
-                rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility
-                )
+        pd_opt = pd.DataFrame(columns=list(trials.trials[0]['result']['metrics'].keys()))
+        for t in trials:
+            pdrow = t['result']['metrics']
+            pdrow['params'] = t['result']['params']
+            pd_opt = pd_opt.append(pdrow, ignore_index=True)
 
-    pd_opt = pd.DataFrame(columns=list(trials.trials[0]['result']['metrics'].keys()))
-    for t in trials:
-        pdrow = t['result']['metrics']
-        pdrow['params'] = t['result']['params']
-        pd_opt = pd_opt.append(pdrow, ignore_index=True)
-
-    # pd_opt.to_csv(hyperresfile, index=False)
+        # pd_opt.to_csv(hyperresfile, index=False)
+elif runmode == 'test':
+    for opt_target in opt_targets:
+        hyperresfile, hyperallfile = resfilename(opt_target, runmode)
+        for modelparams in testmodels[opt_target]:
+            evalmodelpart = evalmodel(testsets, opt_target, calc_test, modeltype, hyperresfile, hyperallfile, modelparams)

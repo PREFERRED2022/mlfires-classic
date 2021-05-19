@@ -57,6 +57,22 @@ def create_space():
              'class_weight':hp.choice('class_weight',[{0:1,1:9},{0:1,1:300},{0:1,1:400},{0:1,1:500},{0:1,1:1000}])
             }
     '''
+    #runmode = 'val.'
+    runmode = 'test'
+    testspace = {'hybrid2 %s'%runmode:
+                 [{'n_internal_layers': (0, {'layer_1_0_nodes': 200}),'dropout': False,'class_weights': {0: 1, 1: 5},
+                 'feature_drop': ['month', 'wkd','dir', 'pos', 'f81', 'frequency'],'metric': 'accuracy',
+                 'optimizer': {'name': 'Adam','adam_params':None},
+                 'max_epochs': 2000,'ES_monitor':'loss','ES_patience':10,'ES_mindelta':0.002,'batch_size':512
+                  }],
+                 'auc %s'%runmode:
+                  [{'n_internal_layers': (1, {'layer_1_1_nodes': 100, 'layer_2_1_nodes': 100}),'dropout': False,
+                    'class_weights': {0: 1, 1: 5}, 'feature_drop': ['month', 'wkd','dir', 'pos', 'f81', 'frequency'],
+                    'metric': 'accuracy','optimizer': {'name': 'Adam','adam_params':None},
+                   'max_epochs': 2000,'ES_monitor':'loss','ES_patience':10,'ES_mindelta':0.002,'batch_size':512
+                  }]}
+
+
     max_trials = 1
     trainsetdir = '/home/aapostolakis/Documents/ffpdata/newcrossval/datasets/'
     testsetdir = '/home/aapostolakis/Documents/ffpdata/newcrossval/'
@@ -66,15 +82,15 @@ def create_space():
                 {'training': ['*features_norm.csv'],'crossval':['april*2011*small.csv']}]
 
     calc_train_metrics = True
-    valst = 'val.'
-    #opt_targets = ['hybrid1 %s'%valst, 'hybrid2 %s'%valst, 'f1-score 1 %s'%valst, 'auc %s'%valst, 'recall 1 %s'%valst]
-    opt_targets = ['hybrid1 %s'%valst]
+    #opt_targets = ['hybrid1 %s'%runmode, 'hybrid2 %s'%runmode, 'f1-score 1 %s'%runmode, 'auc %s'%runmode, 'recall 1 %s'%runmode]
+    opt_targets = ['hybrid2 %s'%runmode]
     auc_thressholds=30
     modeltype = 'tensorflow'
     #modeltype = 'sklearn'
     cvrownum = 0
     filedesc = 'NN'
-    #valst = 'test'
-    return testsets, space, max_trials, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
-           modeltype, cvrownum, filedesc, valst, True
+    #runmode = 'test'
+    return testsets, space, testspace, max_trials, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
+           modeltype, cvrownum, filedesc, runmode, True
+
 
