@@ -133,15 +133,19 @@ def load_dataset():
         print('before nan drop: %d'%len(featdf.index))
         featdf = featdf.dropna()
         print('after nan drop: %d' % len(featdf.index))
+        featdf = featdf.drop_duplicates(keep='first')
+        featdf.reset_index(inplace=True, drop=True)
+        print('after dup. drop: %d' % len(featdf.index))
         firedate_col = [c for c in featdf.columns if 'firedate'.upper() in c.upper()][0]
         X_columns_new = [c for c in featdf.columns if c not in [firedate_col,'fire','id'] and 'Unnamed' not in c]
         X = featdf[X_columns_new]
         y = featdf[y_columns]
         groupspd = featdf[firedate_col]
+        idpd = featdf['id']
 
     #drop_all0_features(featdf)
 
-    return X, y, groupspd
+    return X, y, groupspd, idpd
 
 def get_filename(opt_target, modeltype, desc, aggr='mean'):
     base_name = os.path.join('results', 'hyperopt', 'hyperopt_results_'+ modeltype + '_' + desc + '_'+ aggr+'_'+"".join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_')
@@ -150,7 +154,7 @@ def get_filename(opt_target, modeltype, desc, aggr='mean'):
         cnt += 1
     return '%s%d.csv' % (base_name, cnt)
 
-def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modeltype, hpresfile, allresfile, params):
+def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, modeltype, hpresfile, allresfile, scoresfile, params):
 
     # the function gets a set of variable parameters in "param"
     '''
@@ -173,6 +177,8 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
     X = X_pd.values
     y = y_pd.values
     groups = groups_pd.values
+    Xhash = cv_common.gethashdict(X)
+    y_scores_all = np.zeros(y.shape[0])
 
     start_folds = time.time()
     for train_index, test_index in cv.split(X, y, groups):
@@ -202,6 +208,7 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
         '''validation set metrics'''
         mset = 'val.'
         metrics_dict_val, y_scores = run_predict_and_metrics(model, modeltype, X_val, y_val, mset)
+        cv_common.updateYrows(X_val, y_scores[:, 1], Xhash, y_scores_all)
 
         print("Validation metrics time (min): %.1f"%((time.time() - start_time)/60.0))
         print("Recall 1 val: %.3f, Recall 0 val: %.3f" % (metrics_dict_val['recall 1 %s'%mset],metrics_dict_val['recall 0 %s'%mset]))
@@ -216,12 +223,19 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
         metrics.append(metrics_dict_fold)
 
     mean_metrics = {}
-    mean_metrics = metrics_aggr(metrics, mean_metrics)
+    mean_metrics = metrics_aggr(metrics, mean_metrics, hybrid_on_aggr=True, y_scores=y_scores_all, y=np.transpose(y)[0], valst=mset)
     mean_metrics["CV time (min)"] = (time.time() - start_folds)/60.0
     mean_metrics['params'] = '%s' % params
 
     print('Mean %s : %.4f' % (optimize_target,mean_metrics[optimize_target]))
     cv_common.writemetrics(metrics, mean_metrics, hpresfile, allresfile)
+    if not os.path.exists(scoresfile):
+        pdscores = pd.concat([id_pd, groups_pd, y_pd], axis=1)
+        pdscores['id'].apply(np.int64)
+    else:
+        pdscores = pd.read_csv(scoresfile, dtype={'id':str, 'firedate':str})
+    cv_common.write_score(scoresfile, pdscores, y_scores_all, len(pdscores.columns)-2)
+    pdscores=None
 
     return {
         'loss': -mean_metrics[optimize_target],
@@ -242,13 +256,15 @@ kf = GroupKFold(n_splits=num_folds)
 #    n_cpus
 #)
 dsfile = testsets[tset]
-X_pd, y_pd, groups_pd = load_dataset()
+X_pd, y_pd, groups_pd, id_pd = load_dataset()
+pdscores=None
 
 for opt_target in opt_targets:
     hpresfile = get_filename(opt_target, modeltype, desc, aggr='mean')
     allresfile = get_filename(opt_target, modeltype, desc, aggr='all')
+    scoreresfile = get_filename(opt_target, modeltype, desc, aggr='scores')
     trials = Trials()
-    validatemodelpart = partial(validatemodel, kf, X_pd, y_pd, groups_pd, opt_target, calc_test, modeltype, hpresfile, allresfile)
+    validatemodelpart = partial(validatemodel, kf, X_pd, y_pd, groups_pd, id_pd, opt_target, calc_test, modeltype, hpresfile, allresfile, scoreresfile)
 
     best = fmin(fn=validatemodelpart,  # function to optimize
                 space=space,

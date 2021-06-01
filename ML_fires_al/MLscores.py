@@ -38,6 +38,25 @@ def hybridrecall(w1, w0, rec1, rec0, hybtype = 'hybrid'):
     else:
         return -1000
 
+
+def calc_model_distrib(y_scores, y, thress, cnttype='FN'):
+    if cnttype=='FN':
+        n = y[(y_scores < thress) & (y == 1)].shape[0]
+    elif cnttype=='TP':
+        n = y[(y_scores >= thress) & (y == 1)].shape[0]
+    elif cnttype=='TN':
+        n = y[(y_scores < thress) & (y == 0)].shape[0]
+    elif cnttype=='FP':
+        n = y[(y_scores >= thress) & (y == 0)].shape[0]
+    return n
+
+def calc_all_model_distrib(y_scores, y):
+    fn01 = calc_model_distrib(y_scores, y, 0.1, 'FN')
+    fn02 = calc_model_distrib(y_scores, y, 0.2, 'FN')
+    fn001 = calc_model_distrib(y_scores, y, 0.01, 'FN')
+    fn002 = calc_model_distrib(y_scores, y, 0.02, 'FN')
+    return fn01, fn02, fn001, fn002
+
 def calc_all_hybrids(rec_1, rec_0, debug=True):
     hybrid2 = hybridrecall(2, 1, rec_1, rec_0)
     hybrid5 = hybridrecall(5, 1, rec_1, rec_0)
@@ -150,6 +169,11 @@ def metrics_dict_full(auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, tn, fp
                 **metrics_dict_hybrid(hybrid2, hybrid5, nh2, nh5, nh10, metricset)}
     return fulldict
 
+def metrics_dict_plus_distrib(auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, tn, fp, fn, tp, fn01, fn02, fn001, fn002, metricset):
+    fulldict = {**metrics_dict(auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, tn, fp, fn, tp, metricset),
+                **metrics_dict_distrib(fn01, fn02, fn001, fn002, metricset)}
+    return fulldict
+
 def metrics_dict_hybrid(hybrid2, hybrid5, nh2, nh5, nh10, mset):
     hydriddict= {}
     hydriddict['hybrid2 %s' % mset] = hybrid2
@@ -159,6 +183,13 @@ def metrics_dict_hybrid(hybrid2, hybrid5, nh2, nh5, nh10, mset):
     hydriddict['NH10 %s' % mset] = nh10
     return hydriddict
 
+def metrics_dict_distrib(fn01, fn02, fn001, fn002, mset):
+    distribdict= {}
+    distribdict['FN01 %s' % mset] = fn01
+    distribdict['FN02 %s' % mset] = fn02
+    distribdict['FN001 %s' % mset] = fn001
+    distribdict['FN002 %s' % mset] = fn002
+    return distribdict
 
 def calc_metrics_custom(tn, fp, fn, tp, y_scores, y, numaucthres=200, debug=True, calc_hybrids=False):
     if debug:
@@ -217,7 +248,7 @@ def calc_metrics_custom(tn, fp, fn, tp, y_scores, y, numaucthres=200, debug=True
     else:
         return auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, tn, fp, fn, tp
 
-def metrics_aggr(metrics, mean_metrics, hybrid_on_aggr=True):
+def metrics_aggr(metrics, mean_metrics, hybrid_on_aggr=True, y_scores=None, y=None, valst=None):
     recall1s = []
     recall0s = []
     for m in metrics[0]:
@@ -239,4 +270,8 @@ def metrics_aggr(metrics, mean_metrics, hybrid_on_aggr=True):
             mset = re.search('(?<=recall 1 ).*$',recall1s[i]).group(0)
             hybrid_metrics_dict = metrics_dict_hybrid(hybrid2, hybrid5, nh2, nh5, nh10, mset)
             mean_metrics = {**mean_metrics, **hybrid_metrics_dict}
+    if y_scores is not None and y is not None and valst is not None:
+        metrics_dict_dist = metrics_dict_distrib(*calc_all_model_distrib(y_scores, y), valst)
+        mean_metrics = {**mean_metrics, **metrics_dict_dist}
     return mean_metrics
+

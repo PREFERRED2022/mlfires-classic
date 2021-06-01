@@ -60,6 +60,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         y_train = y_pd.values
         y_train = y_train[:, 0]
         start_fit = time.time()
+        print("Fitting model ...")
 
         if modeltype == 'tensorflow':
             model = create_NN_model(params, X_train)
@@ -197,10 +198,11 @@ if runmode == 'val.':
             pdrow = t['result']['metrics']
             pdrow['params'] = t['result']['params']
             pd_opt = pd_opt.append(pdrow, ignore_index=True)
-
         # pd_opt.to_csv(hyperresfile, index=False)
 elif runmode == 'test':
     for opt_target in opt_targets:
         hyperresfile, hyperallfile = resfilename(opt_target, runmode)
+        print("Output files : %s, %s"%(hyperresfile,hyperallfile))
         for modelparams in testmodels[opt_target]:
-            evalmodelpart = evalmodel(testsets, opt_target, calc_test, modeltype, hyperresfile, hyperallfile, modelparams)
+            #print("params %s"%modelparams)
+            evalmodel(testsets, opt_target, calc_test, modeltype, hyperresfile, hyperallfile, modelparams)
