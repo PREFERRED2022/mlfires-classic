@@ -3,6 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 import hashlib
+import re
 
 def writemetrics(metrics, mean_metrics, hpresfile, allresfile):
     if not os.path.exists(os.path.dirname(hpresfile)):
@@ -21,11 +22,21 @@ def writemetrics(metrics, mean_metrics, hpresfile, allresfile):
         for m in metrics:
             dw.writerow(m)
 
-def write_score(fname, iddatedf, y_scores, colname):
-    y_pd = pd.Series(y_scores)
-    y_pd.rename(colname, inplace=True)
-    score_pd = pd.concat([iddatedf, y_pd], axis=1)
+def write_score(fname, id_pd, dates_pd, y_val, y_scores):
+    if not os.path.exists(fname):
+        if id_pd is None:
+            pdscores = pd.Series(y_val).rename('fire').to_frame()
+        else:
+            pdscores = pd.concat([id_pd, dates_pd, y_val], axis=1)
+            pdscores['id'].apply(np.int64)
+    else:
+        pdscores = pd.read_csv(fname, dtype={'id': str, 'firedate': str})
+    col = str(len(pdscores.columns)) if id_pd is None else str(len(pdscores.columns))-2
+    y_sc_pd = pd.Series(y_scores)
+    y_sc_pd.rename(col, inplace=True)
+    score_pd = pd.concat([pdscores, y_sc_pd], axis=1)
     score_pd.to_csv(fname, index=False)
+    pdscores = None
 
 def gethashrow(row):
     #m = hashlib.sha256()
@@ -45,4 +56,11 @@ def updateYrows(Xval, Yval, Xhash, Yall):
     for idx, h in np.ndenumerate(updhashes):
         Yall[Xhash[h]] = Yval[idx[0]]
 
-
+def get_filename(opt_target, modeltype, desc, aggr='mean', ext='.csv', resultsfolder='.'):
+    base_name = os.path.join('results', 'hyperopt', 'hyperopt_results_'+ modeltype \
+                             + '_' + desc + '_'+ aggr+'_'+\
+                             "".join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_')
+    cnt = 1
+    while os.path.exists(os.path.join(resultsfolder, '%s%d.csv' % (base_name, cnt))):
+        cnt += 1
+    return '%s%d%s' % (base_name, cnt, ext)

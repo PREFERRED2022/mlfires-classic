@@ -1,19 +1,14 @@
 #!/usr/bin/env python
 from hyperopt import Trials, fmin, tpe, hp, STATUS_OK
 from sklearn.model_selection import train_test_split, KFold, GroupKFold
-import tensorflow.keras.metrics
 import numpy as np
-import pandas as pd
-import normdataset
-import os
-import re
-from sklearn.metrics import accuracy_score, precision_score, f1_score, recall_score
 import time
 import space
 from functools import partial
 from manage_model import create_model, run_predict_and_metrics, run_predict, fit_model
 import cv_common
-from MLscores import calc_metrics, calc_metrics_custom, cmvals, metrics_aggr
+from MLscores import metrics_aggr
+from check_and_prepare_dataset import load_dataset
 
 def drop_all0_features(df):
     for c in df.columns:
@@ -26,7 +21,7 @@ def drop_all0_features(df):
                     df.drop(columns=[c])
             else:
                 print("%s not exists (size : %d)"%(c, len(u)))
-
+'''
 def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col):
     df = df.dropna()
     X_unnorm, y_int = df[X_columns], df[y_columns]
@@ -153,6 +148,7 @@ def get_filename(opt_target, modeltype, desc, aggr='mean'):
     while os.path.exists('%s%d.csv' % (base_name, cnt)):
         cnt += 1
     return '%s%d.csv' % (base_name, cnt)
+'''
 
 def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, modeltype, hpresfile, allresfile, scoresfile, params):
 
@@ -206,12 +202,12 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
         start_time = time.time()
 
         '''validation set metrics'''
-        mset = 'val.'
-        metrics_dict_val, y_scores = run_predict_and_metrics(model, modeltype, X_val, y_val, mset)
+        valset = 'val.'
+        metrics_dict_val, y_scores = run_predict_and_metrics(model, modeltype, X_val, y_val, valset)
         cv_common.updateYrows(X_val, y_scores[:, 1], Xhash, y_scores_all)
 
         print("Validation metrics time (min): %.1f"%((time.time() - start_time)/60.0))
-        print("Recall 1 val: %.3f, Recall 0 val: %.3f" % (metrics_dict_val['recall 1 %s'%mset],metrics_dict_val['recall 0 %s'%mset]))
+        print("Recall 1 val: %.3f, Recall 0 val: %.3f" % (metrics_dict_val['recall 1 %s'%valset],metrics_dict_val['recall 0 %s'%valset]))
 
         metrics_dict_fold = {}
         metrics_dict_fold['fold'] = 'fold %d'%cnt
@@ -223,20 +219,14 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
         metrics.append(metrics_dict_fold)
 
     mean_metrics = {}
-    mean_metrics = metrics_aggr(metrics, mean_metrics, hybrid_on_aggr=True, y_scores=y_scores_all, y=np.transpose(y)[0], valst=mset)
+    mean_metrics = metrics_aggr(metrics, mean_metrics, hybrid_on_aggr=True, y_scores=y_scores_all, y=np.transpose(y)[0], valst=valset)
     mean_metrics["CV time (min)"] = (time.time() - start_folds)/60.0
     mean_metrics['params'] = '%s' % params
 
     print('Mean %s : %.4f' % (optimize_target,mean_metrics[optimize_target]))
     cv_common.writemetrics(metrics, mean_metrics, hpresfile, allresfile)
-    if not os.path.exists(scoresfile):
-        pdscores = pd.concat([id_pd, groups_pd, y_pd], axis=1)
-        pdscores['id'].apply(np.int64)
-    else:
-        pdscores = pd.read_csv(scoresfile, dtype={'id':str, 'firedate':str})
-    cv_common.write_score(scoresfile, pdscores, y_scores_all, len(pdscores.columns)-2)
-    pdscores=None
-
+    if writescores:
+        cv_common.write_score(scoresfile, id_pd, groups_pd, y_pd, y_scores_all)
     return {
         'loss': -mean_metrics[optimize_target],
         'status': STATUS_OK,
@@ -250,19 +240,19 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
     }
 
 random_state = 42
-tset, testsets, num_folds, space, max_trials, calc_test, opt_targets, modeltype, desc = space.create_space()
+tset, testsets, num_folds, space, max_trials, calc_test, opt_targets, modeltype, desc, writescores = space.create_space()
 kf = GroupKFold(n_splits=num_folds)
 #tf.config.threading.set_inter_op_parallelism_threads(
 #    n_cpus
 #)
 dsfile = testsets[tset]
-X_pd, y_pd, groups_pd, id_pd = load_dataset()
+X_pd, y_pd, groups_pd, id_pd = load_dataset(dsfile, featuredrop=[], class0nrows=0, debug=True, returnid=True)
 pdscores=None
 
 for opt_target in opt_targets:
-    hpresfile = get_filename(opt_target, modeltype, desc, aggr='mean')
-    allresfile = get_filename(opt_target, modeltype, desc, aggr='all')
-    scoreresfile = get_filename(opt_target, modeltype, desc, aggr='scores')
+    hpresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='mean')
+    allresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='all')
+    scoreresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='scores')
     trials = Trials()
     validatemodelpart = partial(validatemodel, kf, X_pd, y_pd, groups_pd, id_pd, opt_target, calc_test, modeltype, hpresfile, allresfile, scoreresfile)
 

@@ -90,7 +90,9 @@ def create_space():
     cvrownum = 0
     filedesc = 'NN'
     #runmode = 'test'
+    writescores=True
+    debug=True
     return testsets, space, testspace, max_trials, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
-           modeltype, cvrownum, filedesc, runmode, True
+           modeltype, cvrownum, filedesc, runmode, writescores, debug
 
 

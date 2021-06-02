@@ -78,5 +78,6 @@ def create_space():
     #modeltype = 'sklearn'
     description = 'NN'
     nfolds = 5
-    return 'balanced', testsets, nfolds, space, max_trials, calc_train_metrics, opt_targets, modeltype, description
+    writescores = False
+    return 'balanced', testsets, nfolds, space, max_trials, calc_train_metrics, opt_targets, modeltype, description, writescores
 

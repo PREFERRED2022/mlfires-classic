@@ -7,7 +7,9 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
     print('before nan drop: %d' % len(df.index))
     df = df.dropna()
     print('after nan drop: %d' % len(df.index))
-
+    df = df.drop_duplicates(keep='first')
+    df.reset_index(inplace=True, drop=True)
+    print('after dup. drop: %d' % len(df.index))
     print('renaming "x": "xpos", "y": "ypos"')
     X_unnorm, y_int = df[X_columns], df[y_columns]
     X_unnorm = X_unnorm.rename(columns={'x': 'xpos', 'y': 'ypos'})
@@ -52,9 +54,6 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
     X = X_unnorm
     y = y_int
     groupspd = df[firedate_col]
-
-
-
     return X, y, groupspd
 
 def check_categorical(df, checkcol, newcols):
@@ -112,7 +111,7 @@ def create_ds_parts(dsfile, class0nrows, dffirefile, dfpartfile, debug = False):
     return df
 
 # load the dataset
-def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True):
+def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, returnid=False):
     # dsfile = 'dataset_ndvi_lu.csv'
     domdircheck = 'dom_dir'
     dirmaxcheck = 'dir_max'
@@ -171,6 +170,7 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True):
     firedate_col = [c for c in df.columns if firedatecheck.upper() in c.upper()][0]
     X, y, groupspd = prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col)
     print("Ignored columns from csv %s"%([c for c in df.columns if c not in X.columns]))
+    idpd = df['id']
     df = None
     X_columns = X.columns
     if len(featuredrop) > 0:
@@ -179,4 +179,7 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True):
     #if debug:
     #    print("X helth check %s"%X.describe())
     #    print("y helth check %s"%y.describe())
-    return X, y, groupspd
+    if returnid:
+        return X, y, groupspd, idpd
+    else:
+        return X, y, groupspd
