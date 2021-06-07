@@ -154,7 +154,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         metrics_dict_fold['params']='%s'%params
         metrics_dict_fold['CV Fit and predict min.']=(time.time() - start_cv)/60.0
         metrics.append(metrics_dict_fold)
-        if writescores:
+        if writescores and numaucthres>0:
             sfile_suffix=''.join([ch for ch in '%s'%cvset['crossval'] if re.match(r'\w', ch)])
             cv_common.write_score(scoresfile+sfile_suffix+'.csv', None, None, y_val, y_scores[:,1])
     mean_metrics = {}
