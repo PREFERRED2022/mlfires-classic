@@ -31,7 +31,7 @@ def write_score(fname, id_pd, dates_pd, y_val, y_scores):
             pdscores['id'].apply(np.int64)
     else:
         pdscores = pd.read_csv(fname, dtype={'id': str, 'firedate': str})
-    col = str(len(pdscores.columns)) if id_pd is None else str(len(pdscores.columns))-2
+    col = str(len(pdscores.columns)) if id_pd is None else str(len(pdscores.columns)-2)
     y_sc_pd = pd.Series(y_scores)
     y_sc_pd.rename(col, inplace=True)
     score_pd = pd.concat([pdscores, y_sc_pd], axis=1)
