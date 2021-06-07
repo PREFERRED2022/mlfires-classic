@@ -3,7 +3,7 @@ from hyperopt import hp
 def create_space():
     newfeatures = ['x', 'y', 'month', 'wkd', 'lst', 'dew', 'freq', 'f81']
     problemfeatures = ['month', 'wkd', 'dom_dir', 'dir_max']
-
+    '''
     space = {'n_internal_layers': hp.choice('n_internal_layers',
                 [
                     #(0, {'layer_1_0_nodes': hp.quniform('layer_1_0_nodes', 10, 310, 50)}),
@@ -44,6 +44,18 @@ def create_space():
              'batch_size':hp.choice('batch_size', [512])
              }
     '''
+    space = { 'algo': hp.choice('algo', ['XT']),
+        'n_estimators': hp.choice([10, 20, 40, 60, 80, 100, 200, 400, 600, 800, 1000]),
+        'criterion': hp.choice(['gini', 'entropy']),
+        'max_depth': hp.quniform(2, 40, 2),
+        'min_samples_split': hp.choice([2, 10, 50, 70, 100, 120, 150, 180, 200, 250, 400, 600, 1000, 1300, 2000]),
+        'min_samples_leaf': hp.choice([5, 10, 15, 20, 25, 30, 35, 40, 45]),
+        'max_features': hp.quniform('max_features', 1,10,1),
+        'bootstrap': [True, False],
+         #'oob_score': [True, False],
+        'class_weight': [{0: 4, 1: 6}, {0: 1, 1: 10}, {0: 1, 1: 50}, {0: 1, 1: 70}]
+    }
+    '''
     {'n_estimators': 250, 'min_samples_split': 180, 'min_samples_leaf': 40, 'max_features': 41, 'max_depth': 20, 'criterion': 'entropy', 'class_weight': {0: 1, 1: 9}, 'bootstrap': True}
     
     space = {'algo': hp.choice('algo', ['RF']),
@@ -74,8 +86,8 @@ def create_space():
     calc_train_metrics = True
     #opt_targets = ['hybrid2 val', 'hybrid5 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['auc val.']
-    modeltype = 'tensorflow'
-    #modeltype = 'sklearn'
+    #modeltype = 'tensorflow'
+    modeltype = 'sklearn'
     description = 'NN'
     nfolds = 5
     writescores = False
