@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from hyperopt import Trials, fmin, tpe, hp, STATUS_OK
+from hyperopt import Trials, fmin, tpe, STATUS_OK
+from sklearn.model_selection import train_test_split, KFold, GroupKFold
 import numpy as np
 import os
 import time
@@ -178,7 +179,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
 testsets, space, testmodels, max_trials, calc_test, opt_targets, trainsetdir, testsetdir, numaucthres, modeltype, \
 cvrownum, filedesc, runmode, writescores, resdir, debug = space_newcv.create_space()
 random_state = 42
-
+kf = GroupKFold(n_splits=2)
 # tf.config.threading.set_inter_op_parallelism_threads(
 #    n_cpus
 # )

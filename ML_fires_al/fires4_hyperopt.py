@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from hyperopt import Trials, fmin, tpe, hp, STATUS_OK
+from hyperopt import Trials, fmin, tpe, STATUS_OK
 from sklearn.model_selection import train_test_split, KFold, GroupKFold
 import numpy as np
 import time
