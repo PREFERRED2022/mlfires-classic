@@ -56,7 +56,6 @@ def create_space():
               'feature_drop': hp.choice('feature_drop', [['wkd', 'month']]),
              'class_weight':hp.choice('class_weight',[{0:1,1:9},{0:1,1:300},{0:1,1:400},{0:1,1:500},{0:1,1:1000}])
             }
-    '''
     space = { 'algo': hp.choice('algo', ['XT']),
         'n_estimators': hp.choice('n_estimators',[10, 20, 40, 60, 80, 100, 200, 400, 600, 800, 1000]),
         'criterion': hp.choice('criterion',['gini', 'entropy']),
@@ -69,6 +68,19 @@ def create_space():
         'class_weights': hp.choice('class_weights',[{0: 4, 1: 6}, {0: 1, 1: 10}, {0: 1, 1: 50}, {0: 1, 1: 70}]),
         'feature_drop': ['wkd', 'month','f81','frequency','x','y'],
     }
+    '''
+    space = { 'algo': hp.choice('algo', ['XGB']),
+        'max_depth': hp.quniform('max_depth',2, 100, 2),
+        'n_estimators': hp.choice('n_estimators',[10, 20, 40, 60, 80, 100, 200, 400, 600, 800, 1000]),
+        # 'scale_pos_weight': range(1, 400, 50),
+        'subsample': hp.choice('subsample',[0.5, 0.6, 0.7, 0.8, 0.9, 1]),
+        'alpha': hp.choice('alpha', [0, 1, 10, 20, 40, 60, 80, 100]),
+        'gamma': hp.choice('gamma',[0, 0.001, 0.01, 0.1, 1, 10, 100, 1000]),
+        'lambda': hp.quniform('lambda',1, 22, 1),
+        # 'scale_pos_weight': [6,7,8,9,15,50,70]
+        'scale_pos_weight': hp.choice('scale_pos_weight',[9, 15, 50, 70, 100, 200, 500]),
+        'feature_drop': ['wkd', 'month','f81','frequency','x','y'],
+        }
     runmode = 'val.'
     #runmode = 'test'
     testspace = {'hybrid2 %s'%runmode:

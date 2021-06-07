@@ -1,4 +1,5 @@
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
+from xgboost import XGBClassifier
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 import tensorflow.keras.metrics
@@ -95,12 +96,17 @@ def create_sklearn_model(params, X):
         max_feat = int(n_features/10*params['max_features'])
         model = RandomForestClassifier(max_depth=params['max_depth'], n_estimators=params['n_estimators'], min_samples_split=params['min_samples_split'], \
                                        min_samples_leaf=params['min_samples_leaf'],criterion=params['criterion'],max_features=max_feat,
-                                       bootstrap=params['bootstrap'], class_weight=params['class_weights']
+                                       bootstrap=params['bootstrap'], class_weight=params['class_weights'], n_jobs = 8
                                        )
     if params['algo']=='XT':
         max_feat = int(n_features/10*params['max_features'])
         model = ExtraTreesClassifier(max_depth=params['max_depth'], n_estimators=params['n_estimators'], min_samples_split=params['min_samples_split'], \
                                        min_samples_leaf=params['min_samples_leaf'],criterion=params['criterion'],max_features=max_feat,
-                                       bootstrap=params['bootstrap'], class_weight=params['class_weights']
+                                       bootstrap=params['bootstrap'], class_weight=params['class_weights'], n_jobs = 8
                                        )
+    if params['algo']=='XGB':
+        model = XGBClassifier(max_depth=int(params['max_depth']), n_estimators=params['n_estimators'], subsample=params['subsample'],\
+                              reg_alpha=params['alpha'], gamma=params['gamma'], reg_lambda=params['lambda'],\
+                              scale_pos_weight=params['scale_pos_weight'], n_jobs=8)
+
     return model
