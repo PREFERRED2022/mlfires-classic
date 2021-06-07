@@ -240,7 +240,8 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
     }
 
 random_state = 42
-tset, testsets, num_folds, space, max_trials, calc_test, opt_targets, modeltype, desc, writescores = space.create_space()
+tset, testsets, num_folds, space, max_trials, calc_test, opt_targets, modeltype, desc,\
+writescores, resultsfolder = space.create_space()
 kf = GroupKFold(n_splits=num_folds)
 #tf.config.threading.set_inter_op_parallelism_threads(
 #    n_cpus
@@ -250,9 +251,9 @@ X_pd, y_pd, groups_pd, id_pd = load_dataset(dsfile, featuredrop=[], class0nrows=
 pdscores=None
 
 for opt_target in opt_targets:
-    hpresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='mean')
-    allresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='all')
-    scoreresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='scores')
+    hpresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='mean', resultsfolder=resultsfolder)
+    allresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='all', resultsfolder=resultsfolder)
+    scoreresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='scores', resultsfolder=resultsfolder)
     trials = Trials()
     validatemodelpart = partial(validatemodel, kf, X_pd, y_pd, groups_pd, id_pd, opt_target, calc_test, modeltype, hpresfile, allresfile, scoreresfile)
 

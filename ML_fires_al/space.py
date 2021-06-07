@@ -45,15 +45,16 @@ def create_space():
              }
     '''
     space = { 'algo': hp.choice('algo', ['XT']),
-        'n_estimators': hp.choice([10, 20, 40, 60, 80, 100, 200, 400, 600, 800, 1000]),
-        'criterion': hp.choice(['gini', 'entropy']),
-        'max_depth': hp.quniform(2, 40, 2),
-        'min_samples_split': hp.choice([2, 10, 50, 70, 100, 120, 150, 180, 200, 250, 400, 600, 1000, 1300, 2000]),
-        'min_samples_leaf': hp.choice([5, 10, 15, 20, 25, 30, 35, 40, 45]),
+        'n_estimators': hp.choice('n_estimators',[10, 20, 40, 60, 80, 100, 200, 400, 600, 800, 1000]),
+        'criterion': hp.choice('criterion',['gini', 'entropy']),
+        'max_depth': hp.quniform('max_depth',2, 40, 2),
+        'min_samples_split': hp.choice('min_samples_split',[2, 10, 50, 70, 100, 120, 150, 180, 200, 250, 400, 600, 1000, 1300, 2000]),
+        'min_samples_leaf': hp.choice('min_samples_leaf',[5, 10, 15, 20, 25, 30, 35, 40, 45]),
         'max_features': hp.quniform('max_features', 1,10,1),
-        'bootstrap': [True, False],
+        'bootstrap': hp.choice('bootstrap',[True, False]),
          #'oob_score': [True, False],
-        'class_weight': [{0: 4, 1: 6}, {0: 1, 1: 10}, {0: 1, 1: 50}, {0: 1, 1: 70}]
+        'class_weights': hp.choice('class_weights',[{0: 4, 1: 6}, {0: 1, 1: 10}, {0: 1, 1: 50}, {0: 1, 1: 70}]),
+        'feature_drop': [],
     }
     '''
     {'n_estimators': 250, 'min_samples_split': 180, 'min_samples_leaf': 40, 'max_features': 41, 'max_depth': 20, 'criterion': 'entropy', 'class_weight': {0: 1, 1: 9}, 'bootstrap': True}
@@ -91,5 +92,7 @@ def create_space():
     description = 'NN'
     nfolds = 5
     writescores = False
-    return 'balanced', testsets, nfolds, space, max_trials, calc_train_metrics, opt_targets, modeltype, description, writescores
+    resultsfolder = 'results/hyperopt'
+    return 'balanced', testsets, nfolds, space, max_trials, calc_train_metrics, opt_targets, modeltype, description,\
+           writescores, resultsfolder
 
