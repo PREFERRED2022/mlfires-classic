@@ -50,11 +50,16 @@ def calc_model_distrib(y_scores, y, thress, cnttype='FN'):
         n = y[(y_scores >= thress) & (y == 0)].shape[0]
     return n
 
-def calc_all_model_distrib(y_scores, y):
+def calc_all_model_distrib(y_scores, y, debug=True):
     fn01 = calc_model_distrib(y_scores, y, 0.1, 'FN')
     fn02 = calc_model_distrib(y_scores, y, 0.2, 'FN')
     fn001 = calc_model_distrib(y_scores, y, 0.01, 'FN')
     fn002 = calc_model_distrib(y_scores, y, 0.02, 'FN')
+    if debug:
+        print('FN01: %d'%fn01)
+        print('FN02: %d'%fn02)
+        print('FN001: %d'%fn001)
+        print('FN002: %d'%fn002)
     return fn01, fn02, fn001, fn002
 
 def calc_all_hybrids(rec_1, rec_0, debug=True):

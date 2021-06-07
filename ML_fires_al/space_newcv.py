@@ -68,7 +68,7 @@ def create_space():
         'class_weights': hp.choice('class_weights',[{0: 4, 1: 6}, {0: 1, 1: 10}, {0: 1, 1: 50}, {0: 1, 1: 70}]),
         'feature_drop': ['wkd', 'month','f81','frequency','x','y'],
     }
-    '''
+    
     space = { 'algo': hp.choice('algo', ['XGB']),
         'max_depth': hp.quniform('max_depth',2, 100, 2),
         'n_estimators': hp.choice('n_estimators',[10, 20, 40, 60, 80, 100, 200, 400, 600, 800, 1000]),
@@ -81,8 +81,9 @@ def create_space():
         'scale_pos_weight': hp.choice('scale_pos_weight',[9, 15, 50, 70, 100, 200, 500]),
         'feature_drop': ['wkd', 'month','f81','frequency','x','y'],
         }
-    runmode = 'val.'
-    #runmode = 'test'
+    '''
+    #runmode = 'val.'
+    runmode = 'test'
     testspace = {'hybrid2 %s'%runmode:
                  [{'n_internal_layers': (0, {'layer_1_0_nodes': 200}),'dropout': False,'class_weights': {0: 1, 1: 5},
                  'feature_drop': ['month', 'wkd','dir', 'pos', 'f81', 'frequency'],'metric': 'accuracy',
@@ -109,8 +110,8 @@ def create_space():
     #opt_targets = ['hybrid1 %s'%runmode, 'hybrid2 %s'%runmode, 'f1-score 1 %s'%runmode, 'auc %s'%runmode, 'recall 1 %s'%runmode]
     opt_targets = ['hybrid2 %s'%runmode]
     auc_thressholds=30
-    #modeltype = 'tensorflow'
-    modeltype = 'sklearn'
+    modeltype = 'tensorflow'
+    #modeltype = 'sklearn'
     cvrownum = 0
     filedesc = 'NN'
     writescores=True
