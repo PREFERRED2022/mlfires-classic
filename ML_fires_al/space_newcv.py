@@ -57,8 +57,20 @@ def create_space():
              'class_weight':hp.choice('class_weight',[{0:1,1:9},{0:1,1:300},{0:1,1:400},{0:1,1:500},{0:1,1:1000}])
             }
     '''
-    #runmode = 'val.'
-    runmode = 'test'
+    space = { 'algo': hp.choice('algo', ['XT']),
+        'n_estimators': hp.choice('n_estimators',[10, 20, 40, 60, 80, 100, 200, 400, 600, 800, 1000]),
+        'criterion': hp.choice('criterion',['gini', 'entropy']),
+        'max_depth': hp.quniform('max_depth',2, 40, 2),
+        'min_samples_split': hp.choice('min_samples_split',[2, 10, 50, 70, 100, 120, 150, 180, 200, 250, 400, 600, 1000, 1300, 2000]),
+        'min_samples_leaf': hp.choice('min_samples_leaf',[5, 10, 15, 20, 25, 30, 35, 40, 45]),
+        'max_features': hp.quniform('max_features', 1,10,1),
+        'bootstrap': hp.choice('bootstrap',[True, False]),
+         #'oob_score': [True, False],
+        'class_weights': hp.choice('class_weights',[{0: 4, 1: 6}, {0: 1, 1: 10}, {0: 1, 1: 50}, {0: 1, 1: 70}]),
+        'feature_drop': ['wkd', 'month','f81','frequency','x','y'],
+    }
+    runmode = 'val.'
+    #runmode = 'test'
     testspace = {'hybrid2 %s'%runmode:
                  [{'n_internal_layers': (0, {'layer_1_0_nodes': 200}),'dropout': False,'class_weights': {0: 1, 1: 5},
                  'feature_drop': ['month', 'wkd','dir', 'pos', 'f81', 'frequency'],'metric': 'accuracy',
@@ -85,14 +97,14 @@ def create_space():
     #opt_targets = ['hybrid1 %s'%runmode, 'hybrid2 %s'%runmode, 'f1-score 1 %s'%runmode, 'auc %s'%runmode, 'recall 1 %s'%runmode]
     opt_targets = ['hybrid2 %s'%runmode]
     auc_thressholds=30
-    modeltype = 'tensorflow'
-    #modeltype = 'sklearn'
+    #modeltype = 'tensorflow'
+    modeltype = 'sklearn'
     cvrownum = 0
     filedesc = 'NN'
-    #runmode = 'test'
     writescores=True
     debug=True
+    resdir='results/hyperopt'
     return testsets, space, testspace, max_trials, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
-           modeltype, cvrownum, filedesc, runmode, writescores, debug
+           modeltype, cvrownum, filedesc, runmode, writescores, resdir, debug
 
 

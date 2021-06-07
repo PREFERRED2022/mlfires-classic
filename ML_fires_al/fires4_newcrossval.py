@@ -160,7 +160,6 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
     print('Mean %s : %s' % (optimize_target, mean_metrics[optimize_target]))
     cv_common.writemetrics(metrics, mean_metrics, hyperresfile, hyperallfile)
 
-
     return {
         'loss': -mean_metrics[optimize_target],
         'status': STATUS_OK,
@@ -175,7 +174,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
     }
 
 testsets, space, testmodels, max_trials, calc_test, opt_targets, trainsetdir, testsetdir, numaucthres, modeltype, \
-cvrownum, filedesc, runmode, writescores, debug = space_newcv.create_space()
+cvrownum, filedesc, runmode, writescores, resdir, debug = space_newcv.create_space()
 random_state = 42
 
 # tf.config.threading.set_inter_op_parallelism_threads(
@@ -183,9 +182,9 @@ random_state = 42
 # )
 
 for opt_target in opt_targets:
-    hyperresfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='mean')
-    hyperallfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='all')
-    scoresfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='scores', ext='')
+    hyperresfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='mean', resultsfolder=resdir)
+    hyperallfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='all', resultsfolder=resdir)
+    scoresfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='scores', ext='', resultsfolder=resdir)
     if runmode == 'val.':
         trials = Trials()
         evalmodelpart = partial(evalmodel, testsets, opt_target, calc_test, modeltype, \

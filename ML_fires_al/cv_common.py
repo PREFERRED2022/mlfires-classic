@@ -57,7 +57,7 @@ def updateYrows(Xval, Yval, Xhash, Yall):
         Yall[Xhash[h]] = Yval[idx[0]]
 
 def get_filename(opt_target, modeltype, desc, aggr='mean', ext='.csv', resultsfolder='.'):
-    base_name = os.path.join(resultsfolder, 'hyperopt_results_'+ modeltype \
+    base_name = os.path.join(resultsfolder, 'hypres_'+ modeltype \
                              + '_' + desc + '_'+ aggr+'_'+\
                              "".join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_')
     cnt = 1
