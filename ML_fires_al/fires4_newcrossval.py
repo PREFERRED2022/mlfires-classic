@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 from hyperopt import Trials, fmin, tpe, hp, STATUS_OK
 import numpy as np
-import pandas as pd
-from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
 import os
 import time
 import space_newcv
 from functools import partial
 import re
-from manage_model import run_predict, run_predict_and_metrics, create_NN_model, create_sklearn_model
+from manage_model import run_predict, run_predict_and_metrics, create_model, fit_model
 import fileutils
 from MLscores import calc_metrics_custom, cmvals, metrics_aggr, \
     metrics_dict, calc_all_model_distrib, metrics_dict_distrib
@@ -60,6 +58,10 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         start_fit = time.time()
         print("Fitting model ...")
 
+
+        model = create_model(modeltype, params, X_train)
+        model, res = fit_model(modeltype, model, params, X_train, y_train)
+        '''
         if modeltype == 'tensorflow':
             model = create_NN_model(params, X_train)
             es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
@@ -68,7 +70,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         elif modeltype == 'sklearn':
             model = create_sklearn_model(params, X_train)
             model.fit(X_train, y_train)
-
+        '''
         print("Fit time (min): %.1f" % ((time.time() - start_fit) / 60.0))
 
         '''training set metrics'''

@@ -1,7 +1,7 @@
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 import tensorflow.keras.metrics
-from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 import numpy as np
 from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
@@ -34,11 +34,16 @@ def create_model(modeltype, params, X_train):
         model = create_sklearn_model(params, X_train)
     return model
 
-def fit_model(modeltype, model, params, X_train, y_train, X_val, y_val):
+def fit_model(modeltype, model, params, X_train, y_train, X_val=None, y_val=None):
     if modeltype == 'tensorflow':
         es = EarlyStopping(monitor=params['ES_monitor'], patience=params['ES_patience'], min_delta=params['ES_mindelta'])
-        res = model.fit(X_train, y_train, batch_size=params['batch_size'], epochs=params['max_epochs'], verbose=0, callbacks=[es],
-                        validation_data=(X_val, y_val), class_weight=params['class_weights'])
+        if X_val is not None and y_val is not None:
+            res = model.fit(X_train, y_train, batch_size=params['batch_size'], epochs=params['max_epochs'], verbose=0, callbacks=[es],
+                            validation_data=(X_val, y_val), class_weight=params['class_weights'])
+        else:
+            res = model.fit(X_train, y_train, batch_size=params['batch_size'], epochs=params['max_epochs'], verbose=0, callbacks=[es],
+                            class_weight=params['class_weights'])
+
     elif modeltype == 'sklearn':
         res = model.fit(X_train, y_train)
     return model, res
