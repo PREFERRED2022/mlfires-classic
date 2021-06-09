@@ -57,13 +57,13 @@ def create_NN_model(params, X):
     intlayers = int(params['n_internal_layers'][0])
     model.add(Dense(params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes'], activation='relu',
                     input_shape=(n_features,)))
-    if params['dropout']:
-        model.add(Dropout(params['dropout_rate']))
+    if not params['dropout'] is None:
+        model.add(Dropout(params['dropout']))
     for i in range(2, intlayers + 2):
         model.add(Dense(int(params['n_internal_layers'][1]['layer_' + str(i) + '_' + str(intlayers) + '_nodes']),
                         activation='relu'))
-        if params['dropout']:
-            model.add(Dropout(params['dropout_rate']))
+        if not params['dropout'] is None:
+            model.add(Dropout(params['dropout']))
 
         # model.add(Dense(1, activation='sigmoid'))
     model.add(Dense(2, activation='softmax'))

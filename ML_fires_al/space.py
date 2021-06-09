@@ -19,8 +19,7 @@ def create_space():
                     #     'layer_3_2_nodes': hp.choice('layer_3_2_nodes', [500, 1000])}),
                 ]
                 ),
-             'dropout': hp.choice('dropout',[True]),
-             'dropout_rate': 0.2,
+             'dropout': hp.choice('dropout',[None, 0.2]),
              #'class_weights': hp.choice('class_weights', [{0:1, 1:1}, {0:2,1:3}, {0:3,1:7}, {0:1,1:4}, {0:1,1:9}, {0:1, 1:25}, {0:1, 1:50}, {0:1, 1:100} , {0:1, 1:200}]),
              'class_weights': hp.choice('class_weights', [{0: 1, 1: 1}]),
              #'class_weights': {0: hp.choice('class_0_weight', [1]), 1: hp.quniform('class_1_weight', 1,100,1)},
