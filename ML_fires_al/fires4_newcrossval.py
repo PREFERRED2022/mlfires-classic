@@ -38,8 +38,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         sys.exit()
     metrics = []
     cnt = 0
-    print("Params : %s" % params)
-
+    print("Fit parameters : %s" % params)
     start_cv_all = time.time()
     for cvset in cvsets:
         print('%s Set: %s' % (runmode,cvset))
@@ -62,12 +61,12 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         model = create_model(modeltype, params, X_train)
         model, res = fit_model(modeltype, model, params, X_train, y_train)
         '''
-        if modeltype == 'tensorflow':
+        if modeltype == 'tf':
             model = create_NN_model(params, X_train)
             es = EarlyStopping(monitor='loss', patience=10, min_delta=0.002)
             res = model.fit(X_train, y_train, batch_size=512, epochs=params['max_epochs'], verbose=0, callbacks=[es],
                             class_weight=params['class_weights'])
-        elif modeltype == 'sklearn':
+        elif modeltype == 'sk':
             model = create_sklearn_model(params, X_train)
             model.fit(X_train, y_train)
         '''
@@ -83,7 +82,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             calc_metrics_custom(metrics_dict_train['TN %s' % mset], metrics_dict_train['FP %s' % mset],\
                                 metrics_dict_train['FN %s' % mset], metrics_dict_train['TP %s' % mset], y_scores, y_train,\
                                 numaucthres=numaucthres, debug=debug)
-        if modeltype == 'tensorflow':
+        if modeltype == 'tf':
             es_epochs = len(res.history['loss'])
         else:
             es_epochs = 0
@@ -149,7 +148,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         metrics_dict_fold = {}
         metrics_dict_fold['fold'] = '%s'%cvset['crossval']
         metrics_dict_fold = {**metrics_dict_fold, **metrics_dict_train, **metrics_dict_val, **metrics_dict_dist}
-        if modeltype=='tensorflow':
+        if modeltype=='tf':
             metrics_dict_fold['early stop epochs'] = es_epochs
         metrics_dict_fold['params']='%s'%params
         metrics_dict_fold['CV Fit and predict min.']=(time.time() - start_cv)/60.0
@@ -183,7 +182,8 @@ random_state = 42
 # tf.config.threading.set_inter_op_parallelism_threads(
 #    n_cpus
 # )
-
+if runmode == 'test':
+    opt_targets = testmodels.keys()
 for opt_target in opt_targets:
     hyperresfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='mean', resultsfolder=resdir)
     hyperallfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='all', resultsfolder=resdir)

@@ -3,7 +3,7 @@ from hyperopt import hp
 def create_space():
     newfeatures = ['x', 'y', 'month', 'wkd', 'lst', 'dew', 'freq', 'f81']
     problemfeatures = ['month', 'wkd', 'dom_dir', 'dir_max']
-    '''
+
     space = {'n_internal_layers': hp.choice('n_internal_layers',
                 [
                     #(0, {'layer_1_0_nodes': hp.quniform('layer_1_0_nodes', 10, 310, 50)}),
@@ -19,7 +19,8 @@ def create_space():
                     #     'layer_3_2_nodes': hp.choice('layer_3_2_nodes', [500, 1000])}),
                 ]
                 ),
-             'dropout': hp.choice('dropout',[False]),
+             'dropout': hp.choice('dropout',[True]),
+             'dropout_rate': 0.2,
              #'class_weights': hp.choice('class_weights', [{0:1, 1:1}, {0:2,1:3}, {0:3,1:7}, {0:1,1:4}, {0:1,1:9}, {0:1, 1:25}, {0:1, 1:50}, {0:1, 1:100} , {0:1, 1:200}]),
              'class_weights': hp.choice('class_weights', [{0: 1, 1: 1}]),
              #'class_weights': {0: hp.choice('class_0_weight', [1]), 1: hp.quniform('class_1_weight', 1,100,1)},
@@ -56,7 +57,7 @@ def create_space():
         'class_weights': hp.choice('class_weights',[{0: 4, 1: 6}, {0: 1, 1: 10}, {0: 1, 1: 50}, {0: 1, 1: 70}]),
         'feature_drop': [],
     }
-    '''
+    
     {'n_estimators': 250, 'min_samples_split': 180, 'min_samples_leaf': 40, 'max_features': 41, 'max_depth': 20, 'criterion': 'entropy', 'class_weight': {0: 1, 1: 9}, 'bootstrap': True}
     
     space = {'algo': hp.choice('algo', ['RF']),
@@ -87,8 +88,8 @@ def create_space():
     calc_train_metrics = True
     #opt_targets = ['hybrid2 val', 'hybrid5 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['auc val.']
-    #modeltype = 'tensorflow'
-    modeltype = 'sklearn'
+    modeltype = 'tf'
+    #modeltype = 'sk'
     description = 'NN'
     nfolds = 5
     writescores = False

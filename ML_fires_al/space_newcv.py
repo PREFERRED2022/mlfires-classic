@@ -110,8 +110,8 @@ def create_space():
     #opt_targets = ['hybrid1 %s'%runmode, 'hybrid2 %s'%runmode, 'f1-score 1 %s'%runmode, 'auc %s'%runmode, 'recall 1 %s'%runmode]
     opt_targets = ['hybrid2 %s'%runmode]
     auc_thressholds=0
-    modeltype = 'tensorflow'
-    #modeltype = 'sklearn'
+    modeltype = 'tf'
+    #modeltype = 'sk'
     cvrownum = 0
     filedesc = 'NN'
     writescores=True

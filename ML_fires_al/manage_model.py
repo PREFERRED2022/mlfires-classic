@@ -9,9 +9,9 @@ from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
 from MLscores import calc_metrics, metrics_dict
 
 def run_predict(model, modeltype, X):
-    if modeltype == 'tensorflow':
+    if modeltype == 'tf':
         y_scores = model.predict(X)
-    elif modeltype == 'sklearn':
+    elif modeltype == 'sk':
         y_scores = model.predict_proba(X)
     predict_class = lambda p: int(round(p))
     predict_class_v = np.vectorize(predict_class)
@@ -29,14 +29,14 @@ def run_predict_and_metrics(model, modeltype, X, y, metricset, dontcalc=False, n
     return metricsdict, y_scores
 
 def create_model(modeltype, params, X_train):
-    if modeltype == 'tensorflow':
+    if modeltype == 'tf':
         model = create_NN_model(params, X_train)
-    elif modeltype == 'sklearn':
+    elif modeltype == 'sk':
         model = create_sklearn_model(params, X_train)
     return model
 
 def fit_model(modeltype, model, params, X_train, y_train, X_val=None, y_val=None):
-    if modeltype == 'tensorflow':
+    if modeltype == 'tf':
         es = EarlyStopping(monitor=params['ES_monitor'], patience=params['ES_patience'], min_delta=params['ES_mindelta'])
         if X_val is not None and y_val is not None:
             res = model.fit(X_train, y_train, batch_size=params['batch_size'], epochs=params['max_epochs'], verbose=0, callbacks=[es],
@@ -45,7 +45,7 @@ def fit_model(modeltype, model, params, X_train, y_train, X_val=None, y_val=None
             res = model.fit(X_train, y_train, batch_size=params['batch_size'], epochs=params['max_epochs'], verbose=0, callbacks=[es],
                             class_weight=params['class_weights'])
 
-    elif modeltype == 'sklearn':
+    elif modeltype == 'sk':
         res = model.fit(X_train, y_train)
     return model, res
 
@@ -58,12 +58,12 @@ def create_NN_model(params, X):
     model.add(Dense(params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes'], activation='relu',
                     input_shape=(n_features,)))
     if params['dropout']:
-        model.add(Dropout(0.5))
+        model.add(Dropout(params['dropout_rate']))
     for i in range(2, intlayers + 2):
         model.add(Dense(int(params['n_internal_layers'][1]['layer_' + str(i) + '_' + str(intlayers) + '_nodes']),
                         activation='relu'))
         if params['dropout']:
-            model.add(Dropout(0.5))
+            model.add(Dropout(params['dropout_rate']))
 
         # model.add(Dense(1, activation='sigmoid'))
     model.add(Dense(2, activation='softmax'))

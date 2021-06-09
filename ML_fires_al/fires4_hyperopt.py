@@ -163,7 +163,7 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
 
     metrics = []
     cnt = 0
-    print("NN params : %s" % params)
+    print("Fit parameters : %s" % params)
 
     if len(params['feature_drop'])>0:
         dropcols = [c for c in X_pd.columns if any([fd in c for fd in params['feature_drop']])]
@@ -190,7 +190,7 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
         es_epochs = 0
         model = create_model(modeltype, params, X_train)
         model, res = fit_model(modeltype, model, params, X_train, y_train, X_val, y_val)
-        if modeltype == 'tensorflow':
+        if modeltype == 'tf':
             es_epochs = len(res.history['loss'])
 
         print("Fit time (min): %.1f"%((time.time() - start_time)/60.0))
@@ -212,7 +212,7 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
         metrics_dict_fold = {}
         metrics_dict_fold['fold'] = 'fold %d'%cnt
         metrics_dict_fold = {**metrics_dict_fold, **metrics_dict_train, **metrics_dict_val}
-        if modeltype=='tensorflow':
+        if modeltype=='tf':
             metrics_dict_fold['early stop epochs'] = es_epochs
         metrics_dict_fold['params']='%s'%params
         metrics_dict_fold['CV fold fit time']=(time.time() - start_fold_time)/60.0
