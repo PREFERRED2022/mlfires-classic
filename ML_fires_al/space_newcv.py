@@ -88,13 +88,13 @@ def create_space():
                  [{'n_internal_layers': (0, {'layer_1_0_nodes': 200}),'dropout': False,'class_weights': {0: 1, 1: 5},
                  'feature_drop': ['month', 'wkd','dir', 'pos', 'f81', 'frequency'],'metric': 'accuracy',
                  'optimizer': {'name': 'Adam','adam_params':None},
-                 'max_epochs': 2000,'ES_monitor':'loss','ES_patience':10,'ES_mindelta':0.002,'batch_size':512
+                 'max_epochs': 20,'ES_monitor':'loss','ES_patience':10,'ES_mindelta':0.002,'batch_size':512
                   }],
                  'auc %s'%runmode:
                   [{'n_internal_layers': (1, {'layer_1_1_nodes': 100, 'layer_2_1_nodes': 100}),'dropout': False,
                     'class_weights': {0: 1, 1: 5}, 'feature_drop': ['month', 'wkd','dir', 'pos', 'f81', 'frequency'],
                     'metric': 'accuracy','optimizer': {'name': 'Adam','adam_params':None},
-                   'max_epochs': 2000,'ES_monitor':'loss','ES_patience':10,'ES_mindelta':0.002,'batch_size':512
+                   'max_epochs': 20,'ES_monitor':'loss','ES_patience':10,'ES_mindelta':0.002,'batch_size':512
                   }]}
 
 
@@ -109,7 +109,7 @@ def create_space():
     calc_train_metrics = True
     #opt_targets = ['hybrid1 %s'%runmode, 'hybrid2 %s'%runmode, 'f1-score 1 %s'%runmode, 'auc %s'%runmode, 'recall 1 %s'%runmode]
     opt_targets = ['hybrid2 %s'%runmode]
-    auc_thressholds=0
+    auc_thressholds=30
     modeltype = 'tf'
     #modeltype = 'sk'
     cvrownum = 0

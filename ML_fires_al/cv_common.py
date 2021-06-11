@@ -57,10 +57,11 @@ def updateYrows(Xval, Yval, Xhash, Yall):
         Yall[Xhash[h]] = Yval[idx[0]]
 
 def get_filename(opt_target, modeltype, desc, aggr='mean', ext='.csv', resultsfolder='.'):
-    base_name = os.path.join(resultsfolder, 'hypres_'+ modeltype \
+    base_name = os.path.join('hypres_'+ modeltype \
                              + '_' + desc + '_'+ aggr+'_'+\
                              "".join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_')
     cnt = 1
     while os.path.exists(os.path.join(resultsfolder, '%s%d.csv' % (base_name, cnt))):
         cnt += 1
-    return '%s%d%s' % (base_name, cnt, ext)
+    fname = '%s%d%s' % (os.path.join(resultsfolder, base_name), cnt, ext)
+    return fname

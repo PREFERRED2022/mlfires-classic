@@ -150,7 +150,7 @@ def get_filename(opt_target, modeltype, desc, aggr='mean'):
     return '%s%d.csv' % (base_name, cnt)
 '''
 
-def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, modeltype, hpresfile, allresfile, scoresfile, params):
+def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, modeltype, hpresfile, allresfile, scoresfile, trials, params):
 
     # the function gets a set of variable parameters in "param"
     '''
@@ -209,7 +209,7 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
         print("Validation metrics time (min): %.1f"%((time.time() - start_time)/60.0))
         print("Recall 1 val: %.3f, Recall 0 val: %.3f" % (metrics_dict_val['recall 1 %s'%valset],metrics_dict_val['recall 0 %s'%valset]))
 
-        metrics_dict_fold = {}
+        metrics_dict_fold = {'trial': '%d'%len(trials), 'opt. metric': optimize_target}
         metrics_dict_fold['fold'] = 'fold %d'%cnt
         metrics_dict_fold = {**metrics_dict_fold, **metrics_dict_train, **metrics_dict_val}
         if modeltype=='tf':
@@ -218,7 +218,7 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
         metrics_dict_fold['CV fold fit time']=(time.time() - start_fold_time)/60.0
         metrics.append(metrics_dict_fold)
 
-    mean_metrics = {}
+    mean_metrics = {'trial': '%d'%len(trials), 'opt. metric': optimize_target}
     mean_metrics = metrics_aggr(metrics, mean_metrics, hybrid_on_aggr=True, y_scores=y_scores_all, y=np.transpose(y)[0], valst=valset)
     mean_metrics["CV time (min)"] = (time.time() - start_folds)/60.0
     mean_metrics['params'] = '%s' % params
@@ -240,6 +240,7 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
     }
 
 random_state = 42
+iteration = 0
 tset, testsets, num_folds, space, max_trials, calc_test, opt_targets, modeltype, desc,\
 writescores, resultsfolder = space.create_space()
 kf = GroupKFold(n_splits=num_folds)
@@ -255,7 +256,7 @@ for opt_target in opt_targets:
     allresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='all', resultsfolder=resultsfolder)
     scoreresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='scores', resultsfolder=resultsfolder)
     trials = Trials()
-    validatemodelpart = partial(validatemodel, kf, X_pd, y_pd, groups_pd, id_pd, opt_target, calc_test, modeltype, hpresfile, allresfile, scoreresfile)
+    validatemodelpart = partial(validatemodel, kf, X_pd, y_pd, groups_pd, id_pd, opt_target, calc_test, modeltype, hpresfile, allresfile, scoreresfile, trials)
 
     best = fmin(fn=validatemodelpart,  # function to optimize
                 space=space,

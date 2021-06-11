@@ -37,7 +37,7 @@ def create_space():
              #                                      'beta_1':hp.uniform('beta_1', 0.0001, 1), 'beta_2':hp.uniform('beta_2', 0.0001, 1),\
              #                                      'amsgrad': hp.choice('amsgrad', [True, False])}])},
              #                                    {'name': 'SGD', 'learning_rate_SGD':hp.uniform('learning_rate_SGD', 0.0001, 1)}]),
-             'max_epochs': hp.choice('max_epochs', [2000]),
+             'max_epochs': hp.choice('max_epochs', [20]),
              'ES_monitor':hp.choice('ES_monitor', ['loss']),#'val_loss','loss'
              'ES_patience':hp.choice('ES_patience', [10]),
              'ES_mindelta':hp.choice('ES_mindelta', [0.002]),
@@ -81,7 +81,7 @@ def create_space():
              #'class_weight':hp.choice('class_weight',[{0:1,1:1}, {0:1,1:9},{0:1,1:300},{0:1,1:400},{0:1,1:500},{0:1,1:1000}])
              }
     '''
-    max_trials = 1
+    max_trials = 2
     #testsets = {'balanced':'/home/aapos/Documents/newcrossval/datasets/randomnofire/old_random_new_features_norm.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
     testsets = {'balanced':'/home/aapostolakis/Documents/ffpdata/newcrossval/datasets/randomnofire/oldrandomnewfeat.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
     calc_train_metrics = True
@@ -91,7 +91,7 @@ def create_space():
     #modeltype = 'sk'
     description = 'NN'
     nfolds = 5
-    writescores = False
+    writescores = True
     resultsfolder = 'results/hyperopt'
     return 'balanced', testsets, nfolds, space, max_trials, calc_train_metrics, opt_targets, modeltype, description,\
            writescores, resultsfolder
