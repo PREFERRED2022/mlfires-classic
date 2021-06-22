@@ -108,16 +108,20 @@ def create_space():
 
     calc_train_metrics = True
     #opt_targets = ['hybrid1 %s'%runmode, 'hybrid2 %s'%runmode, 'f1-score 1 %s'%runmode, 'auc %s'%runmode, 'recall 1 %s'%runmode]
-    opt_targets = ['hybrid2 %s'%runmode]
+    opt_targets = ['auc', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
+    #opt_targets = ['hybrid2 %s'%runmode]
     auc_thressholds=30
-    modeltype = 'tf'
-    #modeltype = 'sk'
+    #modeltype = 'tf'
+    modeltype = 'sk'
     cvrownum = 0
     filedesc = 'NN'
     writescores=True
     debug=True
-    resdir='results/hyperopt'
-    return testsets, space, testspace, max_trials, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
+    #resdir='results/hyperopt'
+    resdir='/home/aapostolakis/Documents/ffpdata/results/aris/'
+    testmetrics = ['auc', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
+    cvrespattern = '*2018only*'
+    return testsets, space, testspace, cvrespattern,max_trials, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
            modeltype, cvrownum, filedesc, runmode, writescores, resdir, debug
 
 

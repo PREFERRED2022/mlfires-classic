@@ -1,0 +1,20 @@
+import pandas as pd
+import fileutils
+
+def retrieve_best_models(dir, filepattern, metrics, valst, testst):
+    best_models={}
+    setfiles = [f for f in fileutils.find_files(dir, filepattern, listtype="walk")]
+    df = None
+    for f in setfiles:
+        dftemp=pd.read_csv(f)
+        df = dftemp if df is None else pd.concat([df,dftemp])
+    for metric in metrics:
+        df_sorted = df.sort_values(by=['%s %s'%(metric,valst)], ascending=False)
+        best_models['%s %s'%(metric,testst)] = [eval(df_sorted.iloc[0]['params'])]
+    return best_models
+'''
+metrics=['auc', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
+best_models=retrieve_best_models('/home/aapostolakis/Documents/ffpdata/results/aris/', '*2018only*', metrics, 'val.', 'test')
+for m in metrics:
+    print(best_models['%s test'%(m)])
+'''

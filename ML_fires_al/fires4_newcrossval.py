@@ -13,6 +13,7 @@ from MLscores import calc_metrics_custom, cmvals, metrics_aggr, \
 import sys
 from check_and_prepare_dataset import load_dataset
 import cv_common
+import best_models
 #import tensorflow as tf
 
 def load_files(cvset, settype, setdir):
@@ -167,13 +168,16 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-testsets, space, testmodels, max_trials, calc_test, opt_targets, trainsetdir, testsetdir, numaucthres, modeltype, \
+testsets, space, testmodels, testfpattern, max_trials, calc_test, recmetrics, trainsetdir, testsetdir, numaucthres, modeltype, \
 cvrownum, filedesc, runmode, writescores, resdir, debug = space_newcv.create_space()
 random_state = 42
 #tf.config.threading.set_inter_op_parallelism_threads(
 #   8
 #)
+opt_targets = ['%s %s'%(ot,runmode) for ot in recmetrics]
 if runmode == 'test':
+    if testfpattern is not None:
+        testmodels = best_models.retrieve_best_models(resdir, testfpattern, recmetrics, 'val.', 'test')
     opt_targets = testmodels.keys()
     hyperresfile = cv_common.get_filename(runmode, modeltype, filedesc, aggr='mean', resultsfolder=resdir)
     hyperallfile = cv_common.get_filename(runmode, modeltype, filedesc, aggr='all', resultsfolder=resdir)
