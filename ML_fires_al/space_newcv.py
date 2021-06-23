@@ -17,7 +17,7 @@ def create_space():
                     #     'layer_3_2_nodes': hp.choice('layer_3_2_nodes', [500, 1000])}),
                 ]
                 ),
-             'dropout': hp.choice('dropout',[True,False]),
+             'dropout': hp.choice('dropout',[None]),
              #'class_weights': hp.choice('class_weights', [[1, 5],[1, 10], [1, 50], [1, 1]])
              #'class_weights': hp.choice('class_weights', [{0:1, 1:5}, {0:1, 1:10}, {0:1, 1:50}, {0:1, 1:1}]),
              'class_weights': hp.choice('class_weights', [{0:1, 1:1}, {0:2,1:3}, {0:3,1:7}, {0:1,1:4}, {0:1,1:9}, {0:1, 1:25}, {0:1, 1:50}, {0:1, 1:100} , {0:1, 1:200}]),
@@ -41,7 +41,10 @@ def create_space():
                                                                                                           False])}])},
                                                   {'name': 'SGD',
                                                    'learning_rate_SGD': hp.uniform('learning_rate_SGD', 0.0001, 1)}]),
-
+             'ES_monitor': hp.choice('ES_monitor', ['loss']),  # 'val_loss','loss'
+             'ES_patience': hp.choice('ES_patience', [10]),
+             'ES_mindelta': hp.choice('ES_mindelta', [0.002]),
+             'batch_size': hp.choice('batch_size', [512])
              #'feature_drop': hp.choice('feature_drop', ['bin'])
              }
     '''
@@ -82,8 +85,8 @@ def create_space():
         'feature_drop': ['wkd', 'month','f81','frequency','x','y'],
         }
     '''
-    #runmode = 'val.'
-    runmode = 'test'
+    runmode = 'val.'
+    #runmode = 'test'
     testspace = {'hybrid2 %s'%runmode:
                  [{'n_internal_layers': (0, {'layer_1_0_nodes': 200}),'dropout': False,'class_weights': {0: 1, 1: 5},
                  'feature_drop': ['month', 'wkd','dir', 'pos', 'f81', 'frequency'],'metric': 'accuracy',
@@ -103,17 +106,19 @@ def create_space():
     testsetdir = '/home/aapostolakis/Documents/ffpdata/newcrossval/'
     #testsets = [{'training': ['*2010.csv'],'crossval': ['may*2010*', 'april*2010*']},
     #            {'training':['*2010.csv','*2011.csv'], 'crossval':['april*2011*']}]
-    testsets = [{'training': ['*features_norm.csv'],'crossval': ['may*2010*small.csv', 'april*2010*small.csv']},
-                {'training': ['*features_norm.csv'],'crossval':['april*2011*small.csv']}]
+    #testsets = [{'training': ['*features_norm.csv'],'crossval': ['may*2010*small.csv', 'april*2010*small.csv']},
+    #            {'training': ['*features_norm.csv'],'crossval':['april*2011*small.csv']}]
+    testsets = [{'training': ['*features_norm.csv'], 'crossval': ['april*2019_norm.csv', 'june*2019_norm.csv']},
+                {'training': ['*features_norm.csv'], 'crossval': ['august*2018_norm.csv']}]
 
     calc_train_metrics = True
     #opt_targets = ['hybrid1 %s'%runmode, 'hybrid2 %s'%runmode, 'f1-score 1 %s'%runmode, 'auc %s'%runmode, 'recall 1 %s'%runmode]
     opt_targets = ['auc', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
     #opt_targets = ['hybrid2 %s'%runmode]
     auc_thressholds=30
-    #modeltype = 'tf'
-    modeltype = 'sk'
-    cvrownum = 0
+    modeltype = 'tf'
+    #modeltype = 'sk'
+    cvrownum = 1000000
     filedesc = 'NN'
     writescores=True
     debug=True

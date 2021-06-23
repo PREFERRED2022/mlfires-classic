@@ -149,7 +149,12 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, returnid=Fa
                 #dfpart = pd.read_csv(dsfile, nrows=class0nrows)
                 #dfpart = dfpart[dfpart['fire']!=1]
                 dfpart = pd.read_csv(dfpartfile)
-                df = pd.concat([dfpart, dffire])
+                if len(dffire.index) > 0:
+                    df = pd.concat([dfpart, dffire])
+                else:
+                    if debug:
+                        print("Fire dataset is empty")
+                    df = dfpart
             else:
                 df = create_ds_parts(dsfile, class0nrows, dffirefile, dfpartfile, debug)
         else:
