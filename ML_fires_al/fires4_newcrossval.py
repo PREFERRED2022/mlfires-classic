@@ -204,5 +204,6 @@ for opt_target in opt_targets:
         cnt=0
         for modelparams in testmodels[opt_target]:
             cnt+=1
+            trial = list(range(0,cnt)) if 'trial' not in modelparams.keys() else modelparams['trial']
             evalmodel(testsets, opt_target, calc_test, modeltype, hyperresfile, hyperallfile, \
-                      scoresfile, list(range(0,cnt)), modelparams)
+                      scoresfile, list(range(0,cnt)), modelparams['params'])
