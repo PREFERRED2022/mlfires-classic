@@ -126,7 +126,8 @@ def create_space():
     resdir='/home/aapostolakis/Documents/ffpdata/results/aris/'
     testmetrics = ['auc', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
     cvrespattern = '*2018only*'
-    return testsets, space, testspace, cvrespattern,max_trials, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
+    hypalgo='tpe'
+    return testsets, space, testspace, cvrespattern, max_trials, hypalgo, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
            modeltype, cvrownum, filedesc, runmode, writescores, resdir, debug
 
 

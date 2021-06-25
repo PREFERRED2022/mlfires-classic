@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from hyperopt import Trials, fmin, tpe, STATUS_OK
+from hyperopt import Trials, fmin, tpe, rand, STATUS_OK
 from sklearn.model_selection import train_test_split, KFold, GroupKFold
 import numpy as np
 import time
@@ -241,7 +241,7 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
 
 random_state = 42
 iteration = 0
-tset, testsets, num_folds, space, max_trials, calc_test, opt_targets, modeltype, desc,\
+tset, testsets, num_folds, space, max_trials, hypalgoparam, calc_test, opt_targets, modeltype, desc, \
 writescores, resultsfolder = space.create_space()
 kf = GroupKFold(n_splits=num_folds)
 #tf.config.threading.set_inter_op_parallelism_threads(
@@ -258,9 +258,14 @@ for opt_target in opt_targets:
     trials = Trials()
     validatemodelpart = partial(validatemodel, kf, X_pd, y_pd, groups_pd, id_pd, opt_target, calc_test, modeltype, hpresfile, allresfile, scoreresfile, trials)
 
+    hypalgo = cv_common.get_hyperopt_algo(hypalgoparam)
+    if hypalgo is None:
+        print('Wrong optimization algorithm')
+        break
+
     best = fmin(fn=validatemodelpart,  # function to optimize
                 space=space,
-                algo=tpe.suggest,  # optimization algorithm, hyperotp will select its parameters automatically
+                algo=hypalgo,  # optimization algorithm, hyperotp will select its parameters automatically
                 max_evals=max_trials,  # maximum number of iterations
                 trials=trials,  # logging
                 rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility

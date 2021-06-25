@@ -168,7 +168,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         #    {'time_module': pickle.dumps(time.time)}
     }
 
-testsets, space, testmodels, testfpattern, max_trials, calc_test, recmetrics, trainsetdir, testsetdir, numaucthres, modeltype, \
+testsets, space, testmodels, testfpattern, max_trials, hypalgoparam, calc_test, recmetrics, trainsetdir, testsetdir, numaucthres, modeltype, \
 cvrownum, filedesc, runmode, writescores, resdir, debug = space_newcv.create_space()
 random_state = 42
 #tf.config.threading.set_inter_op_parallelism_threads(
@@ -185,6 +185,11 @@ for opt_target in opt_targets:
     scoresfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='scores', ext='',
                                         resultsfolder=resdir)
     if runmode == 'val.':
+        hypalgo = cv_common.get_hyperopt_algo(hypalgoparam)
+        if hypalgo is None:
+            print('Wrong optimization algorithm')
+            break
+
         hyperresfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='mean', resultsfolder=resdir)
         hyperallfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='all', resultsfolder=resdir)
         trials = Trials()
@@ -192,6 +197,7 @@ for opt_target in opt_targets:
                                 hyperresfile, hyperallfile, scoresfile, trials)
         if not os.path.isdir(os.path.join('results', 'hyperopt')):
             os.makedirs(os.path.join('results', 'hyperopt'))
+
         best = fmin(fn=evalmodelpart,  # function to optimize
                     space=space,
                     algo=tpe.suggest,  # optimization algorithm, hyperotp will select its parameters automatically

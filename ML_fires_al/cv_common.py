@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import hashlib
 import re
+from hyperopt import tpe, rand
 
 def writemetrics(metrics, mean_metrics, hpresfile, allresfile):
     if not os.path.exists(os.path.dirname(hpresfile)):
@@ -65,3 +66,12 @@ def get_filename(opt_target, modeltype, desc, aggr='mean', ext='.csv', resultsfo
         cnt += 1
     fname = '%s%d%s' % (os.path.join(resultsfolder, base_name), cnt, ext)
     return fname
+
+def get_hyperopt_algo(hypalgoparam):
+    if hypalgoparam == 'tpe':
+        hypalgo = tpe.suggest
+    elif hypalgoparam == 'random':
+        hypalgo = rand.suggest
+    else:
+        hypalgo = None
+    return hypalgo

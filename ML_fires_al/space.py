@@ -93,6 +93,7 @@ def create_space():
     nfolds = 5
     writescores = True
     resultsfolder = 'results/hyperopt'
-    return 'balanced', testsets, nfolds, space, max_trials, calc_train_metrics, opt_targets, modeltype, description,\
+    hypalgo = 'random'
+    return 'balanced', testsets, nfolds, space, max_trials, hypalgo, calc_train_metrics, opt_targets, modeltype, description,\
            writescores, resultsfolder
 
