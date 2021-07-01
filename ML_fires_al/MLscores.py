@@ -1,11 +1,12 @@
 from sklearn.metrics import confusion_matrix, accuracy_score, recall_score, f1_score, precision_score
 from tensorflow.keras.metrics import AUC
+import tensorflow.keras.backend as K
 import re
 
 def recall(tp,fn):
-    if tp+fn == 0:
-        return -1000
-    return tp/(tp+fn)
+    #if tp+fn == 0:
+    #    return -1000
+    return tp/(tp+fn+K.epsilon())
 
 def precision(tp,fp):
     if tp+fp == 0:
@@ -98,13 +99,23 @@ def cmvals(y_true, y_pred):
         tn=fp=fn=tp=None
     return tn, fp, fn, tp
 
+def cmvals_tf(y, y_pred):
+    tp = K.sum(y_pred * y)
+    fn = K.sum((1 - y_pred) * y)
+    tn = K.sum((1 - y_pred) * (1 - y))
+    fp = K.sum(y_pred * (1 - y))
+    return tn, fp, fn, tp
+
 def calc_metrics(y, y_scores, y_pred, numaucthres=200, debug=True, calc_hybrids = False):
     if debug:
-        print("calulating merics from scores (sklearn)")
+        print("calulating metrics from scores (sklearn)")
         print("calulating tn, fp, fn, tp")
     tn, fp, fn, tp = cmvals(y, y_pred)
     if debug:
         print("tn : %d, fp : %d, fn : %d, tp : %d" % (tn, fp, fn, tp))
+    tnK, fpK, fnK, tpK = cmvals_tf(y, y_pred)
+    if debug:
+        print("ksum tn : %d, fp : %d, fn : %d, tp : %d" % (tnK, fpK, fnK, tpK))
     if debug:
         print("calulating auc...")
     if numaucthres>0:

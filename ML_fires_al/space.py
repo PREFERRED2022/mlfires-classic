@@ -11,7 +11,7 @@ def create_space():
                     #(2, {'layer_1_2_nodes': hp.quniform('layer_1_2_nodes', 10, 310, 50), 'layer_2_2_nodes': hp.quniform('layer_2_2_nodes', 10, 310, 50),
                     #     'layer_3_2_nodes': hp.quniform('layer_3_2_nodes', 10, 310, 50)})
 
-                    (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [1400] )}),
+                    (0, {'layer_1_0_nodes': hp.choice('layer_1_0_nodes', [150] )}),
                     #(1, {'layer_1_1_nodes': hp.choice('layer_1_1_nodes', [1750]),
                     #     'layer_2_1_nodes': hp.choice('layer_2_1_nodes', [200])}),
                     #(2, {'layer_1_2_nodes': hp.choice('layer_1_2_nodes', [500, 1000]),
@@ -19,7 +19,7 @@ def create_space():
                     #     'layer_3_2_nodes': hp.choice('layer_3_2_nodes', [500, 1000])}),
                 ]
                 ),
-             'dropout': hp.choice('dropout',[None, 0.2]),
+             'dropout': hp.choice('dropout',[None]),
              #'class_weights': hp.choice('class_weights', [{0:1, 1:1}, {0:2,1:3}, {0:3,1:7}, {0:1,1:4}, {0:1,1:9}, {0:1, 1:25}, {0:1, 1:50}, {0:1, 1:100} , {0:1, 1:200}]),
              'class_weights': hp.choice('class_weights', [{0: 1, 1: 1}]),
              #'class_weights': {0: hp.choice('class_0_weight', [1]), 1: hp.quniform('class_1_weight', 1,100,1)},
@@ -37,11 +37,12 @@ def create_space():
              #                                      'beta_1':hp.uniform('beta_1', 0.0001, 1), 'beta_2':hp.uniform('beta_2', 0.0001, 1),\
              #                                      'amsgrad': hp.choice('amsgrad', [True, False])}])},
              #                                    {'name': 'SGD', 'learning_rate_SGD':hp.uniform('learning_rate_SGD', 0.0001, 1)}]),
-             'max_epochs': hp.choice('max_epochs', [20]),
+             'max_epochs': hp.choice('max_epochs', [200]),
              'ES_monitor':hp.choice('ES_monitor', ['loss']),#'val_loss','loss'
              'ES_patience':hp.choice('ES_patience', [10]),
              'ES_mindelta':hp.choice('ES_mindelta', [0.002]),
-             'batch_size':hp.choice('batch_size', [512])
+             'batch_size':hp.choice('batch_size', [512]),
+             'loss':'kkk'
              }
     '''
     space = { 'algo': hp.choice('algo', ['XT']),

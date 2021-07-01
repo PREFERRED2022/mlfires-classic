@@ -85,8 +85,8 @@ def create_space():
         'feature_drop': ['wkd', 'month','f81','frequency','x','y'],
         }
     '''
-    runmode = 'val.'
-    #runmode = 'test'
+    #runmode = 'val.'
+    runmode = 'test'
     testspace = {'hybrid2 %s'%runmode:
                  [{'n_internal_layers': (0, {'layer_1_0_nodes': 200}),'dropout': False,'class_weights': {0: 1, 1: 5},
                  'feature_drop': ['month', 'wkd','dir', 'pos', 'f81', 'frequency'],'metric': 'accuracy',
@@ -112,12 +112,10 @@ def create_space():
                 {'training': ['*features_norm.csv'], 'crossval': ['august*2018_norm.csv']}]
 
     calc_train_metrics = True
-    #opt_targets = ['hybrid1 %s'%runmode, 'hybrid2 %s'%runmode, 'f1-score 1 %s'%runmode, 'auc %s'%runmode, 'recall 1 %s'%runmode]
     opt_targets = ['auc', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
-    #opt_targets = ['hybrid2 %s'%runmode]
     auc_thressholds=30
-    modeltype = 'tf'
-    #modeltype = 'sk'
+    #modeltype = 'tf'
+    modeltype = 'sk'
     cvrownum = 1000000
     filedesc = 'NN'
     writescores=True
@@ -127,7 +125,8 @@ def create_space():
     testmetrics = ['auc', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
     cvrespattern = '*2018only*'
     hypalgo='tpe'
-    return testsets, space, testspace, cvrespattern, max_trials, hypalgo, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
+    filters = [{'column': 'params', 'operator': 'contains', 'value': '200'}]
+    return testsets, space, testspace, cvrespattern, filters, max_trials, hypalgo, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
            modeltype, cvrownum, filedesc, runmode, writescores, resdir, debug
 
 

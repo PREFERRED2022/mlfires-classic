@@ -1,7 +1,7 @@
 import pandas as pd
 import fileutils
 
-def retrieve_best_models(dir, filepattern, metrics, valst, testst):
+def retrieve_best_models(dir, filepattern, metrics, valst, testst, filters = []):
     best_models={}
     setfiles = [f for f in fileutils.find_files(dir, filepattern, listtype="walk")]
     df = None
@@ -9,7 +9,17 @@ def retrieve_best_models(dir, filepattern, metrics, valst, testst):
         dftemp=pd.read_csv(f)
         df = dftemp if df is None else pd.concat([df,dftemp])
     for metric in metrics:
-        df_sorted = df.sort_values(by=['%s %s'%(metric,valst)], ascending=False)
+        df_flt = df
+        for filt in filters:
+            if filt['operator']=='contains':
+                df_flt = df_flt[df_flt[filt['column']].str.contains(filt['value'])]
+            elif filt['operator']=='>':
+                df_flt = df_flt[df_flt[filt['column']] > filt['value']]
+            elif filt['operator']=='<':
+                df_flt = df_flt[df_flt[filt['column']] < filt['value']]
+            elif filt['operator']=='==':
+                df_flt = df_flt[df_flt[filt['column']] == filt['value']]
+        df_sorted = df_flt.sort_values(by=['%s %s'%(metric,valst)], ascending=False)
         best_models['%s %s'%(metric,testst)] = [{'params':eval(df_sorted.iloc[0]['params']), 'trial':df_sorted.iloc[0]['trial']}]
     return best_models
 '''

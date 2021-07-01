@@ -6,7 +6,9 @@ import tensorflow.keras.metrics
 import numpy as np
 from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
-from MLscores import calc_metrics, metrics_dict
+from MLscores import calc_metrics, metrics_dict, cmvals, recall, hybridrecall
+import tensorflow.keras.backend as K
+import tensorflow as tf
 
 def run_predict(model, modeltype, X):
     if modeltype == 'tf':
@@ -50,18 +52,51 @@ def fit_model(modeltype, model, params, X_train, y_train, X_val=None, y_val=None
     return model, res
 
 
+def recall_loss(y_true, y_pred):
+    # recall of class 1
+    y_true = K.cast(y_true, tf.float32)
+    #do not use "round" here if you're going to use this as a loss function
+    true_positives = K.sum(y_pred * y_true)
+    possible_positives = K.sum(y_true)
+    return true_positives / (possible_positives + K.epsilon())
+
+def unbalanced_loss(y_true, y_pred):
+
+    # under construction...
+
+    #y_true = K.cast(y_true, tf.float32)
+    y_true = K.cast(y_true, tf.float32)
+    #y_pred = K.cast(y_pred, tf.int64)
+    custom_loss = K.square(y_true - y_pred)
+    #custom_loss = K.sum(y_pred - y_true)
+    return custom_loss
+
+'''
+    tp = K.sum(y_pred * y_true)
+    fn = K.sum((1-y_pred) * y_true)
+    tn = K.sum((1-y_pred) * (1-y_true))
+    fp = K.sum(y_pred * (1-y_true))
+
+    rec_1 = recall(tp, fn)
+    rec_0 = recall(tn, fp)
+    nh2 = hybridrecall(2, 1, rec_1, rec_0, 'NH')
+    #nh5 = hybridrecall(5, 1, rec_1, rec_0, 'NH')
+    return -nh2
+'''
+
 def create_NN_model(params, X):
+    # initializer
+    #initializer = initializers.Constant(0.5)
     # define model
     model = Sequential()
     n_features = X.shape[1]
     intlayers = int(params['n_internal_layers'][0])
-    model.add(Dense(params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes'], activation='relu',
-                    input_shape=(n_features,)))
+    model.add(Dense(params['n_internal_layers'][1]['layer_1_' + str(intlayers) + '_nodes'], activation='relu', input_shape=(n_features,))) #kernel_initializer=initializer))
     if not params['dropout'] is None:
         model.add(Dropout(params['dropout']))
     for i in range(2, intlayers + 2):
         model.add(Dense(int(params['n_internal_layers'][1]['layer_' + str(i) + '_' + str(intlayers) + '_nodes']),
-                        activation='relu'))
+                        activation='relu', )) #kernel_initializer=initializer))
         if not params['dropout'] is None:
             model.add(Dropout(params['dropout']))
 
@@ -84,10 +119,14 @@ def create_NN_model(params, X):
         metrics = ['accuracy']
     elif params['metric'] == 'sparse':
         metrics = [tensorflow.metrics.SparseCategoricalAccuracy()]
-    #elif params['metric'] == 'tn':
-        #metrics = [tensorflow.metrics.TrueNegatives(),tensorflow.metrics.TruePositives()]
-    model.compile(optimizer=opt, loss='sparse_categorical_crossentropy', metrics=metrics)  # , AUC(multi_label=False)])
-
+    elif params['metric'] == 'tn':
+        metrics = [tensorflow.metrics.TrueNegatives(),tensorflow.metrics.TruePositives()]
+    if 'loss' in params and params['loss'] == 'unbalanced':
+        lossf=unbalanced_loss
+    else:
+        lossf='sparse_categorical_crossentropy'
+    model.compile(optimizer=opt, loss=lossf, metrics=metrics)  # , AUC(multi_label=False)])
+    # model.compile(optimizer=opt, loss=recallloss, metrics=metrics)
     return model
 
 def create_sklearn_model(params, X):
