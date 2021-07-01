@@ -126,6 +126,7 @@ def create_space():
     cvrespattern = '*2018only*'
     hypalgo='tpe'
     filters = [{'column': 'params', 'operator': 'contains', 'value': '200'}]
+    filters = ["df_flt['params'].str.contains('200')"]
     return testsets, space, testspace, cvrespattern, filters, max_trials, hypalgo, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
            modeltype, cvrownum, filedesc, runmode, writescores, resdir, debug
 
