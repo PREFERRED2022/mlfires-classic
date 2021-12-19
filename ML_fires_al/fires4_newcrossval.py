@@ -34,7 +34,7 @@ def resfilename(opt_target, runmode):
     hyperallfile = '%sall_%d.csv' % (hyp_res_base, cnt)
     return hyperresfile, hyperallfile
 
-def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyperallfile, scoresfile, trials, params):
+def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyperallfile, scoresfile, trials, calib, params):
     if len(cvsets) == 0:
         print('No cross validation files')
         sys.exit()
@@ -90,7 +90,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             start_predict_file = time.time()
             print('Cross Validation File: %s' % cvfile)
             X_pd, y_pd, groups_pd, id_pd = load_dataset(cvfile, params['feature_drop'], class0nrows=cvrownum,\
-                                                 debug=debug, returnid=True)
+                                                 debug=debug, returnid=True, calib=calib)
             X_pd = X_pd.reindex(sorted(X_pd.columns), axis=1)
             valcolumns = X_pd.columns
             if debug:
@@ -169,7 +169,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
     }
 
 testsets, space, testmodels, testfpattern, filters, max_trials, hypalgoparam, calc_test, recmetrics, trainsetdir, testsetdir, numaucthres, modeltype, \
-cvrownum, filedesc, runmode, writescores, resdir, debug = space_newcv.create_space()
+cvrownum, filedesc, runmode, writescores, resdir, calib, debug = space_newcv.create_space()
 random_state = 42
 #tf.config.threading.set_inter_op_parallelism_threads(
 #   8
@@ -194,7 +194,7 @@ for opt_target in opt_targets:
         hyperallfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='all', resultsfolder=resdir)
         trials = Trials()
         evalmodelpart = partial(evalmodel, testsets, opt_target, calc_test, modeltype, \
-                                hyperresfile, hyperallfile, scoresfile, trials)
+                                hyperresfile, hyperallfile, scoresfile, trials, calib)
         if not os.path.isdir(os.path.join('results', 'hyperopt')):
             os.makedirs(os.path.join('results', 'hyperopt'))
 
@@ -212,4 +212,4 @@ for opt_target in opt_targets:
             cnt+=1
             trial = list(range(0,cnt)) if 'trial' not in modelparams.keys() else modelparams['trial']
             evalmodel(testsets, opt_target, calc_test, modeltype, hyperresfile, hyperallfile, \
-                      scoresfile, list(range(0,cnt)), modelparams['params'])
+                      scoresfile, list(range(0,cnt)), calib, modelparams['params'])

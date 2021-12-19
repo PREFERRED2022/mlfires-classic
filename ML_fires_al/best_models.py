@@ -23,7 +23,11 @@ def retrieve_best_models(dir, filepattern, metrics, valst, testst, filters = [])
                 df_flt = df_flt[df_flt[filt['column']] == filt['value']]
             '''
         df_sorted = df_flt.sort_values(by=['%s %s'%(metric,valst)], ascending=False)
-        best_models['%s %s'%(metric,testst)] = [{'params':eval(df_sorted.iloc[0]['params']), 'trial':df_sorted.iloc[0]['trial']}]
+        #best_models['%s %s'%(metric,testst)] = [{'params':eval(df_sorted.iloc[0]['params']), 'trial':df_sorted.iloc[0]['trial']}]
+        if 'trial' in df_sorted.columns:
+            best_models['%s %s'%(metric,testst)] = [{'params':eval(df_sorted.iloc[0]['params']), 'trial':df_sorted.iloc[0]['trial']}]
+        else:
+            best_models['%s %s'%(metric,testst)] = [{'params':eval(df_sorted.iloc[0]['params']), 'trial':1}]
     return best_models
 '''
 metrics=['auc', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']

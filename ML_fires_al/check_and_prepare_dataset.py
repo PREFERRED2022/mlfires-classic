@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from sklearn.model_selection import train_test_split
 
-def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col):
+def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col, calib=None):
     df = df[X_columns+y_columns+[firedate_col]]
     print('before nan drop: %d' % len(df.index))
     df = df.dropna()
@@ -13,6 +13,12 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_c
     print('renaming "x": "xpos", "y": "ypos"')
     X_unnorm, y_int = df[X_columns], df[y_columns]
     X_unnorm = X_unnorm.rename(columns={'x': 'xpos', 'y': 'ypos'})
+
+    #calibration
+    if calib is not None:
+        for k in calib:
+            print("calibrating %s by %.1f"%(k,calib[k]))
+            X_unnorm[k] = X_unnorm[k]*(1+calib[k])
 
     # categories to binary
     if domdir_col:
@@ -111,7 +117,7 @@ def create_ds_parts(dsfile, class0nrows, dffirefile, dfpartfile, debug = False):
     return df
 
 # load the dataset
-def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, returnid=False):
+def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, returnid=False, calib=None):
     # dsfile = 'dataset_ndvi_lu.csv'
     domdircheck = 'dom_dir'
     dirmaxcheck = 'dir_max'
@@ -173,7 +179,7 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, returnid=Fa
     wkd_col, newcols = check_categorical(df, wkdcheck, newcols)
 
     firedate_col = [c for c in df.columns if firedatecheck.upper() in c.upper()][0]
-    X, y, groupspd = prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col)
+    X, y, groupspd = prepare_dataset(df, X_columns, y_columns, firedate_col, corine_col, domdir_col, dirmax_col, calib)
     print("Ignored columns from csv %s"%([c for c in df.columns if c not in X.columns]))
     idpd = df['id']
     df = None

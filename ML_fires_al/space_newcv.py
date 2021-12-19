@@ -127,7 +127,8 @@ def create_space():
     hypalgo='tpe'
     filters = [{'column': 'params', 'operator': 'contains', 'value': '200'}]
     filters = ["df_flt['params'].str.contains('200')"]
+    calib = {'min_temp':0.1}
     return testsets, space, testspace, cvrespattern, filters, max_trials, hypalgo, calc_train_metrics, opt_targets, trainsetdir, testsetdir, auc_thressholds,\
-           modeltype, cvrownum, filedesc, runmode, writescores, resdir, debug
+           modeltype, cvrownum, filedesc, runmode, writescores, resdir, calib, debug
 
 
