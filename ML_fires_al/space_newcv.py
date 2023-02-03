@@ -3,92 +3,69 @@ from hyperopt import hp
 def create_space():
     space = None
     max_trials = 1
+    #trainsetdir = '/work2/pa21/sgirtsou/production/datasets/hard_cosine_similarity'
     trainsetdir = '/data2/ffp/datasets/trainingsets/randomnofire/'
     #testsetdir = '/work2/pa21/sgirtsou/production'
+    tyear = '2019'
     #testsetdir = '/users/pa21/sgirtsou/production/2020'
-    testsetdir = '/data2/ffp/datasets/monthly/2020_new'
-    #runmode = 'val.'
-    runmode = 'test'
+    testsetdir = '/data2/ffp/datasets/daily/%s'%tyear
+    resdir = '/data2/ffp/results/altCV'
 
-
-    #k-fold best
-    testspace = { 'NH5 %s'%runmode:
-                  [{'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 'dropout': 0.3, 
-                    'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max' ), 'max_epochs': 2000, 'metric': 'accuracy', 
-                    'n_internal_layers': (0, {'layer_1_0_nodes': 400.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}},
-                   {'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 'dropout': None,
-                    'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy',
-                    'n_internal_layers': (0, {'layer_1_0_nodes': 50.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}}
-                  ],
-                  'NH10 %s'%runmode:
-                  [{'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 50}, 'dropout': 0.3,
-                    'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy',
-                    'n_internal_layers': (0, {'layer_1_0_nodes': 900.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}},
-                   {'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 50}, 'dropout': None,
-                    'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy',
-                    'n_internal_layers': (0, {'layer_1_0_nodes': 100.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}}
-                  ],
-                  'NH2 %s'%runmode:
-                  [{'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 5}, 'dropout': 0.3,
-                    'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy',
-                    'n_internal_layers': (0, {'layer_1_0_nodes': 200.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}},
-                  ],
-                  'hybrid5 %s'%runmode:
-                  [{'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 5}, 'dropout': 0.3,
-                    'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy',
-                    'n_internal_layers': (0, {'layer_1_0_nodes': 200.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}},
-                   {'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 5}, 'dropout': None,
-                    'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy',
-                    'n_internal_layers': (0, {'layer_1_0_nodes': 50.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}}
-                  ]
-                }
+    runmode ='test'
     
-    '''
-    #Alt CV best
-    testspace = { 'auc %s'%runmode:
-                  [{'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 
-                   'dropout': None, 'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy', 
-                   'n_internal_layers': (0, {'layer_1_0_nodes': 100.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}},
+    nf = 90
+  
+    #best of AltCv
+    testspace = { 'hybrid5 %s'%runmode:[
+                        {'params':{'algo': 'XT', 'bootstrap': False, 'class_weights': {0: 1, 1: 10}, 'criterion': 'entropy', 'feature_drop': ['res_max'],
+                         'max_depth': 18.0, 'max_features': 7.0, 'min_samples_leaf': 25, 'min_samples_split': 10, 'n_estimators': 800}},
                   ],
-                  'hybrid5 %s'%runmode:
-                  [{'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 
-                    'dropout': None, 'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy', 
-                    'n_internal_layers': (0, {'layer_1_0_nodes': 90.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}}
+                  'NH2 %s'%runmode:[
+                        {'params':{'algo': 'XT', 'bootstrap': False, 'class_weights': {0: 1, 1: 50}, 'criterion': 'entropy', 'feature_drop': ['res_max'], 'max_depth': 20.0, 
+                         'max_features': 9.0, 'min_samples_leaf': 20, 'min_samples_split': 2, 'n_estimators': 1000}},
+                        {'params':{'algo': 'XGB', 'alpha': 80, 'feature_drop': ['res_max'], 'gamma': 10, 'lambda': 21.0, 'max_depth': 44.0, 'n_estimators': 40, 
+                         'scale_pos_weight': 70, 'subsample': 0.7}}
                   ],
-                  'NH5 %s'%runmode:
-                  [{'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 
-                   'dropout': None, 'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy', 
-                   'n_internal_layers': (1, {'layer_1_1_nodes': 40.0, 'layer_2_1_nodes': 30.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}},
-                   {'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 
-                    'dropout': 0.2, 'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy', 
-                    'n_internal_layers': (0, {'layer_1_0_nodes': 200.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}},
-                  ],
-                  'NH10 %s'%runmode:
-                  [{'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 
-                    'dropout': 0.2, 'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy', 
-                    'n_internal_layers': (1, {'layer_1_1_nodes': 60.0, 'layer_2_1_nodes': 60.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}},
-                   {'params':
-                   {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 
-                    'dropout': None, 'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd', 'res_max'), 'max_epochs': 2000, 'metric': 'accuracy', 
-                    'n_internal_layers': (1, {'layer_1_1_nodes': 40.0, 'layer_2_1_nodes': 30.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}}
+                  'NH5 %s'%runmode:[
+                        {'params':{'algo': 'XT', 'bootstrap': False, 'class_weights': {0: 1, 1: 50}, 'criterion': 'entropy', 'feature_drop': ['res_max'], 
+                        'max_depth': 20.0, 'max_features': 9.0, 'min_samples_leaf': 20, 'min_samples_split': 2, 'n_estimators': 1000}}
                   ]
+                }
+    '''
+    # res_max test
+    testspace = { 'hybrid5 %s'%runmode:[
+                        {'params':{'algo': 'XT', 'bootstrap': False, 'class_weights': {0: 1, 1: 10}, 'criterion': 'entropy', 'feature_drop': ['res_max'],
+                         'max_depth': 18.0, 'max_features': 7.0, 'min_samples_leaf': 25, 'min_samples_split': 10, 'n_estimators': 800}},
+                        {'params':{'algo': 'XT', 'bootstrap': False, 'class_weights': {0: 1, 1: 10}, 'criterion': 'entropy', 'feature_drop': [],
+                         'max_depth': 18.0, 'max_features': 7.0, 'min_samples_leaf': 25, 'min_samples_split': 10, 'n_estimators': 800}},
+                        {'params':{'algo': 'RF', 'bootstrap': True, 'class_weights': {0: 1, 1: 300}, 'criterion': 'entropy', 'feature_drop': [],
+                         'max_depth': 1200, 'max_features': 1.0, 'min_samples_leaf': 10, 'min_samples_split': 2, 'n_estimators': 750}},
+                        {'params':{'algo': 'RF', 'bootstrap': True, 'class_weights': {0: 1, 1: 300}, 'criterion': 'entropy', 'feature_drop': ['res_max'],
+                         'max_depth': 1200, 'max_features': 1.0, 'min_samples_leaf': 10, 'min_samples_split': 2, 'n_estimators': 750}},
+                        {'params':{'algo': 'XGB', 'alpha': 80, 'feature_drop': [], 'gamma': 10, 'lambda': 3.0, 'max_depth': 66.0, 'n_estimators': 60, 'scale_pos_weight': 50, 'subsample': 0.5}},
+                        {'params':{'algo': 'XGB', 'alpha': 80, 'feature_drop': ['res_max'], 'gamma': 10, 'lambda': 3.0, 'max_depth': 66.0, 'n_estimators': 60, 'scale_pos_weight': 50, 'subsample': 0.5}},
+                        {'params':{'algo': 'XT', 'bootstrap': False, 'class_weights': {0: 1, 1: 10}, 'criterion': 'entropy', 'feature_drop': ['res_max'],
+                         'max_depth': 18.0, 'max_features': 7.0, 'min_samples_leaf': 25, 'min_samples_split': 10, 'n_estimators': 800}},
+                        {'params':{'algo': 'XT', 'bootstrap': False, 'class_weights': {0: 1, 1: 10}, 'criterion': 'entropy', 'feature_drop': [],
+                         'max_depth': 18.0, 'max_features': 7.0, 'min_samples_leaf': 25, 'min_samples_split': 10, 'n_estimators': 800}},
+                        {'params':{'algo': 'RF', 'bootstrap': True, 'class_weights': {0: 1, 1: 300}, 'criterion': 'entropy', 'feature_drop': [],
+                         'max_depth': 1200, 'max_features': 1.0, 'min_samples_leaf': 10, 'min_samples_split': 2, 'n_estimators': 750}},
+                        {'params':{'algo': 'RF', 'bootstrap': True, 'class_weights': {0: 1, 1: 300}, 'criterion': 'entropy', 'feature_drop': ['res_max'],
+                         'max_depth': 1200, 'max_features': 1.0, 'min_samples_leaf': 10, 'min_samples_split': 2, 'n_estimators': 750}},
+                        {'params':{'algo': 'XGB', 'alpha': 80, 'feature_drop': [], 'gamma': 10, 'lambda': 3.0, 'max_depth': 66.0, 'n_estimators': 60, 'scale_pos_weight': 50, 'subsample': 0.5}},
+                        {'params':{'algo': 'XGB', 'alpha': 80, 'feature_drop': ['res_max'], 'gamma': 10, 'lambda': 3.0, 'max_depth': 66.0, 'n_estimators': 60, 'scale_pos_weight': 50, 'subsample': 0.5}}
+                     ],
+                }
 
+    
+    testspace = { 'hybrid5 %s'%runmode:[
+                        {'params':{'algo': 'XT', 'bootstrap': False, 'class_weights': {0: 1, 1: 10}, 'criterion': 'entropy', 'feature_drop': ['res_max'],
+                         'max_depth': 18.0, 'max_features': 7.0, 'min_samples_leaf': 25, 'min_samples_split': 10, 'n_estimators': 800}},
+                        ],
                 }
     '''
 
-    tyear = '2020'
+    #testspace = None
     testsets = [
                 #{'training':['old_random_new_feat_from_months.csv'],\
                 # 'crossval':['*april_%s_norm.csv'%tyear]},
@@ -96,38 +73,39 @@ def create_space():
                 # 'crossval':['*may_%s_norm.csv'%tyear]},
                 #{'training':['old_random_new_feat_from_months.csv'],\
                 # 'crossval':['*june_%s_norm.csv'%tyear]},
-                {'training':['old_random_new_feat_from_months.csv'],\
-                 'crossval':['*july_%s_norm.csv'%tyear]},
-                {'training':['old_random_new_feat_from_months.csv'],\
-                 'crossval':['*august_%s_norm.csv'%tyear]},
-                {'training':['old_random_new_feat_from_months.csv'],\
-                 'crossval':['*september_%s_norm.csv'%tyear]},
-                {'training':['old_random_new_feat_from_months.csv'],\
-                 'crossval':['*_%s_norm.csv'%tyear]}
                 #{'training':['old_random_new_feat_from_months.csv'],\
-                # 'crossval':['*_norm.csv']}
+                # 'crossval':['*july_%s_norm.csv'%tyear]},
+                #{'training':['old_random_new_feat_from_months.csv'],\
+                # 'crossval':['*august_%s_norm.csv'%tyear]},
+                #{'training':['old_random_new_feat_from_months.csv'],\
+                # 'crossval':['*september_%s_norm.csv'%tyear]},
+                #{'training':['old_random_new_feat_from_months.csv'],\
+                # 'crossval':['*_%s_norm.csv'%tyear]}
+                #{'training':['old_random_new_feat_from_months.csv'],\
+                # 'crossval':['202108*_norm.csv']}
+                {'training':['old_random_new_feat_from_months.csv'],\
+                 'crossval':['%s06*_norm.csv'%tyear]},
+                {'training':['old_random_new_feat_from_months.csv'],\
+                 'crossval':['%s07*_norm.csv'%tyear]},
+                {'training':['old_random_new_feat_from_months.csv'],\
+                 'crossval':['%s08*_norm.csv'%tyear]},
+                {'training':['old_random_new_feat_from_months.csv'],\
+                 'crossval':['%s09*_norm.csv'%tyear]},
                ]
 
     calc_train_metrics = True
-    opt_targets = ['auc', 'f1-score 1', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
-    #opt_targets = ['f1-score 1']
-    #opt_targets = ['auc', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
-    aucthress=0
+    #opt_targets = ['auc', 'f1-score 1', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
+    opt_targets = ['f1-score 1']
     debug = True
-    #modeltype = 'sk'
-    modeltype = 'tf'
-    class0_headrows = 0
-    filespec = "2020_fix_defCV"
-    writescore = True
-    resdir = '/data2/ffp/results/defCV/nn'
-    #resdir = '/work2/pa21/sgirtsou/production/results/newcv/nn/'
-    #cvrespattern = '*_dropfeat_*_mean*'
-    #cvrespattern = '*_dropfeat_1M_*_mean*'
-    cvrespattern = None
-    #filters = ["df_flt['params'].str.contains(\"'dropout': None\")"]
-    filters = ["~df_flt['params'].str.contains(\"'dropout': None\")"]
-    #calib = {'min_temp':-0.15, 'dom_vel': -0.40, 'mean_temp': 0.2, 'mean_dew_temp': 0.2, 'min_dew_temp':0.2 , 'rain_7days': -0.999}
-    calib = {}
-    return testsets, space, testspace, cvrespattern, filters, max_trials, 'random', calc_train_metrics, opt_targets, trainsetdir, testsetdir,\
-           aucthress, modeltype, class0_headrows, filespec, runmode, writescore, resdir, calib, debug
+    modeltype = 'sk'
+    #modeltype = 'tf'
+    cvrownum = 0
+    filedesc = "%s_check_altCV"%tyear
+    aucthress = 0
+    writescores=True
+    #cvrespattern = '*XT_1M_sb*'
+    #cvrespattern = '*XT_1M*mean*'
+    cvrespattern=None
+    return testsets, space, testspace, cvrespattern, [], max_trials, 'random', calc_train_metrics, opt_targets, trainsetdir, testsetdir,\
+           aucthress, modeltype, cvrownum, filedesc, runmode, writescores, resdir, {}, debug
 
