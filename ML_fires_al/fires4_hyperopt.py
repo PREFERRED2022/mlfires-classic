@@ -8,7 +8,7 @@ from functools import partial
 from manage_model import create_model, run_predict_and_metrics, run_predict, fit_model
 import cv_common
 from MLscores import metrics_aggr
-from check_and_prepare_dataset import load_dataset
+from check_and_prepare_old import load_dataset
 
 def drop_all0_features(df):
     for c in df.columns:
@@ -226,7 +226,7 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, id_pd, optimize_target, calc_test, 
     print('Mean %s : %.4f' % (optimize_target,mean_metrics[optimize_target]))
     cv_common.writemetrics(metrics, mean_metrics, hpresfile, allresfile)
     if writescores:
-        cv_common.write_score(scoresfile, id_pd, groups_pd, y_pd, y_scores_all)
+        cv_common.write_score(scoresfile, groups_pd, y_pd, y_scores_all, id_pd)
     return {
         'loss': -mean_metrics[optimize_target],
         'status': STATUS_OK,

@@ -151,7 +151,7 @@ def create_xs_files(creategrid, days, pthreads, cthreads):
         d=days.pop()
         dayscompleted+=[d]
         new_process(procs, d, pthreads, cthreads)
-    while True:
+    while len(procs)>0:
         time.sleep(1)
         for p in procs:
             try:
@@ -160,7 +160,7 @@ def create_xs_files(creategrid, days, pthreads, cthreads):
                 pass
             if not p['proc'].is_alive():
                 procs.remove(p)
-        if len(procs)<pthreads:
+        while len(procs)<pthreads:
             if len(days)==0: break
             d = days.pop()
             dayscompleted += [d]
@@ -172,7 +172,6 @@ creategrid = partial(creategrid_xs_small, rdiff, firstid, gridwidth, gridheight)
 dayfiles=walkmonthdays('/data2/ffp/datasets/daily/')
 #creategrid(dayfiles[0])
 create_xs_files(creategrid, dayfiles, 10, 5)
-
 
 '''
 fday='/data2/ffp/datasets/daily/2021/08/20210803_norm.csv'

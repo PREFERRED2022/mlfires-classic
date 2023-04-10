@@ -6,6 +6,7 @@ INT32 = np.int32
 ctypedef cnp.int32_t INT32_t
 ctypedef cnp.float32_t FLOAT32_t
 from cython cimport view
+from libc.math cimport atan
 import math
 
 cnp.import_array()
@@ -46,15 +47,23 @@ def npapplypar(int nt, cnp.ndarray[INT32_t, ndim=1] ids, long firstid, long rdif
 #    return x[0]
 
 @cython.boundscheck(False)
-cdef void setgridxy(int i, long [:, :] id2xy_mv, float [:, :, :] grid_mv, float [:, :] ids_mv, long firstid, long rdiff) nogil:
+cdef void setgridxy(int i, long [:, :] id2xy_mv, float [:, :, :] grid_mv, float [:, :] ids_mv, long firstid, long rdiff, int intensive=0) nogil:
+    cdef float p
+    cdef float p2
     id2xy_mv[i, 1] = get_grid_y(int(ids_mv[i, 0]), firstid, rdiff)
     id2xy_mv[i, 0] = get_grid_x(int(ids_mv[i, 0]), firstid, rdiff, id2xy_mv[i, 1])
-    grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]
+    if intensive!=-1:
+        grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]
+    if intensive>0:
+        while intensive>0:
+            p = intensive**intensive
+            p2 = atan(p)
+            intensive-=1
 
 # @cython.wraparound(False)
 @cython.boundscheck(False)
 # @cython.nonecheck(False)
-def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto'):
+def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto', intensive=0):
     cdef int i, M, N, res
     M = tab.shape[0]
     id2xy = view.array(shape=(M,2), itemsize=sizeof(long), format="l")
@@ -70,6 +79,7 @@ def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdif
     cdef int threads=math.ceil(M/nt)
     cdef int autochunk=math.floor(M/nt)
     cdef int chunk
+    cdef int intensiveness=intensive
 
     if chunks == 'auto': chunk=autochunk
     else: chunk=chunks
@@ -77,40 +87,18 @@ def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdif
         for i in prange(M, num_threads=nt, nogil=True, schedule='static', chunksize=chunk):
         #with gil:
         #    print(ids_mv[i,0])
-            setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
-        '''
-        id2xy_mv[i,1]=get_grid_y(int(ids_mv[i,0]), firstid, rdiff)
-        id2xy_mv[i,0]=get_grid_x(int(ids_mv[i,0]), firstid, rdiff, id2xy_mv[i,1])
-        #with gil:
-        #    print(id2xy_mv[i,0],id2xy_mv[i,1])
-        grid_mv[id2xy_mv[i,0]-1,id2xy_mv[i,1]-1]=ids_mv[i]
-        '''
+            setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
     elif sched == 'guided':
         for i in prange(M, num_threads=nt, nogil=True, schedule='guided'):
-            setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+            setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
     elif sched == 'dynamic':
         for i in prange(M, num_threads=nt, nogil=True, schedule='dynamic'):
-            setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+            setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
     else:
         for i in prange(M, num_threads=nt, nogil=True):
-            setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+            setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
 
 
     id2xy_py=np.asarray(id2xy_mv)
     grid_py = np.asarray(grid_mv)
     return id2xy_py, grid_py
-
-'''
-for i in prange(threads, nogil=True, schedule='static', chunksize=1):#num_threads=nt, nogil=True):
-    if i<threads-1:
-        for j in range(i*chunk,i*chunk+chunk):
-            id2xy_mv[j, 1] = get_grid_y(int(ids_mv[j, 0]), firstid, rdiff)
-            id2xy_mv[j, 0] = get_grid_x(int(ids_mv[j, 0]), firstid, rdiff, id2xy_mv[j, 1])
-            grid_mv[id2xy_mv[j, 0] - 1, id2xy_mv[j, 1] - 1] = ids_mv[j]
-    else:
-        for j in range(i * chunk, i * chunk + M % nt):
-            id2xy_mv[j, 1] = get_grid_y(int(ids_mv[j, 0]), firstid, rdiff)
-            id2xy_mv[j, 0] = get_grid_x(int(ids_mv[j, 0]), firstid, rdiff, id2xy_mv[j, 1])
-            grid_mv[id2xy_mv[j, 0] - 1, id2xy_mv[j, 1] - 1] = ids_mv[j]
-
-'''

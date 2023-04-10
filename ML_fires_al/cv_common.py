@@ -23,10 +23,11 @@ def writemetrics(metrics, mean_metrics, hpresfile, allresfile):
         for m in metrics:
             dw.writerow(m)
 
-def write_score(fname, id_pd, dates_pd, y_val, y_scores):
+def write_score(fname, dates_pd, y_val, y_scores, id_pd=None):
     if not os.path.exists(fname):
         if id_pd is None:
-            pdscores = pd.Series(y_val).rename('fire').to_frame()
+            #pdscores = pd.Series(y_val).rename('fire').to_frame()
+            pdscores = y_val
         else:
             pdscores = pd.concat([id_pd, dates_pd, y_val], axis=1)
             pdscores['id'].apply(np.int64)

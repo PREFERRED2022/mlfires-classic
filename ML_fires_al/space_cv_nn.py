@@ -61,8 +61,8 @@ def create_space():
              'optimizer': hp.choice('optimizer',[{'name': 'Adam','adam_params':hp.choice('adam_params',[None])}]),
              'ES_monitor':hp.choice('ES_monitor', ['loss']),#'val_loss','loss'
              'ES_patience':hp.choice('ES_patience', [2, 5, 10, 20]),
-             'ES_mindelta': hp.uniform('ES_mindelta', 0.0001, 0.01]),
-             #'ES_mindelta':hp.choice('ES_mindelta', [0.002]),
+             #'ES_mindelta': hp.uniform('ES_mindelta', 0.0001, 0.01]),
+             'ES_mindelta':hp.choice('ES_mindelta', [0.002]),
              'batch_size':hp.choice('batch_size', [512])
              }
     max_trials = 300

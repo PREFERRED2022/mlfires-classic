@@ -703,6 +703,7 @@ static CYTHON_INLINE float __PYX_NAN() {
 
     /* NumPy API declarations from "numpy/__init__.pxd" */
     
+#include <math.h>
 #include "pythread.h"
 #include <stdlib.h>
 #include "pystate.h"
@@ -1254,7 +1255,7 @@ typedef __pyx_t_5numpy_int32_t __pyx_t_5nppar_INT32_t;
  * ctypedef cnp.int32_t INT32_t
  * ctypedef cnp.float32_t FLOAT32_t             # <<<<<<<<<<<<<<
  * from cython cimport view
- * import math
+ * from libc.math cimport atan
  */
 typedef __pyx_t_5numpy_float32_t __pyx_t_5nppar_FLOAT32_t;
 /* Declarations.proto */
@@ -1323,6 +1324,19 @@ typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
  * cdef inline object PyArray_MultiIterNew1(a):
  */
 typedef npy_cdouble __pyx_t_5numpy_complex_t;
+struct __pyx_opt_args_5nppar_setgridxy;
+
+/* "create2Dpar.pyx":50
+ * 
+ * @cython.boundscheck(False)
+ * cdef void setgridxy(int i, long [:, :] id2xy_mv, float [:, :, :] grid_mv, float [:, :] ids_mv, long firstid, long rdiff, int intensive=0) nogil:             # <<<<<<<<<<<<<<
+ *     cdef float p
+ *     cdef float p2
+ */
+struct __pyx_opt_args_5nppar_setgridxy {
+  int __pyx_n;
+  int intensive;
+};
 
 /* "View.MemoryView":105
  * 
@@ -2083,6 +2097,9 @@ static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int
 static CYTHON_INLINE PyObject *__pyx_memview_get_long(const char *itemp);
 static CYTHON_INLINE int __pyx_memview_set_long(const char *itemp, PyObject *obj);
 
+/* IntPow.proto */
+static CYTHON_INLINE int __Pyx_pow_int(int, int);
+
 /* ObjectToMemviewSlice.proto */
 static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsdsds_float(PyObject *, int writable_flag);
 
@@ -2276,6 +2293,8 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void); /*proto*/
 
 /* Module declarations from 'cython' */
 
+/* Module declarations from 'libc.math' */
+
 /* Module declarations from 'nppar' */
 static PyTypeObject *__pyx_array_type = 0;
 static PyTypeObject *__pyx_MemviewEnum_type = 0;
@@ -2290,7 +2309,7 @@ static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
 static long __pyx_f_5nppar_get_grid_x(long, long, long, long); /*proto*/
 static long __pyx_f_5nppar_get_grid_y(long, long, long); /*proto*/
-static void __pyx_f_5nppar_setgridxy(int, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, long, long); /*proto*/
+static void __pyx_f_5nppar_setgridxy(int, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, long, long, struct __pyx_opt_args_5nppar_setgridxy *__pyx_optional_args); /*proto*/
 static struct __pyx_array_obj *__pyx_array_new(PyObject *, Py_ssize_t, char *, char *, char *); /*proto*/
 static void *__pyx_align_pointer(void *, size_t); /*proto*/
 static PyObject *__pyx_memoryview_new(PyObject *, int, int, __Pyx_TypeInfo *); /*proto*/
@@ -2429,6 +2448,7 @@ static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_TypeError[] = "TypeError";
 static const char __pyx_k_autochunk[] = "autochunk";
 static const char __pyx_k_enumerate[] = "enumerate";
+static const char __pyx_k_intensive[] = "intensive";
 static const char __pyx_k_pyx_state[] = "__pyx_state";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_IndexError[] = "IndexError";
@@ -2441,6 +2461,7 @@ static const char __pyx_k_MemoryError[] = "MemoryError";
 static const char __pyx_k_PickleError[] = "PickleError";
 static const char __pyx_k_pyx_checksum[] = "__pyx_checksum";
 static const char __pyx_k_stringsource[] = "stringsource";
+static const char __pyx_k_intensiveness[] = "intensiveness";
 static const char __pyx_k_pyx_getbuffer[] = "__pyx_getbuffer";
 static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_View_MemoryView[] = "View.MemoryView";
@@ -2554,6 +2575,8 @@ static PyObject *__pyx_n_s_ids;
 static PyObject *__pyx_n_s_ids_mv;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_int32;
+static PyObject *__pyx_n_s_intensive;
+static PyObject *__pyx_n_s_intensiveness;
 static PyObject *__pyx_n_s_itemsize;
 static PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
 static PyObject *__pyx_n_s_l;
@@ -2614,7 +2637,7 @@ static PyObject *__pyx_kp_s_unable_to_allocate_shape_and_str;
 static PyObject *__pyx_n_s_unpack;
 static PyObject *__pyx_n_s_update;
 static PyObject *__pyx_pf_5nppar_npapplypar(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED int __pyx_v_nt, PyArrayObject *__pyx_v_ids, long __pyx_v_firstid, long __pyx_v_rdiff); /* proto */
-static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_nt, PyArrayObject *__pyx_v_tab, long __pyx_v_firstid, long __pyx_v_rdiff, PyObject *__pyx_v_gW, PyObject *__pyx_v_gH, PyObject *__pyx_v_sched, PyObject *__pyx_v_chunks); /* proto */
+static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_nt, PyArrayObject *__pyx_v_tab, long __pyx_v_firstid, long __pyx_v_rdiff, PyObject *__pyx_v_gW, PyObject *__pyx_v_gH, PyObject *__pyx_v_sched, PyObject *__pyx_v_chunks, PyObject *__pyx_v_intensive); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array___cinit__(struct __pyx_array_obj *__pyx_v_self, PyObject *__pyx_v_shape, Py_ssize_t __pyx_v_itemsize, PyObject *__pyx_v_format, PyObject *__pyx_v_mode, int __pyx_v_allocate_buffer); /* proto */
 static int __pyx_array___pyx_pf_15View_dot_MemoryView_5array_2__getbuffer__(struct __pyx_array_obj *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_array___pyx_pf_15View_dot_MemoryView_5array_4__dealloc__(struct __pyx_array_obj *__pyx_v_self); /* proto */
@@ -2703,7 +2726,7 @@ static PyObject *__pyx_codeobj__26;
 static PyObject *__pyx_codeobj__33;
 /* Late includes */
 
-/* "create2Dpar.pyx":13
+/* "create2Dpar.pyx":14
  * cnp.import_array()
  * 
  * cdef long* get_grid_xy(long _id, long firstid, long rdiff) nogil:             # <<<<<<<<<<<<<<
@@ -2719,7 +2742,7 @@ static long *__pyx_f_5nppar_get_grid_xy(long __pyx_v__id, long __pyx_v_firstid, 
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
 
-  /* "create2Dpar.pyx":15
+  /* "create2Dpar.pyx":16
  * cdef long* get_grid_xy(long _id, long firstid, long rdiff) nogil:
  *     cdef long[2] res
  *     res[0] = int((_id-firstid)/rdiff) #row             # <<<<<<<<<<<<<<
@@ -2735,7 +2758,7 @@ static long *__pyx_f_5nppar_get_grid_xy(long __pyx_v__id, long __pyx_v_firstid, 
     #ifdef WITH_THREAD
     __Pyx_PyGILState_Release(__pyx_gilstate_save);
     #endif
-    __PYX_ERR(0, 15, __pyx_L1_error)
+    __PYX_ERR(0, 16, __pyx_L1_error)
   }
   else if (sizeof(long) == sizeof(long) && (!(((long)-1) > 0)) && unlikely(__pyx_v_rdiff == (long)-1)  && unlikely(UNARY_NEG_WOULD_OVERFLOW(__pyx_t_1))) {
     #ifdef WITH_THREAD
@@ -2745,11 +2768,11 @@ static long *__pyx_f_5nppar_get_grid_xy(long __pyx_v__id, long __pyx_v_firstid, 
     #ifdef WITH_THREAD
     __Pyx_PyGILState_Release(__pyx_gilstate_save);
     #endif
-    __PYX_ERR(0, 15, __pyx_L1_error)
+    __PYX_ERR(0, 16, __pyx_L1_error)
   }
   (__pyx_v_res[0]) = __Pyx_div_long(__pyx_t_1, __pyx_v_rdiff);
 
-  /* "create2Dpar.pyx":16
+  /* "create2Dpar.pyx":17
  *     cdef long[2] res
  *     res[0] = int((_id-firstid)/rdiff) #row
  *     res[1] = _id-firstid-rdiff*res[0] #col             # <<<<<<<<<<<<<<
@@ -2758,7 +2781,7 @@ static long *__pyx_f_5nppar_get_grid_xy(long __pyx_v__id, long __pyx_v_firstid, 
  */
   (__pyx_v_res[1]) = ((__pyx_v__id - __pyx_v_firstid) - (__pyx_v_rdiff * (__pyx_v_res[0])));
 
-  /* "create2Dpar.pyx":17
+  /* "create2Dpar.pyx":18
  *     res[0] = int((_id-firstid)/rdiff) #row
  *     res[1] = _id-firstid-rdiff*res[0] #col
  *     return res             # <<<<<<<<<<<<<<
@@ -2768,7 +2791,7 @@ static long *__pyx_f_5nppar_get_grid_xy(long __pyx_v__id, long __pyx_v_firstid, 
   __pyx_r = __pyx_v_res;
   goto __pyx_L0;
 
-  /* "create2Dpar.pyx":13
+  /* "create2Dpar.pyx":14
  * cnp.import_array()
  * 
  * cdef long* get_grid_xy(long _id, long firstid, long rdiff) nogil:             # <<<<<<<<<<<<<<
@@ -2784,7 +2807,7 @@ static long *__pyx_f_5nppar_get_grid_xy(long __pyx_v__id, long __pyx_v_firstid, 
   return __pyx_r;
 }
 
-/* "create2Dpar.pyx":19
+/* "create2Dpar.pyx":20
  *     return res
  * 
  * cdef long get_grid_x(long _id, long firstid, long rdiff, long row) nogil:             # <<<<<<<<<<<<<<
@@ -2796,7 +2819,7 @@ static long __pyx_f_5nppar_get_grid_x(long __pyx_v__id, long __pyx_v_firstid, lo
   int __pyx_v_col;
   long __pyx_r;
 
-  /* "create2Dpar.pyx":21
+  /* "create2Dpar.pyx":22
  * cdef long get_grid_x(long _id, long firstid, long rdiff, long row) nogil:
  *     cdef int col
  *     col = _id-firstid-rdiff*row #col             # <<<<<<<<<<<<<<
@@ -2805,7 +2828,7 @@ static long __pyx_f_5nppar_get_grid_x(long __pyx_v__id, long __pyx_v_firstid, lo
  */
   __pyx_v_col = ((__pyx_v__id - __pyx_v_firstid) - (__pyx_v_rdiff * __pyx_v_row));
 
-  /* "create2Dpar.pyx":22
+  /* "create2Dpar.pyx":23
  *     cdef int col
  *     col = _id-firstid-rdiff*row #col
  *     return col             # <<<<<<<<<<<<<<
@@ -2815,7 +2838,7 @@ static long __pyx_f_5nppar_get_grid_x(long __pyx_v__id, long __pyx_v_firstid, lo
   __pyx_r = __pyx_v_col;
   goto __pyx_L0;
 
-  /* "create2Dpar.pyx":19
+  /* "create2Dpar.pyx":20
  *     return res
  * 
  * cdef long get_grid_x(long _id, long firstid, long rdiff, long row) nogil:             # <<<<<<<<<<<<<<
@@ -2828,7 +2851,7 @@ static long __pyx_f_5nppar_get_grid_x(long __pyx_v__id, long __pyx_v_firstid, lo
   return __pyx_r;
 }
 
-/* "create2Dpar.pyx":24
+/* "create2Dpar.pyx":25
  *     return col
  * 
  * cdef long get_grid_y(long _id, long firstid, long rdiff) nogil:             # <<<<<<<<<<<<<<
@@ -2844,7 +2867,7 @@ static long __pyx_f_5nppar_get_grid_y(long __pyx_v__id, long __pyx_v_firstid, lo
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
 
-  /* "create2Dpar.pyx":26
+  /* "create2Dpar.pyx":27
  * cdef long get_grid_y(long _id, long firstid, long rdiff) nogil:
  *     cdef int row
  *     row = int((_id-firstid)/rdiff) #row             # <<<<<<<<<<<<<<
@@ -2860,7 +2883,7 @@ static long __pyx_f_5nppar_get_grid_y(long __pyx_v__id, long __pyx_v_firstid, lo
     #ifdef WITH_THREAD
     __Pyx_PyGILState_Release(__pyx_gilstate_save);
     #endif
-    __PYX_ERR(0, 26, __pyx_L1_error)
+    __PYX_ERR(0, 27, __pyx_L1_error)
   }
   else if (sizeof(long) == sizeof(long) && (!(((long)-1) > 0)) && unlikely(__pyx_v_rdiff == (long)-1)  && unlikely(UNARY_NEG_WOULD_OVERFLOW(__pyx_t_1))) {
     #ifdef WITH_THREAD
@@ -2870,11 +2893,11 @@ static long __pyx_f_5nppar_get_grid_y(long __pyx_v__id, long __pyx_v_firstid, lo
     #ifdef WITH_THREAD
     __Pyx_PyGILState_Release(__pyx_gilstate_save);
     #endif
-    __PYX_ERR(0, 26, __pyx_L1_error)
+    __PYX_ERR(0, 27, __pyx_L1_error)
   }
   __pyx_v_row = ((int)__Pyx_div_long(__pyx_t_1, __pyx_v_rdiff));
 
-  /* "create2Dpar.pyx":27
+  /* "create2Dpar.pyx":28
  *     cdef int row
  *     row = int((_id-firstid)/rdiff) #row
  *     return row             # <<<<<<<<<<<<<<
@@ -2884,7 +2907,7 @@ static long __pyx_f_5nppar_get_grid_y(long __pyx_v__id, long __pyx_v_firstid, lo
   __pyx_r = __pyx_v_row;
   goto __pyx_L0;
 
-  /* "create2Dpar.pyx":24
+  /* "create2Dpar.pyx":25
  *     return col
  * 
  * cdef long get_grid_y(long _id, long firstid, long rdiff) nogil:             # <<<<<<<<<<<<<<
@@ -2900,7 +2923,7 @@ static long __pyx_f_5nppar_get_grid_y(long __pyx_v__id, long __pyx_v_firstid, lo
   return __pyx_r;
 }
 
-/* "create2Dpar.pyx":33
+/* "create2Dpar.pyx":34
  * @cython.boundscheck(False)
  * @cython.nonecheck(False)
  * def npapplypar(int nt, cnp.ndarray[INT32_t, ndim=1] ids, long firstid, long rdiff):             # <<<<<<<<<<<<<<
@@ -2949,23 +2972,23 @@ static PyObject *__pyx_pw_5nppar_1npapplypar(PyObject *__pyx_self, PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ids)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("npapplypar", 1, 4, 4, 1); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("npapplypar", 1, 4, 4, 1); __PYX_ERR(0, 34, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_firstid)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("npapplypar", 1, 4, 4, 2); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("npapplypar", 1, 4, 4, 2); __PYX_ERR(0, 34, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_rdiff)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("npapplypar", 1, 4, 4, 3); __PYX_ERR(0, 33, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("npapplypar", 1, 4, 4, 3); __PYX_ERR(0, 34, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "npapplypar") < 0)) __PYX_ERR(0, 33, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "npapplypar") < 0)) __PYX_ERR(0, 34, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
@@ -2975,20 +2998,20 @@ static PyObject *__pyx_pw_5nppar_1npapplypar(PyObject *__pyx_self, PyObject *__p
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
       values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
-    __pyx_v_nt = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_nt == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
+    __pyx_v_nt = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_nt == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L3_error)
     __pyx_v_ids = ((PyArrayObject *)values[1]);
-    __pyx_v_firstid = __Pyx_PyInt_As_long(values[2]); if (unlikely((__pyx_v_firstid == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
-    __pyx_v_rdiff = __Pyx_PyInt_As_long(values[3]); if (unlikely((__pyx_v_rdiff == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
+    __pyx_v_firstid = __Pyx_PyInt_As_long(values[2]); if (unlikely((__pyx_v_firstid == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L3_error)
+    __pyx_v_rdiff = __Pyx_PyInt_As_long(values[3]); if (unlikely((__pyx_v_rdiff == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 34, __pyx_L3_error)
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("npapplypar", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 33, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("npapplypar", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 34, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("nppar.npapplypar", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ids), __pyx_ptype_5numpy_ndarray, 1, "ids", 0))) __PYX_ERR(0, 33, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_ids), __pyx_ptype_5numpy_ndarray, 1, "ids", 0))) __PYX_ERR(0, 34, __pyx_L1_error)
   __pyx_r = __pyx_pf_5nppar_npapplypar(__pyx_self, __pyx_v_nt, __pyx_v_ids, __pyx_v_firstid, __pyx_v_rdiff);
 
   /* function exit code */
@@ -3035,11 +3058,11 @@ static PyObject *__pyx_pf_5nppar_npapplypar(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_pybuffernd_ids.rcbuffer = &__pyx_pybuffer_ids;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_ids.rcbuffer->pybuffer, (PyObject*)__pyx_v_ids, &__Pyx_TypeInfo_nn___pyx_t_5nppar_INT32_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 33, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_ids.rcbuffer->pybuffer, (PyObject*)__pyx_v_ids, &__Pyx_TypeInfo_nn___pyx_t_5nppar_INT32_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 34, __pyx_L1_error)
   }
   __pyx_pybuffernd_ids.diminfo[0].strides = __pyx_pybuffernd_ids.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_ids.diminfo[0].shape = __pyx_pybuffernd_ids.rcbuffer->pybuffer.shape[0];
 
-  /* "create2Dpar.pyx":35
+  /* "create2Dpar.pyx":36
  * def npapplypar(int nt, cnp.ndarray[INT32_t, ndim=1] ids, long firstid, long rdiff):
  *     cdef int i, M, res
  *     M = ids.shape[0]             # <<<<<<<<<<<<<<
@@ -3048,18 +3071,18 @@ static PyObject *__pyx_pf_5nppar_npapplypar(CYTHON_UNUSED PyObject *__pyx_self, 
  */
   __pyx_v_M = (__pyx_v_ids->dimensions[0]);
 
-  /* "create2Dpar.pyx":36
+  /* "create2Dpar.pyx":37
  *     cdef int i, M, res
  *     M = ids.shape[0]
  *     id2xy = view.array(shape=(M,2), itemsize=sizeof(long), format="l")             # <<<<<<<<<<<<<<
  *     cdef long [:, :] id2xy_mv = id2xy
  *     cdef int [:] ids_mv = ids
  */
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_M); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_M); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
@@ -3067,44 +3090,44 @@ static PyObject *__pyx_pf_5nppar_npapplypar(CYTHON_UNUSED PyObject *__pyx_self, 
   __Pyx_GIVEREF(__pyx_int_2);
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_int_2);
   __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_shape, __pyx_t_3) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_shape, __pyx_t_3) < 0) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_FromSize_t((sizeof(long))); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_FromSize_t((sizeof(long))); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_itemsize, __pyx_t_3) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_itemsize, __pyx_t_3) < 0) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_format, __pyx_n_s_l) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_array_type), __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 36, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_format, __pyx_n_s_l) < 0) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_array_type), __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_id2xy = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "create2Dpar.pyx":37
+  /* "create2Dpar.pyx":38
  *     M = ids.shape[0]
  *     id2xy = view.array(shape=(M,2), itemsize=sizeof(long), format="l")
  *     cdef long [:, :] id2xy_mv = id2xy             # <<<<<<<<<<<<<<
  *     cdef int [:] ids_mv = ids
  *     for i in prange(M, num_threads=nt, nogil=True):
  */
-  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_dsds_long(__pyx_v_id2xy, PyBUF_WRITABLE); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_to_MemoryviewSlice_dsds_long(__pyx_v_id2xy, PyBUF_WRITABLE); if (unlikely(!__pyx_t_4.memview)) __PYX_ERR(0, 38, __pyx_L1_error)
   __pyx_v_id2xy_mv = __pyx_t_4;
   __pyx_t_4.memview = NULL;
   __pyx_t_4.data = NULL;
 
-  /* "create2Dpar.pyx":38
+  /* "create2Dpar.pyx":39
  *     id2xy = view.array(shape=(M,2), itemsize=sizeof(long), format="l")
  *     cdef long [:, :] id2xy_mv = id2xy
  *     cdef int [:] ids_mv = ids             # <<<<<<<<<<<<<<
  *     for i in prange(M, num_threads=nt, nogil=True):
  *         id2xy_mv[i,1]=get_grid_y(ids_mv[i], firstid, rdiff)
  */
-  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(((PyObject *)__pyx_v_ids), PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(((PyObject *)__pyx_v_ids), PyBUF_WRITABLE); if (unlikely(!__pyx_t_5.memview)) __PYX_ERR(0, 39, __pyx_L1_error)
   __pyx_v_ids_mv = __pyx_t_5;
   __pyx_t_5.memview = NULL;
   __pyx_t_5.data = NULL;
 
-  /* "create2Dpar.pyx":39
+  /* "create2Dpar.pyx":40
  *     cdef long [:, :] id2xy_mv = id2xy
  *     cdef int [:] ids_mv = ids
  *     for i in prange(M, num_threads=nt, nogil=True):             # <<<<<<<<<<<<<<
@@ -3141,7 +3164,7 @@ static PyObject *__pyx_pf_5nppar_npapplypar(CYTHON_UNUSED PyObject *__pyx_self, 
                         {
                             __pyx_v_i = (int)(0 + 1 * __pyx_t_7);
 
-                            /* "create2Dpar.pyx":40
+                            /* "create2Dpar.pyx":41
  *     cdef int [:] ids_mv = ids
  *     for i in prange(M, num_threads=nt, nogil=True):
  *         id2xy_mv[i,1]=get_grid_y(ids_mv[i], firstid, rdiff)             # <<<<<<<<<<<<<<
@@ -3153,7 +3176,7 @@ static PyObject *__pyx_pf_5nppar_npapplypar(CYTHON_UNUSED PyObject *__pyx_self, 
                             __pyx_t_11 = 1;
                             *((long *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_id2xy_mv.data + __pyx_t_10 * __pyx_v_id2xy_mv.strides[0]) ) + __pyx_t_11 * __pyx_v_id2xy_mv.strides[1]) )) = __pyx_f_5nppar_get_grid_y((*((int *) ( /* dim=0 */ (__pyx_v_ids_mv.data + __pyx_t_9 * __pyx_v_ids_mv.strides[0]) ))), __pyx_v_firstid, __pyx_v_rdiff);
 
-                            /* "create2Dpar.pyx":41
+                            /* "create2Dpar.pyx":42
  *     for i in prange(M, num_threads=nt, nogil=True):
  *         id2xy_mv[i,1]=get_grid_y(ids_mv[i], firstid, rdiff)
  *         id2xy_mv[i,0]=get_grid_x(ids_mv[i], firstid, rdiff, id2xy_mv[i,1])             # <<<<<<<<<<<<<<
@@ -3179,7 +3202,7 @@ static PyObject *__pyx_pf_5nppar_npapplypar(CYTHON_UNUSED PyObject *__pyx_self, 
         #endif
       }
 
-      /* "create2Dpar.pyx":39
+      /* "create2Dpar.pyx":40
  *     cdef long [:, :] id2xy_mv = id2xy
  *     cdef int [:] ids_mv = ids
  *     for i in prange(M, num_threads=nt, nogil=True):             # <<<<<<<<<<<<<<
@@ -3198,19 +3221,19 @@ static PyObject *__pyx_pf_5nppar_npapplypar(CYTHON_UNUSED PyObject *__pyx_self, 
       }
   }
 
-  /* "create2Dpar.pyx":42
+  /* "create2Dpar.pyx":43
  *         id2xy_mv[i,1]=get_grid_y(ids_mv[i], firstid, rdiff)
  *         id2xy_mv[i,0]=get_grid_x(ids_mv[i], firstid, rdiff, id2xy_mv[i,1])
  *     id2xypy=np.asarray(id2xy_mv)             # <<<<<<<<<<<<<<
  *     return id2xypy
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_id2xy_mv, 2, (PyObject *(*)(char *)) __pyx_memview_get_long, (int (*)(char *, PyObject *)) __pyx_memview_set_long, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = __pyx_memoryview_fromslice(__pyx_v_id2xy_mv, 2, (PyObject *(*)(char *)) __pyx_memview_get_long, (int (*)(char *, PyObject *)) __pyx_memview_set_long, 0);; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_14 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -3225,13 +3248,13 @@ static PyObject *__pyx_pf_5nppar_npapplypar(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_t_3 = (__pyx_t_14) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_14, __pyx_t_1) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1);
   __Pyx_XDECREF(__pyx_t_14); __pyx_t_14 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 42, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_id2xypy = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "create2Dpar.pyx":43
+  /* "create2Dpar.pyx":44
  *         id2xy_mv[i,0]=get_grid_x(ids_mv[i], firstid, rdiff, id2xy_mv[i,1])
  *     id2xypy=np.asarray(id2xy_mv)
  *     return id2xypy             # <<<<<<<<<<<<<<
@@ -3243,7 +3266,7 @@ static PyObject *__pyx_pf_5nppar_npapplypar(CYTHON_UNUSED PyObject *__pyx_self, 
   __pyx_r = __pyx_v_id2xypy;
   goto __pyx_L0;
 
-  /* "create2Dpar.pyx":33
+  /* "create2Dpar.pyx":34
  * @cython.boundscheck(False)
  * @cython.nonecheck(False)
  * def npapplypar(int nt, cnp.ndarray[INT32_t, ndim=1] ids, long firstid, long rdiff):             # <<<<<<<<<<<<<<
@@ -3280,33 +3303,42 @@ static PyObject *__pyx_pf_5nppar_npapplypar(CYTHON_UNUSED PyObject *__pyx_self, 
   return __pyx_r;
 }
 
-/* "create2Dpar.pyx":49
+/* "create2Dpar.pyx":50
  * 
  * @cython.boundscheck(False)
- * cdef void setgridxy(int i, long [:, :] id2xy_mv, float [:, :, :] grid_mv, float [:, :] ids_mv, long firstid, long rdiff) nogil:             # <<<<<<<<<<<<<<
- *     id2xy_mv[i, 1] = get_grid_y(int(ids_mv[i, 0]), firstid, rdiff)
- *     id2xy_mv[i, 0] = get_grid_x(int(ids_mv[i, 0]), firstid, rdiff, id2xy_mv[i, 1])
+ * cdef void setgridxy(int i, long [:, :] id2xy_mv, float [:, :, :] grid_mv, float [:, :] ids_mv, long firstid, long rdiff, int intensive=0) nogil:             # <<<<<<<<<<<<<<
+ *     cdef float p
+ *     cdef float p2
  */
 
-static void __pyx_f_5nppar_setgridxy(int __pyx_v_i, __Pyx_memviewslice __pyx_v_id2xy_mv, __Pyx_memviewslice __pyx_v_grid_mv, __Pyx_memviewslice __pyx_v_ids_mv, long __pyx_v_firstid, long __pyx_v_rdiff) {
+static void __pyx_f_5nppar_setgridxy(int __pyx_v_i, __Pyx_memviewslice __pyx_v_id2xy_mv, __Pyx_memviewslice __pyx_v_grid_mv, __Pyx_memviewslice __pyx_v_ids_mv, long __pyx_v_firstid, long __pyx_v_rdiff, struct __pyx_opt_args_5nppar_setgridxy *__pyx_optional_args) {
+  int __pyx_v_intensive = ((int)0);
+  float __pyx_v_p;
+  CYTHON_UNUSED float __pyx_v_p2;
   Py_ssize_t __pyx_t_1;
   Py_ssize_t __pyx_t_2;
   Py_ssize_t __pyx_t_3;
   Py_ssize_t __pyx_t_4;
   Py_ssize_t __pyx_t_5;
   Py_ssize_t __pyx_t_6;
-  __Pyx_memviewslice __pyx_t_7 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_t_7;
   __Pyx_memviewslice __pyx_t_8 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_t_9 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
+  if (__pyx_optional_args) {
+    if (__pyx_optional_args->__pyx_n > 0) {
+      __pyx_v_intensive = __pyx_optional_args->intensive;
+    }
+  }
 
-  /* "create2Dpar.pyx":50
- * @cython.boundscheck(False)
- * cdef void setgridxy(int i, long [:, :] id2xy_mv, float [:, :, :] grid_mv, float [:, :] ids_mv, long firstid, long rdiff) nogil:
+  /* "create2Dpar.pyx":53
+ *     cdef float p
+ *     cdef float p2
  *     id2xy_mv[i, 1] = get_grid_y(int(ids_mv[i, 0]), firstid, rdiff)             # <<<<<<<<<<<<<<
  *     id2xy_mv[i, 0] = get_grid_x(int(ids_mv[i, 0]), firstid, rdiff, id2xy_mv[i, 1])
- *     grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]
+ *     if intensive!=-1:
  */
   __pyx_t_1 = __pyx_v_i;
   __pyx_t_2 = 0;
@@ -3318,12 +3350,12 @@ static void __pyx_f_5nppar_setgridxy(int __pyx_v_i, __Pyx_memviewslice __pyx_v_i
   if (__pyx_t_4 < 0) __pyx_t_4 += __pyx_v_id2xy_mv.shape[1];
   *((long *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_id2xy_mv.data + __pyx_t_3 * __pyx_v_id2xy_mv.strides[0]) ) + __pyx_t_4 * __pyx_v_id2xy_mv.strides[1]) )) = __pyx_f_5nppar_get_grid_y(((long)(*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_ids_mv.data + __pyx_t_1 * __pyx_v_ids_mv.strides[0]) ) + __pyx_t_2 * __pyx_v_ids_mv.strides[1]) )))), __pyx_v_firstid, __pyx_v_rdiff);
 
-  /* "create2Dpar.pyx":51
- * cdef void setgridxy(int i, long [:, :] id2xy_mv, float [:, :, :] grid_mv, float [:, :] ids_mv, long firstid, long rdiff) nogil:
+  /* "create2Dpar.pyx":54
+ *     cdef float p2
  *     id2xy_mv[i, 1] = get_grid_y(int(ids_mv[i, 0]), firstid, rdiff)
  *     id2xy_mv[i, 0] = get_grid_x(int(ids_mv[i, 0]), firstid, rdiff, id2xy_mv[i, 1])             # <<<<<<<<<<<<<<
- *     grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]
- * 
+ *     if intensive!=-1:
+ *         grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]
  */
   __pyx_t_2 = __pyx_v_i;
   __pyx_t_1 = 0;
@@ -3339,47 +3371,57 @@ static void __pyx_f_5nppar_setgridxy(int __pyx_v_i, __Pyx_memviewslice __pyx_v_i
   if (__pyx_t_6 < 0) __pyx_t_6 += __pyx_v_id2xy_mv.shape[1];
   *((long *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_id2xy_mv.data + __pyx_t_5 * __pyx_v_id2xy_mv.strides[0]) ) + __pyx_t_6 * __pyx_v_id2xy_mv.strides[1]) )) = __pyx_f_5nppar_get_grid_x(((long)(*((float *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_ids_mv.data + __pyx_t_2 * __pyx_v_ids_mv.strides[0]) ) + __pyx_t_1 * __pyx_v_ids_mv.strides[1]) )))), __pyx_v_firstid, __pyx_v_rdiff, (*((long *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_id2xy_mv.data + __pyx_t_4 * __pyx_v_id2xy_mv.strides[0]) ) + __pyx_t_3 * __pyx_v_id2xy_mv.strides[1]) ))));
 
-  /* "create2Dpar.pyx":52
+  /* "create2Dpar.pyx":55
  *     id2xy_mv[i, 1] = get_grid_y(int(ids_mv[i, 0]), firstid, rdiff)
  *     id2xy_mv[i, 0] = get_grid_x(int(ids_mv[i, 0]), firstid, rdiff, id2xy_mv[i, 1])
- *     grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]             # <<<<<<<<<<<<<<
- * 
- * # @cython.wraparound(False)
+ *     if intensive!=-1:             # <<<<<<<<<<<<<<
+ *         grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]
+ *     if intensive>0:
  */
-  __pyx_t_7.data = __pyx_v_ids_mv.data;
-  __pyx_t_7.memview = __pyx_v_ids_mv.memview;
-  __PYX_INC_MEMVIEW(&__pyx_t_7, 0);
-  {
+  __pyx_t_7 = ((__pyx_v_intensive != -1L) != 0);
+  if (__pyx_t_7) {
+
+    /* "create2Dpar.pyx":56
+ *     id2xy_mv[i, 0] = get_grid_x(int(ids_mv[i, 0]), firstid, rdiff, id2xy_mv[i, 1])
+ *     if intensive!=-1:
+ *         grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]             # <<<<<<<<<<<<<<
+ *     if intensive>0:
+ *         while intensive>0:
+ */
+    __pyx_t_8.data = __pyx_v_ids_mv.data;
+    __pyx_t_8.memview = __pyx_v_ids_mv.memview;
+    __PYX_INC_MEMVIEW(&__pyx_t_8, 0);
+    {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_i;
         Py_ssize_t __pyx_tmp_shape = __pyx_v_ids_mv.shape[0];
     Py_ssize_t __pyx_tmp_stride = __pyx_v_ids_mv.strides[0];
         if (__pyx_tmp_idx < 0)
             __pyx_tmp_idx += __pyx_tmp_shape;
-        __pyx_t_7.data += __pyx_tmp_idx * __pyx_tmp_stride;
+        __pyx_t_8.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-__pyx_t_7.shape[0] = __pyx_v_ids_mv.shape[1];
-__pyx_t_7.strides[0] = __pyx_v_ids_mv.strides[1];
-    __pyx_t_7.suboffsets[0] = -1;
+__pyx_t_8.shape[0] = __pyx_v_ids_mv.shape[1];
+__pyx_t_8.strides[0] = __pyx_v_ids_mv.strides[1];
+    __pyx_t_8.suboffsets[0] = -1;
 
 __pyx_t_3 = __pyx_v_i;
-  __pyx_t_4 = 0;
-  if (__pyx_t_3 < 0) __pyx_t_3 += __pyx_v_id2xy_mv.shape[0];
-  if (__pyx_t_4 < 0) __pyx_t_4 += __pyx_v_id2xy_mv.shape[1];
-  __pyx_t_1 = __pyx_v_i;
-  __pyx_t_2 = 1;
-  if (__pyx_t_1 < 0) __pyx_t_1 += __pyx_v_id2xy_mv.shape[0];
-  if (__pyx_t_2 < 0) __pyx_t_2 += __pyx_v_id2xy_mv.shape[1];
-  __pyx_t_8.data = __pyx_v_grid_mv.data;
-  __pyx_t_8.memview = __pyx_v_grid_mv.memview;
-  __PYX_INC_MEMVIEW(&__pyx_t_8, 0);
-  {
+    __pyx_t_4 = 0;
+    if (__pyx_t_3 < 0) __pyx_t_3 += __pyx_v_id2xy_mv.shape[0];
+    if (__pyx_t_4 < 0) __pyx_t_4 += __pyx_v_id2xy_mv.shape[1];
+    __pyx_t_1 = __pyx_v_i;
+    __pyx_t_2 = 1;
+    if (__pyx_t_1 < 0) __pyx_t_1 += __pyx_v_id2xy_mv.shape[0];
+    if (__pyx_t_2 < 0) __pyx_t_2 += __pyx_v_id2xy_mv.shape[1];
+    __pyx_t_9.data = __pyx_v_grid_mv.data;
+    __pyx_t_9.memview = __pyx_v_grid_mv.memview;
+    __PYX_INC_MEMVIEW(&__pyx_t_9, 0);
+    {
     Py_ssize_t __pyx_tmp_idx = ((*((long *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_id2xy_mv.data + __pyx_t_3 * __pyx_v_id2xy_mv.strides[0]) ) + __pyx_t_4 * __pyx_v_id2xy_mv.strides[1]) ))) - 1);
         Py_ssize_t __pyx_tmp_shape = __pyx_v_grid_mv.shape[0];
     Py_ssize_t __pyx_tmp_stride = __pyx_v_grid_mv.strides[0];
         if (__pyx_tmp_idx < 0)
             __pyx_tmp_idx += __pyx_tmp_shape;
-        __pyx_t_8.data += __pyx_tmp_idx * __pyx_tmp_stride;
+        __pyx_t_9.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
 {
@@ -3388,42 +3430,109 @@ __pyx_t_3 = __pyx_v_i;
     Py_ssize_t __pyx_tmp_stride = __pyx_v_grid_mv.strides[1];
         if (__pyx_tmp_idx < 0)
             __pyx_tmp_idx += __pyx_tmp_shape;
-        __pyx_t_8.data += __pyx_tmp_idx * __pyx_tmp_stride;
+        __pyx_t_9.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
-__pyx_t_8.shape[0] = __pyx_v_grid_mv.shape[2];
-__pyx_t_8.strides[0] = __pyx_v_grid_mv.strides[2];
-    __pyx_t_8.suboffsets[0] = -1;
+__pyx_t_9.shape[0] = __pyx_v_grid_mv.shape[2];
+__pyx_t_9.strides[0] = __pyx_v_grid_mv.strides[2];
+    __pyx_t_9.suboffsets[0] = -1;
 
-if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_7, __pyx_t_8, 1, 1, 0) < 0)) __PYX_ERR(0, 52, __pyx_L1_error)
-  __PYX_XDEC_MEMVIEW(&__pyx_t_8, 0);
-  __pyx_t_8.memview = NULL;
-  __pyx_t_8.data = NULL;
-  __PYX_XDEC_MEMVIEW(&__pyx_t_7, 0);
-  __pyx_t_7.memview = NULL;
-  __pyx_t_7.data = NULL;
+if (unlikely(__pyx_memoryview_copy_contents(__pyx_t_8, __pyx_t_9, 1, 1, 0) < 0)) __PYX_ERR(0, 56, __pyx_L1_error)
+    __PYX_XDEC_MEMVIEW(&__pyx_t_9, 0);
+    __pyx_t_9.memview = NULL;
+    __pyx_t_9.data = NULL;
+    __PYX_XDEC_MEMVIEW(&__pyx_t_8, 0);
+    __pyx_t_8.memview = NULL;
+    __pyx_t_8.data = NULL;
 
-  /* "create2Dpar.pyx":49
- * 
- * @cython.boundscheck(False)
- * cdef void setgridxy(int i, long [:, :] id2xy_mv, float [:, :, :] grid_mv, float [:, :] ids_mv, long firstid, long rdiff) nogil:             # <<<<<<<<<<<<<<
+    /* "create2Dpar.pyx":55
  *     id2xy_mv[i, 1] = get_grid_y(int(ids_mv[i, 0]), firstid, rdiff)
  *     id2xy_mv[i, 0] = get_grid_x(int(ids_mv[i, 0]), firstid, rdiff, id2xy_mv[i, 1])
+ *     if intensive!=-1:             # <<<<<<<<<<<<<<
+ *         grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]
+ *     if intensive>0:
+ */
+  }
+
+  /* "create2Dpar.pyx":57
+ *     if intensive!=-1:
+ *         grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]
+ *     if intensive>0:             # <<<<<<<<<<<<<<
+ *         while intensive>0:
+ *             p = intensive**intensive
+ */
+  __pyx_t_7 = ((__pyx_v_intensive > 0) != 0);
+  if (__pyx_t_7) {
+
+    /* "create2Dpar.pyx":58
+ *         grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]
+ *     if intensive>0:
+ *         while intensive>0:             # <<<<<<<<<<<<<<
+ *             p = intensive**intensive
+ *             p2 = atan(p)
+ */
+    while (1) {
+      __pyx_t_7 = ((__pyx_v_intensive > 0) != 0);
+      if (!__pyx_t_7) break;
+
+      /* "create2Dpar.pyx":59
+ *     if intensive>0:
+ *         while intensive>0:
+ *             p = intensive**intensive             # <<<<<<<<<<<<<<
+ *             p2 = atan(p)
+ *             intensive-=1
+ */
+      __pyx_v_p = __Pyx_pow_int(__pyx_v_intensive, __pyx_v_intensive);
+
+      /* "create2Dpar.pyx":60
+ *         while intensive>0:
+ *             p = intensive**intensive
+ *             p2 = atan(p)             # <<<<<<<<<<<<<<
+ *             intensive-=1
+ * 
+ */
+      __pyx_v_p2 = atan(__pyx_v_p);
+
+      /* "create2Dpar.pyx":61
+ *             p = intensive**intensive
+ *             p2 = atan(p)
+ *             intensive-=1             # <<<<<<<<<<<<<<
+ * 
+ * # @cython.wraparound(False)
+ */
+      __pyx_v_intensive = (__pyx_v_intensive - 1);
+    }
+
+    /* "create2Dpar.pyx":57
+ *     if intensive!=-1:
+ *         grid_mv[id2xy_mv[i, 0] - 1, id2xy_mv[i, 1] - 1] = ids_mv[i]
+ *     if intensive>0:             # <<<<<<<<<<<<<<
+ *         while intensive>0:
+ *             p = intensive**intensive
+ */
+  }
+
+  /* "create2Dpar.pyx":50
+ * 
+ * @cython.boundscheck(False)
+ * cdef void setgridxy(int i, long [:, :] id2xy_mv, float [:, :, :] grid_mv, float [:, :] ids_mv, long firstid, long rdiff, int intensive=0) nogil:             # <<<<<<<<<<<<<<
+ *     cdef float p
+ *     cdef float p2
  */
 
   /* function exit code */
   goto __pyx_L0;
   __pyx_L1_error:;
-  __PYX_XDEC_MEMVIEW(&__pyx_t_7, 0);
   __PYX_XDEC_MEMVIEW(&__pyx_t_8, 0);
+  __PYX_XDEC_MEMVIEW(&__pyx_t_9, 0);
   __Pyx_WriteUnraisable("nppar.setgridxy", __pyx_clineno, __pyx_lineno, __pyx_filename, 1, 1);
   __pyx_L0:;
 }
 
-/* "create2Dpar.pyx":57
+/* "create2Dpar.pyx":66
  * @cython.boundscheck(False)
  * # @cython.nonecheck(False)
- * def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto'):             # <<<<<<<<<<<<<<
+ * def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto', intensive=0):             # <<<<<<<<<<<<<<
  *     cdef int i, M, N, res
  *     M = tab.shape[0]
  */
@@ -3440,6 +3549,7 @@ static PyObject *__pyx_pw_5nppar_3fillcube(PyObject *__pyx_self, PyObject *__pyx
   PyObject *__pyx_v_gH = 0;
   PyObject *__pyx_v_sched = 0;
   PyObject *__pyx_v_chunks = 0;
+  PyObject *__pyx_v_intensive = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -3447,14 +3557,17 @@ static PyObject *__pyx_pw_5nppar_3fillcube(PyObject *__pyx_self, PyObject *__pyx
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("fillcube (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_nt,&__pyx_n_s_tab,&__pyx_n_s_firstid,&__pyx_n_s_rdiff,&__pyx_n_s_gW,&__pyx_n_s_gH,&__pyx_n_s_sched,&__pyx_n_s_chunks,0};
-    PyObject* values[8] = {0,0,0,0,0,0,0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_nt,&__pyx_n_s_tab,&__pyx_n_s_firstid,&__pyx_n_s_rdiff,&__pyx_n_s_gW,&__pyx_n_s_gH,&__pyx_n_s_sched,&__pyx_n_s_chunks,&__pyx_n_s_intensive,0};
+    PyObject* values[9] = {0,0,0,0,0,0,0,0,0};
     values[6] = ((PyObject *)Py_None);
     values[7] = ((PyObject *)__pyx_n_s_auto);
+    values[8] = ((PyObject *)__pyx_int_0);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  9: values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
+        CYTHON_FALLTHROUGH;
         case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
         CYTHON_FALLTHROUGH;
         case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
@@ -3483,31 +3596,31 @@ static PyObject *__pyx_pw_5nppar_3fillcube(PyObject *__pyx_self, PyObject *__pyx
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_tab)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 8, 1); __PYX_ERR(0, 57, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 9, 1); __PYX_ERR(0, 66, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_firstid)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 8, 2); __PYX_ERR(0, 57, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 9, 2); __PYX_ERR(0, 66, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_rdiff)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 8, 3); __PYX_ERR(0, 57, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 9, 3); __PYX_ERR(0, 66, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_gW)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 8, 4); __PYX_ERR(0, 57, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 9, 4); __PYX_ERR(0, 66, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_gH)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 8, 5); __PYX_ERR(0, 57, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 9, 5); __PYX_ERR(0, 66, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
@@ -3521,12 +3634,20 @@ static PyObject *__pyx_pw_5nppar_3fillcube(PyObject *__pyx_self, PyObject *__pyx
           PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_chunks);
           if (value) { values[7] = value; kw_args--; }
         }
+        CYTHON_FALLTHROUGH;
+        case  8:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_intensive);
+          if (value) { values[8] = value; kw_args--; }
+        }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fillcube") < 0)) __PYX_ERR(0, 57, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fillcube") < 0)) __PYX_ERR(0, 66, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  9: values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
+        CYTHON_FALLTHROUGH;
         case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
         CYTHON_FALLTHROUGH;
         case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
@@ -3541,25 +3662,26 @@ static PyObject *__pyx_pw_5nppar_3fillcube(PyObject *__pyx_self, PyObject *__pyx
         default: goto __pyx_L5_argtuple_error;
       }
     }
-    __pyx_v_nt = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_nt == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 57, __pyx_L3_error)
+    __pyx_v_nt = __Pyx_PyInt_As_int(values[0]); if (unlikely((__pyx_v_nt == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 66, __pyx_L3_error)
     __pyx_v_tab = ((PyArrayObject *)values[1]);
-    __pyx_v_firstid = __Pyx_PyInt_As_long(values[2]); if (unlikely((__pyx_v_firstid == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 57, __pyx_L3_error)
-    __pyx_v_rdiff = __Pyx_PyInt_As_long(values[3]); if (unlikely((__pyx_v_rdiff == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 57, __pyx_L3_error)
+    __pyx_v_firstid = __Pyx_PyInt_As_long(values[2]); if (unlikely((__pyx_v_firstid == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 66, __pyx_L3_error)
+    __pyx_v_rdiff = __Pyx_PyInt_As_long(values[3]); if (unlikely((__pyx_v_rdiff == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 66, __pyx_L3_error)
     __pyx_v_gW = values[4];
     __pyx_v_gH = values[5];
     __pyx_v_sched = values[6];
     __pyx_v_chunks = values[7];
+    __pyx_v_intensive = values[8];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 57, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fillcube", 0, 6, 9, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 66, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("nppar.fillcube", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tab), __pyx_ptype_5numpy_ndarray, 1, "tab", 0))) __PYX_ERR(0, 57, __pyx_L1_error)
-  __pyx_r = __pyx_pf_5nppar_2fillcube(__pyx_self, __pyx_v_nt, __pyx_v_tab, __pyx_v_firstid, __pyx_v_rdiff, __pyx_v_gW, __pyx_v_gH, __pyx_v_sched, __pyx_v_chunks);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_tab), __pyx_ptype_5numpy_ndarray, 1, "tab", 0))) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_r = __pyx_pf_5nppar_2fillcube(__pyx_self, __pyx_v_nt, __pyx_v_tab, __pyx_v_firstid, __pyx_v_rdiff, __pyx_v_gW, __pyx_v_gH, __pyx_v_sched, __pyx_v_chunks, __pyx_v_intensive);
 
   /* function exit code */
   goto __pyx_L0;
@@ -3570,7 +3692,7 @@ static PyObject *__pyx_pw_5nppar_3fillcube(PyObject *__pyx_self, PyObject *__pyx
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_nt, PyArrayObject *__pyx_v_tab, long __pyx_v_firstid, long __pyx_v_rdiff, PyObject *__pyx_v_gW, PyObject *__pyx_v_gH, PyObject *__pyx_v_sched, PyObject *__pyx_v_chunks) {
+static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, int __pyx_v_nt, PyArrayObject *__pyx_v_tab, long __pyx_v_firstid, long __pyx_v_rdiff, PyObject *__pyx_v_gW, PyObject *__pyx_v_gH, PyObject *__pyx_v_sched, PyObject *__pyx_v_chunks, PyObject *__pyx_v_intensive) {
   int __pyx_v_i;
   int __pyx_v_M;
   PyObject *__pyx_v_id2xy = NULL;
@@ -3583,6 +3705,7 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   CYTHON_UNUSED int __pyx_v_threads;
   int __pyx_v_autochunk;
   CYTHON_UNUSED int __pyx_v_chunk;
+  int __pyx_v_intensiveness;
   PyObject *__pyx_v_id2xy_py = NULL;
   PyObject *__pyx_v_grid_py = NULL;
   __Pyx_LocalBuf_ND __pyx_pybuffernd_tab;
@@ -3602,6 +3725,7 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   int __pyx_t_11;
   int __pyx_t_12;
   int __pyx_t_13;
+  struct __pyx_opt_args_5nppar_setgridxy __pyx_t_14;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -3612,12 +3736,12 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   __pyx_pybuffernd_tab.rcbuffer = &__pyx_pybuffer_tab;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_tab.rcbuffer->pybuffer, (PyObject*)__pyx_v_tab, &__Pyx_TypeInfo_nn___pyx_t_5nppar_FLOAT32_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 57, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_tab.rcbuffer->pybuffer, (PyObject*)__pyx_v_tab, &__Pyx_TypeInfo_nn___pyx_t_5nppar_FLOAT32_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 66, __pyx_L1_error)
   }
   __pyx_pybuffernd_tab.diminfo[0].strides = __pyx_pybuffernd_tab.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_tab.diminfo[0].shape = __pyx_pybuffernd_tab.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_tab.diminfo[1].strides = __pyx_pybuffernd_tab.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_tab.diminfo[1].shape = __pyx_pybuffernd_tab.rcbuffer->pybuffer.shape[1];
 
-  /* "create2Dpar.pyx":59
- * def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto'):
+  /* "create2Dpar.pyx":68
+ * def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto', intensive=0):
  *     cdef int i, M, N, res
  *     M = tab.shape[0]             # <<<<<<<<<<<<<<
  *     id2xy = view.array(shape=(M,2), itemsize=sizeof(long), format="l")
@@ -3625,18 +3749,18 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
  */
   __pyx_v_M = (__pyx_v_tab->dimensions[0]);
 
-  /* "create2Dpar.pyx":60
+  /* "create2Dpar.pyx":69
  *     cdef int i, M, N, res
  *     M = tab.shape[0]
  *     id2xy = view.array(shape=(M,2), itemsize=sizeof(long), format="l")             # <<<<<<<<<<<<<<
  *     #grid = view.array(shape=(gW,gH,tab.shape[1]), itemsize=sizeof(float), format="f")
  *     grid = np.empty((gW,gH,tab.shape[1]), dtype=np.float32)
  */
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_M); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_M); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
@@ -3644,34 +3768,34 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   __Pyx_GIVEREF(__pyx_int_2);
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_int_2);
   __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_shape, __pyx_t_3) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_shape, __pyx_t_3) < 0) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_FromSize_t((sizeof(long))); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_FromSize_t((sizeof(long))); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_itemsize, __pyx_t_3) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_itemsize, __pyx_t_3) < 0) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_format, __pyx_n_s_l) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_array_type), __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_format, __pyx_n_s_l) < 0) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_array_type), __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_id2xy = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "create2Dpar.pyx":62
+  /* "create2Dpar.pyx":71
  *     id2xy = view.array(shape=(M,2), itemsize=sizeof(long), format="l")
  *     #grid = view.array(shape=(gW,gH,tab.shape[1]), itemsize=sizeof(float), format="f")
  *     grid = np.empty((gW,gH,tab.shape[1]), dtype=np.float32)             # <<<<<<<<<<<<<<
  *     grid[:,:] = np.nan
  *     #grid = np.nan
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_From_Py_intptr_t((__pyx_v_tab->dimensions[1])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_Py_intptr_t((__pyx_v_tab->dimensions[1])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_gW);
   __Pyx_GIVEREF(__pyx_v_gW);
@@ -3682,21 +3806,21 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   __Pyx_GIVEREF(__pyx_t_3);
   PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_t_3);
   __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_float32); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 62, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3704,58 +3828,58 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   __pyx_v_grid = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "create2Dpar.pyx":63
+  /* "create2Dpar.pyx":72
  *     #grid = view.array(shape=(gW,gH,tab.shape[1]), itemsize=sizeof(float), format="f")
  *     grid = np.empty((gW,gH,tab.shape[1]), dtype=np.float32)
  *     grid[:,:] = np.nan             # <<<<<<<<<<<<<<
  *     #grid = np.nan
  *     cdef float [:, :, :] grid_mv = grid
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_nan); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_nan); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (unlikely(PyObject_SetItem(__pyx_v_grid, __pyx_tuple__2, __pyx_t_2) < 0)) __PYX_ERR(0, 63, __pyx_L1_error)
+  if (unlikely(PyObject_SetItem(__pyx_v_grid, __pyx_tuple__2, __pyx_t_2) < 0)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "create2Dpar.pyx":65
+  /* "create2Dpar.pyx":74
  *     grid[:,:] = np.nan
  *     #grid = np.nan
  *     cdef float [:, :, :] grid_mv = grid             # <<<<<<<<<<<<<<
  *     cdef long [:, :] id2xy_mv = id2xy
  *     cdef float [:, :] ids_mv = tab
  */
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_float(__pyx_v_grid, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_float(__pyx_v_grid, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 74, __pyx_L1_error)
   __pyx_v_grid_mv = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "create2Dpar.pyx":66
+  /* "create2Dpar.pyx":75
  *     #grid = np.nan
  *     cdef float [:, :, :] grid_mv = grid
  *     cdef long [:, :] id2xy_mv = id2xy             # <<<<<<<<<<<<<<
  *     cdef float [:, :] ids_mv = tab
  *     cdef long rdiff1 = rdiff
  */
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_long(__pyx_v_id2xy, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_long(__pyx_v_id2xy, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 75, __pyx_L1_error)
   __pyx_v_id2xy_mv = __pyx_t_7;
   __pyx_t_7.memview = NULL;
   __pyx_t_7.data = NULL;
 
-  /* "create2Dpar.pyx":67
+  /* "create2Dpar.pyx":76
  *     cdef float [:, :, :] grid_mv = grid
  *     cdef long [:, :] id2xy_mv = id2xy
  *     cdef float [:, :] ids_mv = tab             # <<<<<<<<<<<<<<
  *     cdef long rdiff1 = rdiff
  *     cdef long firstid1 = firstid
  */
-  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(((PyObject *)__pyx_v_tab), PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_dsds_float(((PyObject *)__pyx_v_tab), PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 76, __pyx_L1_error)
   __pyx_v_ids_mv = __pyx_t_8;
   __pyx_t_8.memview = NULL;
   __pyx_t_8.data = NULL;
 
-  /* "create2Dpar.pyx":68
+  /* "create2Dpar.pyx":77
  *     cdef long [:, :] id2xy_mv = id2xy
  *     cdef float [:, :] ids_mv = tab
  *     cdef long rdiff1 = rdiff             # <<<<<<<<<<<<<<
@@ -3764,7 +3888,7 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
  */
   __pyx_v_rdiff1 = __pyx_v_rdiff;
 
-  /* "create2Dpar.pyx":69
+  /* "create2Dpar.pyx":78
  *     cdef float [:, :] ids_mv = tab
  *     cdef long rdiff1 = rdiff
  *     cdef long firstid1 = firstid             # <<<<<<<<<<<<<<
@@ -3773,27 +3897,27 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
  */
   __pyx_v_firstid1 = __pyx_v_firstid;
 
-  /* "create2Dpar.pyx":70
+  /* "create2Dpar.pyx":79
  *     cdef long rdiff1 = rdiff
  *     cdef long firstid1 = firstid
  *     cdef int threads=math.ceil(M/nt)             # <<<<<<<<<<<<<<
  *     cdef int autochunk=math.floor(M/nt)
  *     cdef int chunk
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_math); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_math); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 79, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_ceil); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_ceil); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 79, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   if (unlikely(__pyx_v_nt == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-    __PYX_ERR(0, 70, __pyx_L1_error)
+    __PYX_ERR(0, 79, __pyx_L1_error)
   }
   else if (sizeof(int) == sizeof(long) && (!(((int)-1) > 0)) && unlikely(__pyx_v_nt == (int)-1)  && unlikely(UNARY_NEG_WOULD_OVERFLOW(__pyx_v_M))) {
     PyErr_SetString(PyExc_OverflowError, "value too large to perform division");
-    __PYX_ERR(0, 70, __pyx_L1_error)
+    __PYX_ERR(0, 79, __pyx_L1_error)
   }
-  __pyx_t_5 = __Pyx_PyInt_From_int(__Pyx_div_int(__pyx_v_M, __pyx_v_nt)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_int(__Pyx_div_int(__pyx_v_M, __pyx_v_nt)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 79, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_1 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -3808,34 +3932,34 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   __pyx_t_2 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_1, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5);
   __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 79, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 79, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_threads = __pyx_t_9;
 
-  /* "create2Dpar.pyx":71
+  /* "create2Dpar.pyx":80
  *     cdef long firstid1 = firstid
  *     cdef int threads=math.ceil(M/nt)
  *     cdef int autochunk=math.floor(M/nt)             # <<<<<<<<<<<<<<
  *     cdef int chunk
- * 
+ *     cdef int intensiveness=intensive
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_math); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_math); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_floor); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 71, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_floor); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (unlikely(__pyx_v_nt == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "integer division or modulo by zero");
-    __PYX_ERR(0, 71, __pyx_L1_error)
+    __PYX_ERR(0, 80, __pyx_L1_error)
   }
   else if (sizeof(int) == sizeof(long) && (!(((int)-1) > 0)) && unlikely(__pyx_v_nt == (int)-1)  && unlikely(UNARY_NEG_WOULD_OVERFLOW(__pyx_v_M))) {
     PyErr_SetString(PyExc_OverflowError, "value too large to perform division");
-    __PYX_ERR(0, 71, __pyx_L1_error)
+    __PYX_ERR(0, 80, __pyx_L1_error)
   }
-  __pyx_t_3 = __Pyx_PyInt_From_int(__Pyx_div_int(__pyx_v_M, __pyx_v_nt)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__Pyx_div_int(__pyx_v_M, __pyx_v_nt)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_1 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -3850,27 +3974,37 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   __pyx_t_2 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_1, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 71, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 80, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_autochunk = __pyx_t_9;
 
-  /* "create2Dpar.pyx":74
+  /* "create2Dpar.pyx":82
+ *     cdef int autochunk=math.floor(M/nt)
  *     cdef int chunk
+ *     cdef int intensiveness=intensive             # <<<<<<<<<<<<<<
+ * 
+ *     if chunks == 'auto': chunk=autochunk
+ */
+  __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_v_intensive); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_v_intensiveness = __pyx_t_9;
+
+  /* "create2Dpar.pyx":84
+ *     cdef int intensiveness=intensive
  * 
  *     if chunks == 'auto': chunk=autochunk             # <<<<<<<<<<<<<<
  *     else: chunk=chunks
  *     if sched=='static':
  */
-  __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_v_chunks, __pyx_n_s_auto, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_v_chunks, __pyx_n_s_auto, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 84, __pyx_L1_error)
   if (__pyx_t_10) {
     __pyx_v_chunk = __pyx_v_autochunk;
     goto __pyx_L3;
   }
 
-  /* "create2Dpar.pyx":75
+  /* "create2Dpar.pyx":85
  * 
  *     if chunks == 'auto': chunk=autochunk
  *     else: chunk=chunks             # <<<<<<<<<<<<<<
@@ -3878,22 +4012,22 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='static', chunksize=chunk):
  */
   /*else*/ {
-    __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_v_chunks); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 75, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyInt_As_int(__pyx_v_chunks); if (unlikely((__pyx_t_9 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 85, __pyx_L1_error)
     __pyx_v_chunk = __pyx_t_9;
   }
   __pyx_L3:;
 
-  /* "create2Dpar.pyx":76
+  /* "create2Dpar.pyx":86
  *     if chunks == 'auto': chunk=autochunk
  *     else: chunk=chunks
  *     if sched=='static':             # <<<<<<<<<<<<<<
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='static', chunksize=chunk):
  *         #with gil:
  */
-  __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_v_sched, __pyx_n_s_static, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_v_sched, __pyx_n_s_static, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
   if (__pyx_t_10) {
 
-    /* "create2Dpar.pyx":77
+    /* "create2Dpar.pyx":87
  *     else: chunk=chunks
  *     if sched=='static':
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='static', chunksize=chunk):             # <<<<<<<<<<<<<<
@@ -3921,7 +4055,7 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
               if (__pyx_t_12 > 0)
               {
                   #ifdef _OPENMP
-                  #pragma omp parallel num_threads(__pyx_v_nt)
+                  #pragma omp parallel num_threads(__pyx_v_nt) private(__pyx_t_14)
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
@@ -3931,14 +4065,16 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
                           {
                               __pyx_v_i = (int)(0 + 1 * __pyx_t_11);
 
-                              /* "create2Dpar.pyx":80
+                              /* "create2Dpar.pyx":90
  *         #with gil:
  *         #    print(ids_mv[i,0])
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)             # <<<<<<<<<<<<<<
- *         '''
- *         id2xy_mv[i,1]=get_grid_y(int(ids_mv[i,0]), firstid, rdiff)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)             # <<<<<<<<<<<<<<
+ *     elif sched == 'guided':
+ *         for i in prange(M, num_threads=nt, nogil=True, schedule='guided'):
  */
-                              __pyx_f_5nppar_setgridxy(__pyx_v_i, __pyx_v_id2xy_mv, __pyx_v_grid_mv, __pyx_v_ids_mv, __pyx_v_firstid1, __pyx_v_rdiff1);
+                              __pyx_t_14.__pyx_n = 1;
+                              __pyx_t_14.intensive = __pyx_v_intensiveness;
+                              __pyx_f_5nppar_setgridxy(__pyx_v_i, __pyx_v_id2xy_mv, __pyx_v_grid_mv, __pyx_v_ids_mv, __pyx_v_firstid1, __pyx_v_rdiff1, &__pyx_t_14); 
                           }
                       }
                   }
@@ -3952,7 +4088,7 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
           #endif
         }
 
-        /* "create2Dpar.pyx":77
+        /* "create2Dpar.pyx":87
  *     else: chunk=chunks
  *     if sched=='static':
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='static', chunksize=chunk):             # <<<<<<<<<<<<<<
@@ -3971,7 +4107,7 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
         }
     }
 
-    /* "create2Dpar.pyx":76
+    /* "create2Dpar.pyx":86
  *     if chunks == 'auto': chunk=autochunk
  *     else: chunk=chunks
  *     if sched=='static':             # <<<<<<<<<<<<<<
@@ -3981,21 +4117,21 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
     goto __pyx_L4;
   }
 
-  /* "create2Dpar.pyx":88
- *         grid_mv[id2xy_mv[i,0]-1,id2xy_mv[i,1]-1]=ids_mv[i]
- *         '''
+  /* "create2Dpar.pyx":91
+ *         #    print(ids_mv[i,0])
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     elif sched == 'guided':             # <<<<<<<<<<<<<<
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='guided'):
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  */
-  __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_v_sched, __pyx_n_s_guided, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_v_sched, __pyx_n_s_guided, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 91, __pyx_L1_error)
   if (__pyx_t_10) {
 
-    /* "create2Dpar.pyx":89
- *         '''
+    /* "create2Dpar.pyx":92
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     elif sched == 'guided':
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     elif sched == 'dynamic':
  */
     {
@@ -4018,7 +4154,7 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
               if (__pyx_t_13 > 0)
               {
                   #ifdef _OPENMP
-                  #pragma omp parallel num_threads(__pyx_v_nt)
+                  #pragma omp parallel num_threads(__pyx_v_nt) private(__pyx_t_14)
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
@@ -4028,14 +4164,16 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
                           {
                               __pyx_v_i = (int)(0 + 1 * __pyx_t_11);
 
-                              /* "create2Dpar.pyx":90
+                              /* "create2Dpar.pyx":93
  *     elif sched == 'guided':
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='guided'):
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)             # <<<<<<<<<<<<<<
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)             # <<<<<<<<<<<<<<
  *     elif sched == 'dynamic':
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='dynamic'):
  */
-                              __pyx_f_5nppar_setgridxy(__pyx_v_i, __pyx_v_id2xy_mv, __pyx_v_grid_mv, __pyx_v_ids_mv, __pyx_v_firstid1, __pyx_v_rdiff1);
+                              __pyx_t_14.__pyx_n = 1;
+                              __pyx_t_14.intensive = __pyx_v_intensiveness;
+                              __pyx_f_5nppar_setgridxy(__pyx_v_i, __pyx_v_id2xy_mv, __pyx_v_grid_mv, __pyx_v_ids_mv, __pyx_v_firstid1, __pyx_v_rdiff1, &__pyx_t_14); 
                           }
                       }
                   }
@@ -4049,11 +4187,11 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
           #endif
         }
 
-        /* "create2Dpar.pyx":89
- *         '''
+        /* "create2Dpar.pyx":92
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     elif sched == 'guided':
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='guided'):             # <<<<<<<<<<<<<<
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     elif sched == 'dynamic':
  */
         /*finally:*/ {
@@ -4068,31 +4206,31 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
         }
     }
 
-    /* "create2Dpar.pyx":88
- *         grid_mv[id2xy_mv[i,0]-1,id2xy_mv[i,1]-1]=ids_mv[i]
- *         '''
+    /* "create2Dpar.pyx":91
+ *         #    print(ids_mv[i,0])
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     elif sched == 'guided':             # <<<<<<<<<<<<<<
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='guided'):
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  */
     goto __pyx_L4;
   }
 
-  /* "create2Dpar.pyx":91
+  /* "create2Dpar.pyx":94
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='guided'):
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     elif sched == 'dynamic':             # <<<<<<<<<<<<<<
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='dynamic'):
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  */
-  __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_v_sched, __pyx_n_s_dynamic, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_v_sched, __pyx_n_s_dynamic, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 94, __pyx_L1_error)
   if (__pyx_t_10) {
 
-    /* "create2Dpar.pyx":92
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+    /* "create2Dpar.pyx":95
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     elif sched == 'dynamic':
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='dynamic'):             # <<<<<<<<<<<<<<
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     else:
  */
     {
@@ -4115,7 +4253,7 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
               if (__pyx_t_12 > 0)
               {
                   #ifdef _OPENMP
-                  #pragma omp parallel num_threads(__pyx_v_nt)
+                  #pragma omp parallel num_threads(__pyx_v_nt) private(__pyx_t_14)
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
@@ -4125,14 +4263,16 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
                           {
                               __pyx_v_i = (int)(0 + 1 * __pyx_t_11);
 
-                              /* "create2Dpar.pyx":93
+                              /* "create2Dpar.pyx":96
  *     elif sched == 'dynamic':
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='dynamic'):
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)             # <<<<<<<<<<<<<<
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)             # <<<<<<<<<<<<<<
  *     else:
  *         for i in prange(M, num_threads=nt, nogil=True):
  */
-                              __pyx_f_5nppar_setgridxy(__pyx_v_i, __pyx_v_id2xy_mv, __pyx_v_grid_mv, __pyx_v_ids_mv, __pyx_v_firstid1, __pyx_v_rdiff1);
+                              __pyx_t_14.__pyx_n = 1;
+                              __pyx_t_14.intensive = __pyx_v_intensiveness;
+                              __pyx_f_5nppar_setgridxy(__pyx_v_i, __pyx_v_id2xy_mv, __pyx_v_grid_mv, __pyx_v_ids_mv, __pyx_v_firstid1, __pyx_v_rdiff1, &__pyx_t_14); 
                           }
                       }
                   }
@@ -4146,11 +4286,11 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
           #endif
         }
 
-        /* "create2Dpar.pyx":92
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+        /* "create2Dpar.pyx":95
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     elif sched == 'dynamic':
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='dynamic'):             # <<<<<<<<<<<<<<
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     else:
  */
         /*finally:*/ {
@@ -4165,21 +4305,21 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
         }
     }
 
-    /* "create2Dpar.pyx":91
+    /* "create2Dpar.pyx":94
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='guided'):
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     elif sched == 'dynamic':             # <<<<<<<<<<<<<<
  *         for i in prange(M, num_threads=nt, nogil=True, schedule='dynamic'):
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  */
     goto __pyx_L4;
   }
 
-  /* "create2Dpar.pyx":95
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+  /* "create2Dpar.pyx":98
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     else:
  *         for i in prange(M, num_threads=nt, nogil=True):             # <<<<<<<<<<<<<<
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  * 
  */
   /*else*/ {
@@ -4203,7 +4343,7 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
               if (__pyx_t_13 > 0)
               {
                   #ifdef _OPENMP
-                  #pragma omp parallel num_threads(__pyx_v_nt)
+                  #pragma omp parallel num_threads(__pyx_v_nt) private(__pyx_t_14)
                   #endif /* _OPENMP */
                   {
                       #ifdef _OPENMP
@@ -4213,14 +4353,16 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
                           {
                               __pyx_v_i = (int)(0 + 1 * __pyx_t_11);
 
-                              /* "create2Dpar.pyx":96
+                              /* "create2Dpar.pyx":99
  *     else:
  *         for i in prange(M, num_threads=nt, nogil=True):
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)             # <<<<<<<<<<<<<<
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-                              __pyx_f_5nppar_setgridxy(__pyx_v_i, __pyx_v_id2xy_mv, __pyx_v_grid_mv, __pyx_v_ids_mv, __pyx_v_firstid1, __pyx_v_rdiff1);
+                              __pyx_t_14.__pyx_n = 1;
+                              __pyx_t_14.intensive = __pyx_v_intensiveness;
+                              __pyx_f_5nppar_setgridxy(__pyx_v_i, __pyx_v_id2xy_mv, __pyx_v_grid_mv, __pyx_v_ids_mv, __pyx_v_firstid1, __pyx_v_rdiff1, &__pyx_t_14); 
                           }
                       }
                   }
@@ -4234,11 +4376,11 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
           #endif
         }
 
-        /* "create2Dpar.pyx":95
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+        /* "create2Dpar.pyx":98
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  *     else:
  *         for i in prange(M, num_threads=nt, nogil=True):             # <<<<<<<<<<<<<<
- *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1)
+ *             setgridxy(i, id2xy_mv, grid_mv, ids_mv, firstid1, rdiff1, intensiveness)
  * 
  */
         /*finally:*/ {
@@ -4255,19 +4397,19 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   }
   __pyx_L4:;
 
-  /* "create2Dpar.pyx":99
+  /* "create2Dpar.pyx":102
  * 
  * 
  *     id2xy_py=np.asarray(id2xy_mv)             # <<<<<<<<<<<<<<
  *     grid_py = np.asarray(grid_mv)
  *     return id2xy_py, grid_py
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 99, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 102, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 99, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 102, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_id2xy_mv, 2, (PyObject *(*)(char *)) __pyx_memview_get_long, (int (*)(char *, PyObject *)) __pyx_memview_set_long, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 99, __pyx_L1_error)
+  __pyx_t_5 = __pyx_memoryview_fromslice(__pyx_v_id2xy_mv, 2, (PyObject *(*)(char *)) __pyx_memview_get_long, (int (*)(char *, PyObject *)) __pyx_memview_set_long, 0);; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 102, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_1 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -4282,25 +4424,24 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   __pyx_t_2 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_1, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_5);
   __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 99, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 102, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_id2xy_py = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "create2Dpar.pyx":100
+  /* "create2Dpar.pyx":103
  * 
  *     id2xy_py=np.asarray(id2xy_mv)
  *     grid_py = np.asarray(grid_mv)             # <<<<<<<<<<<<<<
  *     return id2xy_py, grid_py
- * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 100, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 103, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 100, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 103, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_grid_mv, 3, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 100, __pyx_L1_error)
+  __pyx_t_3 = __pyx_memoryview_fromslice(__pyx_v_grid_mv, 3, (PyObject *(*)(char *)) __pyx_memview_get_float, (int (*)(char *, PyObject *)) __pyx_memview_set_float, 0);; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 103, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_1 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
@@ -4315,21 +4456,19 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   __pyx_t_2 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_1, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 100, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 103, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_grid_py = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "create2Dpar.pyx":101
+  /* "create2Dpar.pyx":104
  *     id2xy_py=np.asarray(id2xy_mv)
  *     grid_py = np.asarray(grid_mv)
  *     return id2xy_py, grid_py             # <<<<<<<<<<<<<<
- * 
- * '''
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 104, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_id2xy_py);
   __Pyx_GIVEREF(__pyx_v_id2xy_py);
@@ -4341,10 +4480,10 @@ static PyObject *__pyx_pf_5nppar_2fillcube(CYTHON_UNUSED PyObject *__pyx_self, i
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "create2Dpar.pyx":57
+  /* "create2Dpar.pyx":66
  * @cython.boundscheck(False)
  * # @cython.nonecheck(False)
- * def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto'):             # <<<<<<<<<<<<<<
+ * def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto', intensive=0):             # <<<<<<<<<<<<<<
  *     cdef int i, M, N, res
  *     M = tab.shape[0]
  */
@@ -19272,6 +19411,8 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ids_mv, __pyx_k_ids_mv, sizeof(__pyx_k_ids_mv), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_int32, __pyx_k_int32, sizeof(__pyx_k_int32), 0, 0, 1, 1},
+  {&__pyx_n_s_intensive, __pyx_k_intensive, sizeof(__pyx_k_intensive), 0, 0, 1, 1},
+  {&__pyx_n_s_intensiveness, __pyx_k_intensiveness, sizeof(__pyx_k_intensiveness), 0, 0, 1, 1},
   {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
   {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
   {&__pyx_n_s_l, __pyx_k_l, sizeof(__pyx_k_l), 0, 0, 1, 1},
@@ -19352,17 +19493,17 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "create2Dpar.pyx":63
+  /* "create2Dpar.pyx":72
  *     #grid = view.array(shape=(gW,gH,tab.shape[1]), itemsize=sizeof(float), format="f")
  *     grid = np.empty((gW,gH,tab.shape[1]), dtype=np.float32)
  *     grid[:,:] = np.nan             # <<<<<<<<<<<<<<
  *     #grid = np.nan
  *     cdef float [:, :, :] grid_mv = grid
  */
-  __pyx_slice_ = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice_)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_slice_ = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice_)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice_);
   __Pyx_GIVEREF(__pyx_slice_);
-  __pyx_tuple__2 = PyTuple_Pack(2, __pyx_slice_, __pyx_slice_); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(2, __pyx_slice_, __pyx_slice_); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
@@ -19572,29 +19713,29 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
 
-  /* "create2Dpar.pyx":33
+  /* "create2Dpar.pyx":34
  * @cython.boundscheck(False)
  * @cython.nonecheck(False)
  * def npapplypar(int nt, cnp.ndarray[INT32_t, ndim=1] ids, long firstid, long rdiff):             # <<<<<<<<<<<<<<
  *     cdef int i, M, res
  *     M = ids.shape[0]
  */
-  __pyx_tuple__23 = PyTuple_Pack(11, __pyx_n_s_nt, __pyx_n_s_ids, __pyx_n_s_firstid, __pyx_n_s_rdiff, __pyx_n_s_i, __pyx_n_s_M, __pyx_n_s_res, __pyx_n_s_id2xy, __pyx_n_s_id2xy_mv, __pyx_n_s_ids_mv, __pyx_n_s_id2xypy); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_tuple__23 = PyTuple_Pack(11, __pyx_n_s_nt, __pyx_n_s_ids, __pyx_n_s_firstid, __pyx_n_s_rdiff, __pyx_n_s_i, __pyx_n_s_M, __pyx_n_s_res, __pyx_n_s_id2xy, __pyx_n_s_id2xy_mv, __pyx_n_s_ids_mv, __pyx_n_s_id2xypy); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__23);
   __Pyx_GIVEREF(__pyx_tuple__23);
-  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(4, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_create2Dpar_pyx, __pyx_n_s_npapplypar, 33, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(4, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_create2Dpar_pyx, __pyx_n_s_npapplypar, 34, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 34, __pyx_L1_error)
 
-  /* "create2Dpar.pyx":57
+  /* "create2Dpar.pyx":66
  * @cython.boundscheck(False)
  * # @cython.nonecheck(False)
- * def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto'):             # <<<<<<<<<<<<<<
+ * def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto', intensive=0):             # <<<<<<<<<<<<<<
  *     cdef int i, M, N, res
  *     M = tab.shape[0]
  */
-  __pyx_tuple__25 = PyTuple_Pack(24, __pyx_n_s_nt, __pyx_n_s_tab, __pyx_n_s_firstid, __pyx_n_s_rdiff, __pyx_n_s_gW, __pyx_n_s_gH, __pyx_n_s_sched, __pyx_n_s_chunks, __pyx_n_s_i, __pyx_n_s_M, __pyx_n_s_N, __pyx_n_s_res, __pyx_n_s_id2xy, __pyx_n_s_grid, __pyx_n_s_grid_mv, __pyx_n_s_id2xy_mv, __pyx_n_s_ids_mv, __pyx_n_s_rdiff1, __pyx_n_s_firstid1, __pyx_n_s_threads, __pyx_n_s_autochunk, __pyx_n_s_chunk, __pyx_n_s_id2xy_py, __pyx_n_s_grid_py); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_tuple__25 = PyTuple_Pack(26, __pyx_n_s_nt, __pyx_n_s_tab, __pyx_n_s_firstid, __pyx_n_s_rdiff, __pyx_n_s_gW, __pyx_n_s_gH, __pyx_n_s_sched, __pyx_n_s_chunks, __pyx_n_s_intensive, __pyx_n_s_i, __pyx_n_s_M, __pyx_n_s_N, __pyx_n_s_res, __pyx_n_s_id2xy, __pyx_n_s_grid, __pyx_n_s_grid_mv, __pyx_n_s_id2xy_mv, __pyx_n_s_ids_mv, __pyx_n_s_rdiff1, __pyx_n_s_firstid1, __pyx_n_s_threads, __pyx_n_s_autochunk, __pyx_n_s_chunk, __pyx_n_s_intensiveness, __pyx_n_s_id2xy_py, __pyx_n_s_grid_py); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 66, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__25);
   __Pyx_GIVEREF(__pyx_tuple__25);
-  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(8, 0, 24, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_create2Dpar_pyx, __pyx_n_s_fillcube, 57, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(9, 0, 26, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_create2Dpar_pyx, __pyx_n_s_fillcube, 66, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) __PYX_ERR(0, 66, __pyx_L1_error)
 
   /* "View.MemoryView":286
  *         return self.name
@@ -20094,49 +20235,49 @@ if (!__Pyx_RefNanny) {
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_INT32, __pyx_t_2) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "create2Dpar.pyx":9
- * ctypedef cnp.float32_t FLOAT32_t
+  /* "create2Dpar.pyx":10
  * from cython cimport view
+ * from libc.math cimport atan
  * import math             # <<<<<<<<<<<<<<
  * 
  * cnp.import_array()
  */
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_math, 0, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 9, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_Import(__pyx_n_s_math, 0, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_math, __pyx_t_2) < 0) __PYX_ERR(0, 9, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_math, __pyx_t_2) < 0) __PYX_ERR(0, 10, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "create2Dpar.pyx":11
+  /* "create2Dpar.pyx":12
  * import math
  * 
  * cnp.import_array()             # <<<<<<<<<<<<<<
  * 
  * cdef long* get_grid_xy(long _id, long firstid, long rdiff) nogil:
  */
-  __pyx_t_3 = __pyx_f_5numpy_import_array(); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 11, __pyx_L1_error)
+  __pyx_t_3 = __pyx_f_5numpy_import_array(); if (unlikely(__pyx_t_3 == ((int)-1))) __PYX_ERR(0, 12, __pyx_L1_error)
 
-  /* "create2Dpar.pyx":33
+  /* "create2Dpar.pyx":34
  * @cython.boundscheck(False)
  * @cython.nonecheck(False)
  * def npapplypar(int nt, cnp.ndarray[INT32_t, ndim=1] ids, long firstid, long rdiff):             # <<<<<<<<<<<<<<
  *     cdef int i, M, res
  *     M = ids.shape[0]
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_5nppar_1npapplypar, NULL, __pyx_n_s_nppar); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_5nppar_1npapplypar, NULL, __pyx_n_s_nppar); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_npapplypar, __pyx_t_2) < 0) __PYX_ERR(0, 33, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_npapplypar, __pyx_t_2) < 0) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "create2Dpar.pyx":57
+  /* "create2Dpar.pyx":66
  * @cython.boundscheck(False)
  * # @cython.nonecheck(False)
- * def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto'):             # <<<<<<<<<<<<<<
+ * def fillcube(int nt, cnp.ndarray[FLOAT32_t, ndim=2] tab, long firstid, long rdiff, gW, gH, sched=None, chunks='auto', intensive=0):             # <<<<<<<<<<<<<<
  *     cdef int i, M, N, res
  *     M = tab.shape[0]
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_5nppar_3fillcube, NULL, __pyx_n_s_nppar); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
+  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_5nppar_3fillcube, NULL, __pyx_n_s_nppar); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 66, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_fillcube, __pyx_t_2) < 0) __PYX_ERR(0, 57, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_fillcube, __pyx_t_2) < 0) __PYX_ERR(0, 66, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "create2Dpar.pyx":1
@@ -23539,6 +23680,33 @@ static CYTHON_INLINE int __pyx_memview_set_long(const char *itemp, PyObject *obj
         return 0;
     *(long *) itemp = value;
     return 1;
+}
+
+/* IntPow */
+  static CYTHON_INLINE int __Pyx_pow_int(int b, int e) {
+    int t = b;
+    switch (e) {
+        case 3:
+            t *= b;
+        CYTHON_FALLTHROUGH;
+        case 2:
+            t *= b;
+        CYTHON_FALLTHROUGH;
+        case 1:
+            return t;
+        case 0:
+            return 1;
+    }
+    #if 1
+    if (unlikely(e<0)) return 0;
+    #endif
+    t = 1;
+    while (likely(e)) {
+        t *= (b * (e&1)) | ((~e)&1);
+        b *= b;
+        e >>= 1;
+    }
+    return t;
 }
 
 /* ObjectToMemviewSlice */

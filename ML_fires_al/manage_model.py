@@ -12,7 +12,7 @@ import tensorflow as tf
 
 def run_predict(model, modeltype, X):
     if modeltype == 'tf':
-        y_scores = model.predict(X)
+        y_scores = model.predict(X, verbose=0 )
     elif modeltype == 'sk':
         y_scores = model.predict_proba(X)
     predict_class = lambda p: int(round(p))

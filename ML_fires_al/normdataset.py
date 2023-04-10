@@ -38,17 +38,14 @@ def normalize_dataset(df, norm_type = None, aggrfile = None):
     arglist = []
     plist = []
     for c in df.columns:
-        dfcfloat = df[c].astype('float64')
+        dfcfloat = df[c].astype('float32')
         if not 'bin' in c:
             print("Normalize column:%s" % c)
             if not aggrs is None:
                 if not c in aggrs:
-                    incol = [cl for cl in aggrs if cl.upper() in c.upper() or c.upper() in cl.upper()]
-                    if len(incol) == 0:
-                        print("Failed to find aggregatons for %s" % c)
-                        continue
-                    else:
-                        c = incol[0]
+                    print("Failed to find aggregatons for %s" % c)
+                    X[c] = df[c]
+                    continue
                 dfmax = aggrs[c]['max'] if 'max' in aggrs[c] else None
                 dfmin = aggrs[c]['min'] if 'min' in aggrs[c] else None
                 dfmean = aggrs[c]['mean'] if 'mean' in aggrs[c] else None

@@ -84,7 +84,10 @@ def create_space():
     '''
     max_trials = 2
     #testsets = {'balanced':'/home/aapos/Documents/newcrossval/datasets/randomnofire/old_random_new_features_norm.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
-    testsets = {'balanced':'/home/aapostolakis/Documents/ffpdata/newcrossval/datasets/randomnofire/oldrandomnewfeat.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
+    #testsets = {'balanced':'/home/aapostolakis/Documents/ffpdata/newcrossval/datasets/randomnofire/oldrandomnewfeat.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
+    testsets = {
+        'balanced': '/data2/ffp/datasets/trainingsets/randomnofire/old_random_new_features_norm.csv',
+        'imbalanced': 'dataset_1_10_corine_level2_onehotenc.csv'}
     calc_train_metrics = True
     #opt_targets = ['hybrid2 val', 'hybrid5 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     opt_targets = ['auc val.']
