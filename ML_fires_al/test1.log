@@ -1,4 +1,4 @@
-2023-04-10 11:12:25.727355: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 FMA
+2023-04-10 14:20:30.197612: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
 Loading full dataset /data2/ffp/datasets/trainingsets/newfull/traindataset_new_norm.csv
 before nan drop: 26604
@@ -7,450 +7,105 @@ after dup. drop: 26517
 renaming "x": "xpos", "y": "ypos"
 Ignored columns from csv ['dom_dir', 'dir_max', 'fire', 'weekday', 'month', 'x', 'y', 'firedate', 'band']
 Dropped columns []
-  0%|          | 0/2 [00:00<?, ?trial/s, best loss=?]                                                     Fit parameters : {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 'dropout': 0.1, 'feature_drop': (), 'max_epochs': 2000, 'metric': 'accuracy', 'n_internal_layers': (0, {'layer_1_0_nodes': 1300.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}
-  0%|          | 0/2 [00:00<?, ?trial/s, best loss=?]                                                     Fitting Fold 1
-  0%|          | 0/2 [00:00<?, ?trial/s, best loss=?]2023-04-10 11:12:28.721108: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 FMA
+  0%|          | 0/1 [00:00<?, ?trial/s, best loss=?]                                                     Fit parameters : {'ES_mindelta': 0.002, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 'dropout': 0.1, 'feature_drop': (), 'max_epochs': 2000, 'metric': 'accuracy', 'n_internal_layers': (0, {'layer_1_0_nodes': 1300.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}
+  0%|          | 0/1 [00:00<?, ?trial/s, best loss=?]                                                     Fitting Fold 1
+  0%|          | 0/1 [00:00<?, ?trial/s, best loss=?]2023-04-10 14:20:33.156944: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE4.1 SSE4.2 AVX AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2023-04-10 11:12:28.730172: I tensorflow/core/common_runtime/process_util.cc:146] Creating new thread pool with default inter op setting: 2. Tune using inter_op_parallelism_threads for best performance.
+2023-04-10 14:20:33.161212: I tensorflow/core/common_runtime/process_util.cc:146] Creating new thread pool with default inter op setting: 2. Tune using inter_op_parallelism_threads for best performance.
                                                      Fit time (min): 1.2
-  0%|          | 0/2 [01:14<?, ?trial/s, best loss=?]                                                     Running prediction...
-  0%|          | 0/2 [01:14<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     tn : 9696, fp : 321, fn : 0, tp : 11196
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     ksum tn : 9696, fp : 321, fn : 0, tp : 11196
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     calulating auc...
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     auc : 1.00
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     calulating accuracy...
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     accuracy : 0.98
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     calulating recall...
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     recall 1 : 1.00
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     recall 0 : 0.97
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     calulating precision...
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     precision 1 : 0.97
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     precision 0 : 1.00
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     calulating f1 score...
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     f1 1 : 0.99
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     f1 0 : 0.98
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     Training metrics time (min): 0.2
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     Running prediction...
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     tn : 2328, fp : 302, fn : 1048, tp : 1626
-  0%|          | 0/2 [01:25<?, ?trial/s, best loss=?]                                                     ksum tn : 2328, fp : 302, fn : 1048, tp : 1626
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     calulating auc...
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     auc : 0.82
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     calulating accuracy...
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     accuracy : 0.75
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     calulating recall...
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     recall 1 : 0.61
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     recall 0 : 0.89
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     calulating precision...
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     precision 1 : 0.84
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     precision 0 : 0.69
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     calulating f1 score...
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     f1 1 : 0.71
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     f1 0 : 0.78
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     Validation metrics time (min): 0.0
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     Recall 1 val: 0.608, Recall 0 val: 0.885
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     Fitting Fold 2
-  0%|          | 0/2 [01:26<?, ?trial/s, best loss=?]                                                     Fit time (min): 2.5
-  0%|          | 0/2 [03:58<?, ?trial/s, best loss=?]                                                     Running prediction...
-  0%|          | 0/2 [03:58<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     tn : 9751, fp : 336, fn : 0, tp : 11126
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     ksum tn : 9751, fp : 336, fn : 0, tp : 11126
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     calulating auc...
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     auc : 1.00
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     calulating accuracy...
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     accuracy : 0.98
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     calulating recall...
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     recall 1 : 1.00
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     recall 0 : 0.97
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     calulating precision...
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     precision 1 : 0.97
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     precision 0 : 1.00
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     calulating f1 score...
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     f1 1 : 0.99
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     f1 0 : 0.98
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     Training metrics time (min): 0.1
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     Running prediction...
-  0%|          | 0/2 [04:04<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     tn : 2288, fp : 272, fn : 1529, tp : 1215
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     ksum tn : 2288, fp : 272, fn : 1529, tp : 1215
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     calulating auc...
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     auc : 0.76
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     calulating accuracy...
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     accuracy : 0.66
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     calulating recall...
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     recall 1 : 0.44
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     recall 0 : 0.89
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     calulating precision...
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     precision 1 : 0.82
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     precision 0 : 0.60
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     calulating f1 score...
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     f1 1 : 0.57
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     f1 0 : 0.72
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     Validation metrics time (min): 0.0
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     Recall 1 val: 0.443, Recall 0 val: 0.894
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     Fitting Fold 3
-  0%|          | 0/2 [04:05<?, ?trial/s, best loss=?]                                                     Fit time (min): 2.3
-  0%|          | 0/2 [06:23<?, ?trial/s, best loss=?]                                                     Running prediction...
-  0%|          | 0/2 [06:23<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     tn : 9726, fp : 256, fn : 2, tp : 11230
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     ksum tn : 9726, fp : 256, fn : 2, tp : 11230
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     calulating auc...
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     auc : 1.00
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     calulating accuracy...
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     accuracy : 0.99
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     calulating recall...
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     recall 1 : 1.00
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     recall 0 : 0.97
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     calulating precision...
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     precision 1 : 0.98
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     precision 0 : 1.00
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     calulating f1 score...
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     f1 1 : 0.99
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     f1 0 : 0.99
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     Training metrics time (min): 0.0
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     Running prediction...
-  0%|          | 0/2 [06:25<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     tn : 2375, fp : 290, fn : 1290, tp : 1348
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     ksum tn : 2375, fp : 290, fn : 1290, tp : 1348
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     calulating auc...
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     auc : 0.79
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     calulating accuracy...
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     accuracy : 0.70
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     calulating recall...
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     recall 1 : 0.51
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     recall 0 : 0.89
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     calulating precision...
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     precision 1 : 0.82
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     precision 0 : 0.65
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     calulating f1 score...
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     f1 1 : 0.63
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     f1 0 : 0.75
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     Validation metrics time (min): 0.0
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     Recall 1 val: 0.511, Recall 0 val: 0.891
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     Fitting Fold 4
-  0%|          | 0/2 [06:26<?, ?trial/s, best loss=?]                                                     Fit time (min): 1.6
-  0%|          | 0/2 [08:05<?, ?trial/s, best loss=?]                                                     Running prediction...
-  0%|          | 0/2 [08:05<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     tn : 9938, fp : 287, fn : 1, tp : 10988
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     ksum tn : 9938, fp : 287, fn : 1, tp : 10988
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     calulating auc...
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     auc : 1.00
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     calulating accuracy...
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     accuracy : 0.99
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     calulating recall...
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     recall 1 : 1.00
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     recall 0 : 0.97
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     calulating precision...
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     precision 1 : 0.97
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     precision 0 : 1.00
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     calulating f1 score...
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     f1 1 : 0.99
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     f1 0 : 0.99
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     Training metrics time (min): 0.1
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     Running prediction...
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     tn : 2171, fp : 251, fn : 1379, tp : 1502
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     ksum tn : 2171, fp : 251, fn : 1379, tp : 1502
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     calulating auc...
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     auc : 0.80
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     calulating accuracy...
-  0%|          | 0/2 [08:10<?, ?trial/s, best loss=?]                                                     accuracy : 0.69
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     calulating recall...
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     recall 1 : 0.52
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     recall 0 : 0.90
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     calulating precision...
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     precision 1 : 0.86
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     precision 0 : 0.61
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     calulating f1 score...
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     f1 1 : 0.65
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     f1 0 : 0.73
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     Validation metrics time (min): 0.0
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     Recall 1 val: 0.521, Recall 0 val: 0.896
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     Fitting Fold 5
-  0%|          | 0/2 [08:11<?, ?trial/s, best loss=?]                                                     Fit time (min): 2.1
-  0%|          | 0/2 [10:15<?, ?trial/s, best loss=?]                                                     Running prediction...
-  0%|          | 0/2 [10:15<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     tn : 10093, fp : 184, fn : 0, tp : 10937
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     ksum tn : 10093, fp : 184, fn : 0, tp : 10937
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     calulating auc...
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     auc : 1.00
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     calulating accuracy...
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     accuracy : 0.99
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     calulating recall...
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     recall 1 : 1.00
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     recall 0 : 0.98
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     calulating precision...
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     precision 1 : 0.98
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     precision 0 : 1.00
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     calulating f1 score...
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     f1 1 : 0.99
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     f1 0 : 0.99
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     Training metrics time (min): 0.0
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     Running prediction...
-  0%|          | 0/2 [10:18<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     tn : 2134, fp : 236, fn : 1424, tp : 1509
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     ksum tn : 2134, fp : 236, fn : 1424, tp : 1509
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     calulating auc...
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     auc : 0.81
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     calulating accuracy...
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     accuracy : 0.69
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     calulating recall...
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     recall 1 : 0.51
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     recall 0 : 0.90
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     calulating precision...
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     precision 1 : 0.86
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     precision 0 : 0.60
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     calulating f1 score...
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     f1 1 : 0.65
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     f1 0 : 0.72
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     Validation metrics time (min): 0.0
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     Recall 1 val: 0.514, Recall 0 val: 0.900
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     hybrid 1 : 0.99
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     hybrid 2 : 1.00
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     NH 2 : 2.97
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     NH 5 : 5.97
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     NH 10 : 10.97
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     hybrid 1 : 0.60
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     hybrid 2 : 0.56
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     NH 2 : 1.93
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     NH 5 : 3.49
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     NH 10 : 6.09
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     FN01: 4645
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     FN02: 5416
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     FN001: 3237
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     FN002: 3552
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?]                                                     Mean auc val. : 0.7957
-  0%|          | 0/2 [10:19<?, ?trial/s, best loss=?] 50%|█████     | 1/2 [10:19<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Fit parameters : {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 1}, 'dropout': 0.3, 'feature_drop': ('month', 'weekday', 'dom_dir', 'dir_max'), 'max_epochs': 2000, 'metric': 'accuracy', 'n_internal_layers': (3, {'layer_1_3_nodes': 60.0, 'layer_2_3_nodes': 20.0, 'layer_3_3_nodes': 90.0, 'layer_4_3_nodes': 60.0}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}
- 50%|█████     | 1/2 [10:19<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 dropping columns: ['bin_dom_dir_1', 'bin_dom_dir_2', 'bin_dom_dir_3', 'bin_dom_dir_4', 'bin_dom_dir_5', 'bin_dom_dir_6', 'bin_dom_dir_7', 'bin_dom_dir_8', 'bin_dir_max_1', 'bin_dir_max_2', 'bin_dir_max_3', 'bin_dir_max_4', 'bin_dir_max_5', 'bin_dir_max_6', 'bin_dir_max_7', 'bin_dir_max_8', 'bin_month_3', 'bin_month_4', 'bin_month_5', 'bin_month_6', 'bin_month_7', 'bin_month_8', 'bin_month_9', 'bin_month_10', 'bin_weekday_1', 'bin_weekday_2', 'bin_weekday_3', 'bin_weekday_4', 'bin_weekday_5', 'bin_weekday_6', 'bin_weekday_7']
- 50%|█████     | 1/2 [10:19<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Fitting Fold 1
- 50%|█████     | 1/2 [10:19<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Fit time (min): 1.2
- 50%|█████     | 1/2 [11:29<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Running prediction...
- 50%|█████     | 1/2 [11:29<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating metrics from scores (sklearn)
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating tn, fp, fn, tp
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 tn : 8515, fp : 1502, fn : 1134, tp : 10062
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 ksum tn : 8515, fp : 1502, fn : 1134, tp : 10062
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating auc...
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 auc : 0.95
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating accuracy...
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 accuracy : 0.88
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating recall...
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 1 : 0.90
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 0 : 0.85
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating precision...
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 1 : 0.87
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 0 : 0.88
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating f1 score...
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 1 : 0.88
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 0 : 0.87
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Training metrics time (min): 0.3
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Running prediction...
- 50%|█████     | 1/2 [11:44<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating metrics from scores (sklearn)
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating tn, fp, fn, tp
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 tn : 2200, fp : 430, fn : 466, tp : 2208
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 ksum tn : 2200, fp : 430, fn : 466, tp : 2208
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating auc...
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 auc : 0.92
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating accuracy...
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 accuracy : 0.83
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating recall...
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 1 : 0.83
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 0 : 0.84
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating precision...
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 1 : 0.84
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 0 : 0.83
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating f1 score...
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 1 : 0.83
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 0 : 0.83
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Validation metrics time (min): 0.0
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Recall 1 val: 0.826, Recall 0 val: 0.837
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Fitting Fold 2
- 50%|█████     | 1/2 [11:46<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Fit time (min): 0.6
- 50%|█████     | 1/2 [12:22<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Running prediction...
- 50%|█████     | 1/2 [12:22<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating metrics from scores (sklearn)
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating tn, fp, fn, tp
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 tn : 8450, fp : 1637, fn : 1092, tp : 10034
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 ksum tn : 8450, fp : 1637, fn : 1092, tp : 10034
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating auc...
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 auc : 0.95
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating accuracy...
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 accuracy : 0.87
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating recall...
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 1 : 0.90
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 0 : 0.84
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating precision...
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 1 : 0.86
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 0 : 0.89
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating f1 score...
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 1 : 0.88
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 0 : 0.86
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Training metrics time (min): 0.0
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Running prediction...
- 50%|█████     | 1/2 [12:25<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating metrics from scores (sklearn)
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating tn, fp, fn, tp
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 tn : 2100, fp : 460, fn : 545, tp : 2199
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 ksum tn : 2100, fp : 460, fn : 545, tp : 2199
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating auc...
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 auc : 0.89
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating accuracy...
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 accuracy : 0.81
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating recall...
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 1 : 0.80
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 0 : 0.82
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating precision...
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 1 : 0.83
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 0 : 0.79
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating f1 score...
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 1 : 0.81
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 0 : 0.81
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Validation metrics time (min): 0.0
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Recall 1 val: 0.801, Recall 0 val: 0.820
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Fitting Fold 3
- 50%|█████     | 1/2 [12:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Fit time (min): 0.8
- 50%|█████     | 1/2 [13:12<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Running prediction...
- 50%|█████     | 1/2 [13:12<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating metrics from scores (sklearn)
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating tn, fp, fn, tp
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 tn : 8449, fp : 1533, fn : 1076, tp : 10156
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 ksum tn : 8449, fp : 1533, fn : 1076, tp : 10156
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating auc...
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 auc : 0.95
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating accuracy...
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 accuracy : 0.88
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating recall...
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 1 : 0.90
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 0 : 0.85
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating precision...
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 1 : 0.87
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 0 : 0.89
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating f1 score...
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 1 : 0.89
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 0 : 0.87
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Training metrics time (min): 0.6
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Running prediction...
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating metrics from scores (sklearn)
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating tn, fp, fn, tp
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 tn : 2094, fp : 571, fn : 683, tp : 1955
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 ksum tn : 2094, fp : 571, fn : 683, tp : 1955
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating auc...
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 auc : 0.85
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating accuracy...
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 accuracy : 0.76
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating recall...
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 1 : 0.74
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 0 : 0.79
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating precision...
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 1 : 0.77
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 0 : 0.75
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating f1 score...
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 1 : 0.76
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 0 : 0.77
- 50%|█████     | 1/2 [13:51<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Validation metrics time (min): 0.0
- 50%|█████     | 1/2 [13:52<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Recall 1 val: 0.741, Recall 0 val: 0.786
- 50%|█████     | 1/2 [13:52<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Fitting Fold 4
- 50%|█████     | 1/2 [13:52<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Fit time (min): 0.7
- 50%|█████     | 1/2 [14:36<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Running prediction...
- 50%|█████     | 1/2 [14:36<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating metrics from scores (sklearn)
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating tn, fp, fn, tp
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 tn : 8847, fp : 1378, fn : 1214, tp : 9775
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 ksum tn : 8847, fp : 1378, fn : 1214, tp : 9775
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating auc...
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 auc : 0.95
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating accuracy...
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 accuracy : 0.88
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating recall...
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 1 : 0.89
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 0 : 0.87
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating precision...
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 1 : 0.88
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 0 : 0.88
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating f1 score...
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 1 : 0.88
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 0 : 0.87
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Training metrics time (min): 0.0
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Running prediction...
- 50%|█████     | 1/2 [14:38<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating metrics from scores (sklearn)
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating tn, fp, fn, tp
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 tn : 2067, fp : 355, fn : 878, tp : 2003
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 ksum tn : 2067, fp : 355, fn : 878, tp : 2003
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating auc...
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 auc : 0.88
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating accuracy...
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 accuracy : 0.77
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating recall...
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 1 : 0.70
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 0 : 0.85
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating precision...
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 1 : 0.85
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 0 : 0.70
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating f1 score...
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 1 : 0.76
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 0 : 0.77
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Validation metrics time (min): 0.0
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Recall 1 val: 0.695, Recall 0 val: 0.853
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Fitting Fold 5
- 50%|█████     | 1/2 [14:39<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Fit time (min): 0.8
- 50%|█████     | 1/2 [15:24<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Running prediction...
- 50%|█████     | 1/2 [15:24<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating metrics from scores (sklearn)
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating tn, fp, fn, tp
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 tn : 8558, fp : 1719, fn : 910, tp : 10027
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 ksum tn : 8558, fp : 1719, fn : 910, tp : 10027
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating auc...
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 auc : 0.95
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating accuracy...
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 accuracy : 0.88
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating recall...
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 1 : 0.92
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 0 : 0.83
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating precision...
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 1 : 0.85
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 0 : 0.90
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating f1 score...
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 1 : 0.88
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 0 : 0.87
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Training metrics time (min): 0.0
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Running prediction...
- 50%|█████     | 1/2 [15:26<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating metrics from scores (sklearn)
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating tn, fp, fn, tp
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 tn : 1939, fp : 431, fn : 589, tp : 2344
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 ksum tn : 1939, fp : 431, fn : 589, tp : 2344
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating auc...
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 auc : 0.89
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating accuracy...
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 accuracy : 0.81
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating recall...
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 1 : 0.80
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 recall 0 : 0.82
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating precision...
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 1 : 0.84
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 precision 0 : 0.77
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 calulating f1 score...
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 1 : 0.82
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 f1 0 : 0.79
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Validation metrics time (min): 0.0
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Recall 1 val: 0.799, Recall 0 val: 0.818
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 hybrid 1 : 0.88
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 hybrid 2 : 0.89
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 NH 2 : 2.65
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 NH 5 : 5.36
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 NH 10 : 9.87
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 hybrid 1 : 0.79
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 hybrid 2 : 0.78
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 NH 2 : 2.37
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 NH 5 : 4.69
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 NH 10 : 8.55
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 FN01: 407
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 FN02: 1193
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 FN001: 33
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 FN002: 61
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]                                                                                 Mean auc val. : 0.8858
- 50%|█████     | 1/2 [15:27<10:19, 619.26s/trial, best loss: -0.7956602931022644]100%|██████████| 2/2 [15:27<00:00, 436.32s/trial, best loss: -0.8858166694641113]100%|██████████| 2/2 [15:27<00:00, 463.76s/trial, best loss: -0.8858166694641113]
+  0%|          | 0/1 [01:14<?, ?trial/s, best loss=?]                                                     Running prediction...
+  0%|          | 0/1 [01:14<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     tn : 6226, fp : 257, fn : 0, tp : 6775
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     ksum tn : 6226, fp : 257, fn : 0, tp : 6775
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     calulating auc...
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     auc : 1.00
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     calulating accuracy...
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     accuracy : 0.98
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     calulating recall...
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     recall 1 : 1.00
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     recall 0 : 0.96
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     calulating precision...
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     precision 1 : 0.96
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     precision 0 : 1.00
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     calulating f1 score...
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     f1 1 : 0.98
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     f1 0 : 0.98
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     Training metrics time (min): 0.2
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     Running prediction...
+  0%|          | 0/1 [01:24<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     tn : 5353, fp : 811, fn : 3153, tp : 3942
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     ksum tn : 5353, fp : 811, fn : 3153, tp : 3942
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     calulating auc...
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     auc : 0.79
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     calulating accuracy...
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     accuracy : 0.70
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     calulating recall...
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     recall 1 : 0.56
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     recall 0 : 0.87
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     calulating precision...
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     precision 1 : 0.83
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     precision 0 : 0.63
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     calulating f1 score...
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     f1 1 : 0.67
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     f1 0 : 0.73
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     Validation metrics time (min): 0.0
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     Recall 1 val: 0.556, Recall 0 val: 0.868
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     Fitting Fold 2
+  0%|          | 0/1 [01:27<?, ?trial/s, best loss=?]                                                     Fit time (min): 1.5
+  0%|          | 0/1 [02:56<?, ?trial/s, best loss=?]                                                     Running prediction...
+  0%|          | 0/1 [02:56<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
+  0%|          | 0/1 [02:57<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
+  0%|          | 0/1 [02:57<?, ?trial/s, best loss=?]                                                     tn : 5977, fp : 187, fn : 0, tp : 7095
+  0%|          | 0/1 [02:57<?, ?trial/s, best loss=?]                                                     ksum tn : 5977, fp : 187, fn : 0, tp : 7095
+  0%|          | 0/1 [02:57<?, ?trial/s, best loss=?]                                                     calulating auc...
+  0%|          | 0/1 [02:57<?, ?trial/s, best loss=?]                                                     auc : 1.00
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     calulating accuracy...
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     accuracy : 0.99
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     calulating recall...
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     recall 1 : 1.00
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     recall 0 : 0.97
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     calulating precision...
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     precision 1 : 0.97
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     precision 0 : 1.00
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     calulating f1 score...
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     f1 1 : 0.99
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     f1 0 : 0.98
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     Training metrics time (min): 0.0
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     Running prediction...
+  0%|          | 0/1 [02:58<?, ?trial/s, best loss=?]                                                     calulating metrics from scores (sklearn)
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     calulating tn, fp, fn, tp
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     tn : 5785, fp : 698, fn : 3009, tp : 3766
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     ksum tn : 5785, fp : 698, fn : 3009, tp : 3766
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     calulating auc...
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     auc : 0.80
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     calulating accuracy...
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     accuracy : 0.72
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     calulating recall...
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     recall 1 : 0.56
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     recall 0 : 0.89
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     calulating precision...
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     precision 1 : 0.84
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     precision 0 : 0.66
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     calulating f1 score...
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     f1 1 : 0.67
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     f1 0 : 0.76
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     Validation metrics time (min): 0.0
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     Recall 1 val: 0.556, Recall 0 val: 0.892
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     hybrid 1 : 0.99
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     hybrid 2 : 0.99
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     NH 2 : 2.97
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     NH 5 : 5.97
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     NH 10 : 10.97
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     hybrid 1 : 0.63
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     hybrid 2 : 0.59
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     NH 2 : 1.99
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     NH 5 : 3.66
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     NH 10 : 6.44
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     FN01: 4582
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     FN02: 5125
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     FN001: 3157
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     FN002: 3559
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]                                                     Mean NH2 val. : 1.9919
+  0%|          | 0/1 [03:00<?, ?trial/s, best loss=?]100%|██████████| 1/1 [03:00<00:00, 180.94s/trial, best loss: -1.991851389297784]100%|██████████| 1/1 [03:00<00:00, 180.94s/trial, best loss: -1.991851389297784]

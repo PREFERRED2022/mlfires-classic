@@ -127,6 +127,8 @@ X_pd, y_pd, groups_pd = load_dataset(dsfile, featuredrop=[], class0nrows=0, debu
 pdscores=None
 
 # run tests per optimization metrics
+runmode ='val.'
+opt_targets = ['%s %s'%(ot,runmode) for ot in opt_targets]
 for opt_target in opt_targets:
     hpresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='mean', resultsfolder=resultsfolder)
     allresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='all', resultsfolder=resultsfolder)
@@ -148,6 +150,6 @@ for opt_target in opt_targets:
                 max_evals=max_trials,  # maximum number of iterations
                 trials=trials,  # logging
                 #rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility
-                rstate = np.random.default_rng(seed=random_state)
+                #rstate = np.random.default_rng(seed=random_state)
                 )
 

@@ -42,7 +42,7 @@ def create_space():
              'max_epochs': hp.choice('max_epochs', [2000]),
              'ES_monitor':hp.choice('ES_monitor', ['loss']),#'val_loss','loss'
              'ES_patience':hp.choice('ES_patience', [10]),
-             'ES_mindelta':hp.choice('ES_mindelta', [0.0001]),
+             'ES_mindelta':hp.choice('ES_mindelta', [0.002]),
              'batch_size': hp.choice('batch_size', [512]),
              }
 
@@ -52,14 +52,13 @@ def create_space():
     calc_train_metrics = True
     #opt_targets = ['hybrid2 val', 'hybrid5 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     #opt_targets = ['auc val.']
-    # new opt_targets
     #opt_targets = ['NH2', 'NH5', 'hybrid2', 'hybrid5', 'NH10', 'auc']
-    opt_targets = ['ΝΗ2']
+    opt_targets = ['NH5']
     modeltype = 'tf'
     #modeltype = 'sk'
     description = 'NN'
     nfolds = 5
-    writescores = True
+    writescores = False
     resultsfolder = '/data2/ffp/results/newdefCV'
     #hypalgo = 'random'
     hypalgo = 'tpe'

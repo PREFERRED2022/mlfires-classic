@@ -6,6 +6,7 @@ def normalizeset(lfiles):
     for f in lfiles:
         if f[-8:]!='norm.csv':
             df=pd.read_csv(f)
+            df=df.sample(frac=1)
             print('before drop %d',len(df))
             df=df.dropna()
             print('after drop %d', len(df))
