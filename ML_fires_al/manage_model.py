@@ -1,16 +1,51 @@
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 from xgboost import XGBClassifier
-from tensorflow.keras import Sequential
-from tensorflow.keras.layers import Dense, Dropout
-import tensorflow.keras.metrics
+from keras import Sequential
+from keras.layers import Dense, Dropout
+from keras.models import load_model
+import keras.metrics
 import numpy as np
-from tensorflow.keras.optimizers import Adam, SGD
-from tensorflow.keras.callbacks import EarlyStopping, TensorBoard
+from keras.optimizers import Adam, SGD
+from keras.callbacks import EarlyStopping, TensorBoard
 from MLscores import calc_metrics, metrics_dict, cmvals, recall, hybridrecall
-import tensorflow.keras.backend as K
+import keras.backend as K
 import tensorflow as tf
+import os
 
-def run_predict(model, modeltype, X):
+
+def limitgpumem(MBs):
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+      # Restrict TensorFlow to only allocate MBs of memory on the first GPU
+      try:
+        tf.config.experimental.set_virtual_device_configuration(
+            gpus[0],
+            [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=MBs)]) # Notice here
+        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+      except RuntimeError as e:
+        # Virtual devices must be set before GPUs have been initialized
+        print(e)
+
+def allowgrowthgpus():
+    gpus = tf.config.list_physical_devices('GPU')
+    if gpus:
+      try:
+        # Currently, memory growth needs to be the same across GPUs
+        for gpu in gpus:
+          tf.config.experimental.set_memory_growth(gpu, True)
+        logical_gpus = tf.config.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+      except RuntimeError as e:
+        # Memory growth must be set before GPUs have been initialized
+        print(e)
+
+def run_predict_q(model, modeltype, X, q):
+    y_scores, y_pred = run_predict(model, modeltype, X)
+    q.put(y_scores)
+    q.put(y_pred)
+
+def run_predict(model, modeltype, X, q=None):
     if modeltype == 'tf':
         y_scores = model.predict(X, verbose=0 )
     elif modeltype == 'sk':
@@ -20,17 +55,34 @@ def run_predict(model, modeltype, X):
     y_pred = predict_class_v(y_scores[:, 1])
     return y_scores, y_pred
 
-def run_predict_and_metrics(model, modeltype, X, y, metricset, dontcalc=False, numaucthres=200, debug=True):
+def run_predict_and_metrics_q(modeltype, X, y, metricset, dontcalc=False, numaucthres=200, q=None):
+    model=load_model("currentfit")
+    metricsdict, y_scores = run_predict_and_metrics(model, modeltype, X, y, metricset, dontcalc, numaucthres)
+    if q is not None:
+        q.put(metricsdict)
+        q.put(y_scores)
+
+def run_predict_and_metrics(model, modeltype, X, y, metricset, dontcalc=False, numaucthres=200):
     if dontcalc:
         zerostuple = tuple([0]*16)
         return metrics_dict(*zerostuple, metricset)
-    if debug:
-        print("Running prediction...")
     y_scores, y_pred = run_predict(model, modeltype, X)
-    metricsdict = metrics_dict(*calc_metrics(y, y_scores, y_pred, numaucthres=numaucthres, debug=debug), metricset)
+    metricsdict = metrics_dict(*calc_metrics(y, y_scores, y_pred, numaucthres=numaucthres), metricset)
     return metricsdict, y_scores
 
-def create_model(modeltype, params, X_train):
+def create_and_fit_q(modeltype, params, X_train, y_train, X_val, y_val, q):
+    #if xlaflags is not None: os.environ["XLA_FLAGS"] = xlaflags
+    model, res = create_and_fit(modeltype, params, X_train, y_train, X_val, y_val)
+    model.save('currentfit')
+    q.put(res)
+
+def create_and_fit(modeltype, params, X_train, y_train, X_val=None, y_val=None):
+    model = create_model(modeltype, params, X_train)
+    model, res = fit_model(modeltype, model, params, X_train, y_train, X_val, y_val)
+    return model,res
+
+def create_model(modeltype, params, X_train, q=None):
+    allowgrowthgpus()
     if modeltype == 'tf':
         model = create_NN_model(params, X_train)
     elif modeltype == 'sk':
@@ -46,7 +98,6 @@ def fit_model(modeltype, model, params, X_train, y_train, X_val=None, y_val=None
         else:
             res = model.fit(X_train, y_train, batch_size=params['batch_size'], epochs=params['max_epochs'], verbose=0, callbacks=[es],
                             class_weight=params['class_weights'])
-
     elif modeltype == 'sk':
         res = model.fit(X_train, y_train)
     return model, res
@@ -118,9 +169,9 @@ def create_NN_model(params, X):
     if params['metric'] == 'accuracy':
         metrics = ['accuracy']
     elif params['metric'] == 'sparse':
-        metrics = [tensorflow.metrics.SparseCategoricalAccuracy()]
+        metrics = [tf.metrics.SparseCategoricalAccuracy()]
     elif params['metric'] == 'tn':
-        metrics = [tensorflow.metrics.TrueNegatives(),tensorflow.metrics.TruePositives()]
+        metrics = [tf.metrics.TrueNegatives(),tf.metrics.TruePositives()]
     if 'loss' in params and params['loss'] == 'unbalanced':
         lossf=unbalanced_loss
     else:

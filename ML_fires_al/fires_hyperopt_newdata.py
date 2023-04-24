@@ -5,10 +5,12 @@ import numpy as np
 import time
 import space_new as space
 from functools import partial
-from manage_model import create_model, run_predict_and_metrics, run_predict, fit_model
+from manage_model import create_model, run_predict_and_metrics, run_predict, fit_model, create_and_fit
 import cv_common
 from MLscores import metrics_aggr
 from check_and_prepare_dataset import load_dataset
+import tensorflow as tf
+import multiprocessing as mp
 
 def drop_all0_features(df):
     for c in df.columns:
@@ -63,6 +65,18 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
         es_epochs = 0
         model = create_model(modeltype, params, X_train)
         model, res = fit_model(modeltype, model, params, X_train, y_train, X_val, y_val)
+
+        '''       
+        mp.set_start_method('spawn')
+        q=mp.Queue()
+        fitproc=mp.Process(target=create_and_fit,args=(modeltype, params, X_train, y_train, X_val, y_val, q))
+
+        fitproc.start()
+        fitproc.join()
+        model=q.get()
+        res=q.get()
+        '''
+
         if modeltype == 'tf':
             es_epochs = len(res.history['loss'])
 
@@ -111,12 +125,45 @@ def validatemodel(cv, X_pd, y_pd, groups_pd, optimize_target, calc_test, modelty
         # 'attachments':
         #    {'time_module': pickle.dumps(time.time)}
     }
+def limitgpumem(MBs):
+    gpus = tf.config.experimental.list_physical_devices('GPU')
+    if gpus:
+      # Restrict TensorFlow to only allocate 1GB of memory on the first GPU
+      try:
+        tf.config.experimental.set_virtual_device_configuration(
+            gpus[0],
+            [tf.config.experimental.VirtualDeviceConfiguration(memory_limit=MBs)]) # Notice here
+        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+      except RuntimeError as e:
+        # Virtual devices must be set before GPUs have been initialized
+        print(e)
+
+def allowgrowthgpus():
+    gpus = tf.config.list_physical_devices('GPU')
+    if gpus:
+      try:
+        # Currently, memory growth needs to be the same across GPUs
+        for gpu in gpus:
+          tf.config.experimental.set_memory_growth(gpu, True)
+        logical_gpus = tf.config.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+      except RuntimeError as e:
+        # Memory growth must be set before GPUs have been initialized
+        print(e)
+
 
 random_state = 42
 iteration = 0
-#load hyperparameters
+
+#load hyperparaeters
 tset, testsets, num_folds, space, max_trials, hypalgoparam, calc_test, opt_targets, modeltype, desc, \
-writescores, resultsfolder = space.create_space()
+writescores, resultsfolder, GPUMBs = space.create_space()
+
+if GPUMBs>0:
+    limitgpumem(GPUMBs)
+else:
+    allowgrowthgpus()
 
 #initialize cross validation folds
 kf = GroupKFold(n_splits=num_folds)
@@ -144,12 +191,12 @@ for opt_target in opt_targets:
         print('Wrong optimization algorithm')
         break
 
-    best = fmin(fn=validatemodelpart,  # function to optimize
-                space=space,
-                algo=hypalgo,  # optimization algorithm, hyperotp will select its parameters automatically
-                max_evals=max_trials,  # maximum number of iterations
-                trials=trials,  # logging
-                #rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility
-                #rstate = np.random.default_rng(seed=random_state)
-                )
+    fmin(fn=validatemodelpart,  # function to optimize
+        space=space,
+        algo=hypalgo,  # optimization algorithm, hyperotp will select its parameters automatically
+        max_evals=max_trials,  # maximum number of iterations
+        trials=trials,  # logging
+        #rstate=np.random.RandomState(random_state)  # fixing random state for the reproducibility
+        #rstate = np.random.default_rng(seed=random_state)
+        )
 

@@ -11,6 +11,11 @@ def convertonehot(X, col, r, del0=False):
     dmaxcols = []
     for i in r:
         dmaxcols.append('bin_%s_%d' %(col, i))
+    diffcol=set(r) - set([int(c) for c in Xbin.columns])
+    if len(diffcol)>0:
+        for c in diffcol:
+            Xbin[c]=0
+        Xbin=Xbin.reindex(sorted(Xbin.columns), axis=1)
     Xbin.columns = dmaxcols
     del X[col]
     X = pd.concat([X, Xbin], axis=1)
@@ -120,11 +125,12 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, calib=None)
     firedatecheck = 'firedate'
 
     #independent variables columns
-    X_columns = ['max_temp', 'min_temp', 'mean_temp', 'res_max', dirmaxcheck, 'dom_vel', domdircheck,
+    X_columns = {'include':['max_temp', 'min_temp', 'mean_temp', 'res_max', dirmaxcheck, 'dom_vel', domdircheck,
                  'rain_7days', corinecheck, 'Slope', 'DEM', 'Curvature', 'Aspect', 'ndvi', 'evi', 'lst_day',
                  'lst_night', monthcheck, wkdcheck,
-                 'mean_dew_temp', 'max_dew_temp', 'min_dew_temp','frequency', 'f81', 'x', 'y', 'pop', 'road_dens']
-
+                 'mean_dew_temp', 'max_dew_temp', 'min_dew_temp','frequency', 'f81', 'x', 'y', 'pop', 'road_dens'],
+                 'exclude':['index']}
+    
     #dependent variable column
     y_columns = ['fire']
 
@@ -169,9 +175,13 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, calib=None)
     #process loaded dataset
 
     #filter columns
-    X_columns_upper = [c.upper() for c in X_columns]
+    X_columns_upper = [c.upper() for c in X_columns['include']]
+    X_exclude=[c.upper() for c in X_columns['exclude']]
     newcols = [c for c in df.columns if
                c.upper() in X_columns_upper or any([cX in c.upper() for cX in X_columns_upper])]
+    excludecols = [c for c in df.columns if
+               c.upper() in X_exclude or any([cX in c.upper() for cX in X_exclude])]
+    newcols = list(set(newcols)-set(excludecols))
     X_columns = newcols
 
     #check categorical variables for existing one hot columns

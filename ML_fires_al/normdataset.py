@@ -1,8 +1,6 @@
 from pandas import DataFrame
 import os
 import json
-import multiprocessing
-import time
 
 def normalized_values(y,dfmax, dfmin, dfmean, dfstd, t = None):
     if not t:
@@ -19,31 +17,23 @@ def dataset_sanity_check(df):
         print('column %s - max: %s, min : %s, mean: %s, std: %s'%(c, df[c].max(), df[c].min(), df[c].mean(), df[c].std()))
 
 def apply_norm(normdf, unnormdf, col, dfmax, dfmin, dfmean, dfstd, norm_type):
-    #normdf = args[0]
-    #unnormdf = args[1]
-    #col = args[2]
-    #dfmax = args[3]
-    #dfmin = args[4]
-    #dfmean = args[5]
-    #dfstd = args[6]
-    #norm_type = args[7]
     normdf[col] = unnormdf.apply(lambda x: normalized_values(x[col], dfmax, dfmin, dfmean, dfstd, norm_type), axis=1)
 
-def normalize_dataset(df, norm_type = None, aggrfile = None):
+def normalize_dataset(df, norm_type = None, aggrfile = None, check=True):
     X = DataFrame()
     aggrs = None
     if aggrfile and os.path.exists(aggrfile):
         with open(aggrfile) as aggrf:
             aggrs = json.loads(aggrf.read())
-    arglist = []
-    plist = []
+    else:
+        if check: print("No aggregation file")
     for c in df.columns:
         dfcfloat = df[c].astype('float32')
         if not 'bin' in c:
-            print("Normalize column:%s" % c)
+            if check: print("Normalize column:%s" % c)
             if not aggrs is None:
                 if not c in aggrs:
-                    print("Failed to find aggregatons for %s" % c)
+                    if check: print("Failed to find aggregations for %s" % c)
                     X[c] = df[c]
                     continue
                 dfmax = aggrs[c]['max'] if 'max' in aggrs[c] else None
@@ -56,21 +46,10 @@ def normalize_dataset(df, norm_type = None, aggrfile = None):
                 dfmean = dfcfloat.mean()
                 dfstd = dfcfloat.std()
             X[c] = dfcfloat.apply(lambda x: normalized_values(x, dfmax, dfmin, dfmean, dfstd, norm_type))#, axis=1)
-            dataset_sanity_check(X[[c]])
-            #arglist.append((X, df, c, dfmax, dfmin, dfmean, dfstd, norm_type))
-            #p = multiprocessing.Process(target=apply_norm, args=(X, df, c, dfmax, dfmin, dfmean, dfstd, norm_type))
-            #p.start()
-            #plist.append(p)
-
+            if check:
+                dataset_sanity_check(X[[c]])
         else:
             X[c] = df[c]
-            #print('binary are not normalized')
-
-        #while(any(p.is_alive() for p in plist)):
-        #    time.sleep(5)
-        #for c in df.columns:
-        #    dataset_sanity_check(X[[c]])
-
     return X
 
 def convtoindex(y, lu_dict):
@@ -80,7 +59,6 @@ def indexdict(dfcol):
     lu = list(dfcol.unique())
     lu_dict = {x:lu.index(x)+1 for x in lu}
     return lu_dict
-
 
 def index_string_values(X_unnorm, str_classes):
     indexdicts = {}
