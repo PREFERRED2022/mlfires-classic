@@ -81,8 +81,7 @@ def create_and_fit(modeltype, params, X_train, y_train, X_val=None, y_val=None):
     model, res = fit_model(modeltype, model, params, X_train, y_train, X_val, y_val)
     return model,res
 
-def create_model(modeltype, params, X_train, q=None):
-    allowgrowthgpus()
+def create_model(modeltype, params, X_train, initgpu=True):
     if modeltype == 'tf':
         model = create_NN_model(params, X_train)
     elif modeltype == 'sk':

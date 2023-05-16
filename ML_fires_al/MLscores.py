@@ -210,14 +210,14 @@ def metrics_dict_distrib(fn01, fn02, fn001, fn002, mset):
     distribdict['FN002 %s' % mset] = fn002
     return distribdict
 
-def calc_metrics_custom(tn, fp, fn, tp, y_scores, y, numaucthres=200, debug=True, calc_hybrids=False):
+def calc_metrics_custom(tn, fp, fn, tp, y_scores=None, y=None, numaucthres=200, debug=True, calc_hybrids=False):
     if debug:
         print("calulating merics (custom)")
     if debug:
         print("(input) tn : %d, fp : %d, fn : %d, tp : %d" % (tn, fp, fn, tp))
     if debug:
         print("calulating auc...")
-    if numaucthres > 0:
+    if numaucthres > 0 and y is not None and y_scores is not None:
         aucmetric = AUC(num_thresholds=numaucthres)
         aucmetric.update_state(y, y_scores[:, 1])
         auc = float(aucmetric.result())
@@ -293,4 +293,11 @@ def metrics_aggr(metrics, mean_metrics, hybrid_on_aggr=True, y_scores=None, y=No
         metrics_dict_dist = metrics_dict_distrib(*calc_all_model_distrib(y_scores, y), valst)
         mean_metrics = {**mean_metrics, **metrics_dict_dist}
     return mean_metrics
+
+def metrics_aggr2(metrics, metricset):
+    cf = {}
+    cfvars=['%s %s'%(v,metricset) for v in ['TN', 'FP', 'FN', 'TP']]
+    for m in cfvars:
+        cf[m] = sum([item.get(m, 0) for item in metrics if item.get(m) >= 0])
+    return metrics_dict(*calc_metrics_custom(*tuple([cf[m] for m in cf])), metricset)
 

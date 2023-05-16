@@ -1,7 +1,7 @@
 import pandas as pd
 import fileutils
 
-def retrieve_best_models(dir, filepattern, metrics, valst, testst, filters = []):
+def retrieve_best_models(dir, filepattern, metrics, valst, testst, filters = [], modelcount=1):
     best_models={}
     setfiles = [f for f in fileutils.find_files(dir, filepattern, listtype="walk")]
     df = None
@@ -24,10 +24,12 @@ def retrieve_best_models(dir, filepattern, metrics, valst, testst, filters = [])
             '''
         df_sorted = df_flt.sort_values(by=['%s %s'%(metric,valst)], ascending=False)
         #best_models['%s %s'%(metric,testst)] = [{'params':eval(df_sorted.iloc[0]['params']), 'trial':df_sorted.iloc[0]['trial']}]
-        if 'trial' in df_sorted.columns:
-            best_models['%s %s'%(metric,testst)] = [{'params':eval(df_sorted.iloc[0]['params']), 'trial':df_sorted.iloc[0]['trial']}]
-        else:
-            best_models['%s %s'%(metric,testst)] = [{'params':eval(df_sorted.iloc[0]['params']), 'trial':1}]
+        best_models['%s %s' % (metric, testst)]=[]
+        for i in range(modelcount):
+            if 'trial' in df_sorted.columns:
+                best_models['%s %s'%(metric,testst)] += [{'params':eval(df_sorted.iloc[i]['params']), 'trial':df_sorted.iloc[i]['trial']}]
+            else:
+                best_models['%s %s'%(metric,testst)] += [{'params':eval(df_sorted.iloc[i]['params']), 'trial':i}]
     return best_models
 '''
 metrics=['auc', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
