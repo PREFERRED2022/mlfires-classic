@@ -179,19 +179,19 @@ if runmode == 'test':
     if testfpattern is not None:
         testmodels = best_models.retrieve_best_models(resdir, testfpattern, recmetrics, 'val.', 'test', filters)
     opt_targets = testmodels.keys()
-    hyperresfile = cv_common.get_filename(runmode, modeltype, filedesc, aggr='mean', resultsfolder=resdir)
-    hyperallfile = cv_common.get_filename(runmode, modeltype, filedesc, aggr='all', resultsfolder=resdir)
+    hyperresfile = cv_common.get_filename(runmode, modeltype, filedesc, ftype='mean', folder=resdir)
+    hyperallfile = cv_common.get_filename(runmode, modeltype, filedesc, ftype='all', folder=resdir)
 for opt_target in opt_targets:
-    scoresfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='scores', ext='',
-                                        resultsfolder=resdir)
+    scoresfile = cv_common.get_filename(opt_target, modeltype, filedesc, ftype='scores', ext='',
+                                        folder=resdir)
     if runmode == 'val.':
         hypalgo = cv_common.get_hyperopt_algo(hypalgoparam)
         if hypalgo is None:
             print('Wrong optimization algorithm')
             break
 
-        hyperresfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='mean', resultsfolder=resdir)
-        hyperallfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='all', resultsfolder=resdir)
+        hyperresfile = cv_common.get_filename(opt_target, modeltype, filedesc, ftype='mean', folder=resdir)
+        hyperallfile = cv_common.get_filename(opt_target, modeltype, filedesc, ftype='all', folder=resdir)
         trials = Trials()
         evalmodelpart = partial(evalmodel, testsets, opt_target, calc_test, modeltype, \
                                 hyperresfile, hyperallfile, scoresfile, trials, calib)

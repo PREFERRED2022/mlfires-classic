@@ -37,3 +37,14 @@ best_models=retrieve_best_models('/home/aapostolakis/Documents/ffpdata/results/a
 for m in metrics:
     print('%s test : %s'%(m,best_models['%s test'%(m)]))
 '''
+def retrieve_models_by_id(modelid, metric, dir, filepattern, metrics, valst, testst, filters = [], modelcount=1):
+    bm = retrieve_best_models(dir, filepattern, metrics, valst, testst, filters, modelcount)
+    cnt=0
+    for m in bm[metric]:
+        if m['trial']==modelid:
+            cnt+=1
+            rm=m
+    if cnt==1:
+        return rm
+    else:
+        return None

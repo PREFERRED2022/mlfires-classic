@@ -98,8 +98,8 @@ dayfiles=walkmonthdays('/mnt/nvme2tb/perifereia/', '2022*.csv')
 #proctime=par_files(normalizefile, dayfiles, mp.cpu_count() - 2, [[r'corine_(\d+)', 'x\.1', 'y\.1']])
 horizfilters=['df["dem"]>-10', 'df["aspect"]>-10']
 proctime=par_files(normalizefile, dayfiles, mp.cpu_count() - 2, [['^day$'],[r'corine_(\d+)'], \
-                                                                 {'rain_7days':'rain_7_days'}, horizfilters, \
-                                                                 ['fire','corine_gr1','corine_gr4','corine_gr5']])
+                                                                 {'rain_7days':'rain_7_days', 'slope_x':'slope'}, horizfilters, \
+                                                                 ['fire']])
 dur=time.time()-start
 print("Done in %d min and %d secs"%(int(dur/60), dur%60))
 

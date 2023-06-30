@@ -5,11 +5,10 @@ def create_space():
     #testsetdir = '/work2/pa21/sgirtsou/production'
     #testsetdir = '/users/pa21/sgirtsou/production/2020'
     tyear = '2019'
-    testsetdir = '/mnt/nvme2tb/perifereia/'
+    testsetdir = '/mnt/nvme2tb/ffp/datasets/test/2019/'
     #runmode = 'val.'
     runmode = 'test'
 
-    '''
     testspace = { 'NH2 %s'%runmode:
                   [{'params':
                    {'ES_mindelta': 0.002, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 2},
@@ -19,20 +18,9 @@ def create_space():
                   }
                   ],
                 }
-    '''
-    testspace = {
-    'auc %s' % runmode:
-    [{'params':{'ES_mindelta': 0.002, 'ES_monitor': 'val_loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 2, 1: 3}, 'dropout': None, 'feature_drop': ('month', 'weekday', 'dom_dir', 'dir_max', 'pop', 'corine_gr1', 'corine_gr2', 'corine_gr3', 'corine_gr4', 'corine_gr5', 'corine_gr6', 'corine_gr7', 'corine_gr8', 'corine_gr9'), 'max_epochs': 2000, 'metric': 'accuracy', 'n_internal_layers': (0, {'layer_1_0_nodes': 700.0}), \
-    'optimizer': {'adam_params': None, 'name': 'Adam'}}}
-     ]
-    }
-
 
     '''
     #Alt CV best
-    
-    {'ES_mindelta': 0.002, 'ES_monitor': 'val_loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 2, 1: 3}, 'dropout': None, 'feature_drop': ('month', 'weekday', 'dom_dir', 'dir_max', 'pop', 'corine_gr1', 'corine_gr2', 'corine_gr3', 'corine_gr4', 'corine_gr5', 'corine_gr6', 'corine_gr7', 'corine_gr8', 'corine_gr9'), 'max_epochs': 2000, 'metric': 'accuracy', 'n_internal_layers': (0, {'layer_1_0_nodes': 700.0}), \
-    'optimizer': {'adam_params': None, 'name': 'Adam'}}
     testspace = { 'auc %s'%runmode:
                   [{'params':
                    {'ES_mindelta': 0.0001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 
@@ -89,7 +77,13 @@ def create_space():
     '''
     testsets = [
                 {'training': ['train_new_sample_1_2_norm.csv'], \
-                 'crossval': ['2022*norm.csv']},
+                 'crossval': ['%s06*df_norm.csv' % tyear]},
+                {'training': ['train_new_sample_1_2_norm.csv'], \
+                 'crossval': ['%s07*df_norm.csv' % tyear]},
+                {'training': ['train_new_sample_1_2_norm.csv'], \
+                 'crossval': ['%s08*df_norm.csv' % tyear]},
+                {'training': ['train_new_sample_1_2_norm.csv'], \
+                 'crossval': ['%s09*df_norm.csv' % tyear]},
         ]
     '''
     testsets = [
@@ -104,32 +98,30 @@ def create_space():
         ]
     '''
     calc_train_metrics = True
-    opt_targets = ['auc', 'f1-score 1', 'hybrid1', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
+    #opt_targets = ['auc', 'f1-score 1', 'hybrid1', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
+    opt_targets = ['hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
     #opt_targets = ['NH5']
-    aucthress=0
+    aucthress=2
     debug = True
     #modeltype = 'sk'
     modeltype = 'tf'
     class0_headrows = 0
-    filespec = "perif"
+    filespec = "ns_ncv_do_%s"%tyear
     writescore = True
-    resdir = '/mnt/nvme2tb/perifereia/results'
+    resdir = '/mnt/nvme2tb/ffp/results/bestmodels'
     cvrespattern = '*NN_ns*mean*'
-    cvrespattern = None
     #cvrespattern=None
     #filters = ["df_flt['params'].str.contains(\"'dropout': None\")"] # no dropout
     filters = ["~df_flt['params'].str.contains(\"'dropout': None\")"] # with dropout
     #calib = {'min_temp':-0.15, 'dom_vel': -0.40, 'mean_temp': 0.2, 'mean_dew_temp': 0.2, 'min_dew_temp':0.2 , 'rain_7days': -0.999}
-    iternum=1
+    iternum=5
     calib = {}
     #changeparams={'feature_drop': ('month', 'weekday', 'dom_dir', 'dir_max')+tuple(['corine_%d'%i for i in range(1,10)])}
-    changeparams = {'feature_drop': ('month', 'weekday', 'dom_dir', 'dir_max', \
-                                     'curvature','f81','frequency', 'max_dew_temp', \
-                                     'mean_dew_temp', 'min_dew_temp', 'road_dens', 'pop') \
-                        + tuple(['corine_%d' % i for i in range(1, 10)])}
-    #changeparams = None
+    #changeparams = {'feature_drop': ('month', 'weekday', 'dom_dir', 'dir_max','pop','xpos','ypos') \
+    #                    + tuple(['corine_%d' % i for i in range(1, 10)])}
+    changeparams = None
     #xlaflags='--xla_gpu_cuda_data_dir=/usr/lib/cuda'
-    nbest=1
+    nbest=3
     return testsets, space, testspace, cvrespattern, filters, nbest, changeparams, max_trials, calc_train_metrics, \
            opt_targets, trainsetdir, testsetdir, aucthress, modeltype, filespec, runmode, writescore, \
            resdir, iternum, calib, debug

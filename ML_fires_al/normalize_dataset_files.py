@@ -93,10 +93,6 @@ print("Starting Normalization")
 dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/2019/', '*_df.csv')
 dayfiles=walkmonthdays('/mnt/nvme2tb/perifereia/', '2022*.csv')
 #proctime=par_files(normalizefile, dayfiles, mp.cpu_count() - 2, [[r'corine_(\d+)', 'x\.1', 'y\.1']])
-horizfilters=['df["dem"]>-10', 'df["aspect"]>-10']
-proctime=par_files(normalizefile, dayfiles, mp.cpu_count() - 2, [['x\.1', 'y\.1'],[r'corine_(\d+)'], \
-                                                                 {'rain_7days':'rain_7_days'}, horizfilters, \
-                                                                 ['fire','corine_gr1','corine_gr4','corine_gr5']])
 dur=time.time()-start
 print("Done in %d min and %d secs"%(int(dur/60), dur%60))
 
@@ -105,4 +101,4 @@ print("Done in %d min and %d secs"%(int(dur/60), dur%60))
 #normalizefile('/mnt/nvme2tb/ffp/datasets/traindataset_new_sterea.csv', [r'corine_(\d+)', 'x\.1', 'y\.1'])
 
 #normalizefile('/mnt/nvme2tb/ffp/datasets/train/train_sample_1_1_nof_att.csv', [r'corine_(\d+)', 'x\.1', 'y\.1'])
-#normalizefile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2.csv', None, [r'corine_(\d+)'])
+normalizefile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_attica.csv', None, [r'corine_(\d+)'])

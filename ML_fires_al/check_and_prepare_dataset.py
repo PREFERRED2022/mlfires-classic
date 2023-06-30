@@ -22,9 +22,12 @@ def convertonehot(X, col, r, del0=False):
     return X
 
 
-def prepare_dataset(df, X_columns, y_columns, firedate_col, ohecols,calib=None):
+def prepare_dataset(df, X_columns, y_columns, firedate_col, ohecols,calib=None, returnid=False):
                     #corine_col, domdir_col, dirmax_col, week_col, month_col, calib=None):
-    df = df[X_columns+y_columns+[firedate_col]]
+    if returnid and 'id' in df:
+        df = df[X_columns+y_columns+[firedate_col] + ['id']]
+    else:
+        df = df[X_columns + y_columns + [firedate_col]]
     print('before nan drop: %d' % len(df.index))
     df = df.dropna()
     print('after nan drop: %d' % len(df.index))
@@ -53,7 +56,16 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, ohecols,calib=None):
     X = X_tr
     y = y_int
     groupspd = df[firedate_col]
-    return X, y, groupspd
+    if returnid:
+        if "id" in df.columns:
+            idpd = df["id"]
+        else:
+            idpd = df.index.to_series()
+        df = None
+        return X, y, groupspd, idpd
+    else:
+        df = None
+        return X, y, groupspd, None
 
 def check_categorical(df, checkcol, newcols):
     cat_cols = [c for c in df.columns if checkcol.upper() in c.upper()]
@@ -110,7 +122,7 @@ def create_ds_parts(dsfile, class0nrows, dffirefile, dfpartfile, debug = False):
     return df
 
 # load the dataset
-def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, calib=None):
+def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, returnid=False, calib=None):
     #categorical columns
     domdircheck = 'dom_dir'
     dirmaxcheck = 'dir_max'
@@ -194,12 +206,11 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, calib=None)
     firedate_col = [c for c in df.columns if firedatecheck.upper() in c.upper()][0]
 
     #convert categorical to onehot and calibrate values if needed
-    X, y, groupspd = prepare_dataset(df, X_columns, y_columns, firedate_col, ohecols, calib)
+    X, y, groupspd, idpd = prepare_dataset(df, X_columns, y_columns, firedate_col, ohecols, calib, returnid)
 
     #columns ignored from loade dataset after processing
     print("Ignored columns from csv %s"%([c for c in df.columns if c not in X.columns]))
 
-    df = None
     X_columns = X.columns
 
     #drop feature columns defined by hyperparamaters
@@ -209,4 +220,8 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, calib=None)
     #if debug:
     #    print("X helth check %s"%X.describe())
     #    print("y helth check %s"%y.describe())
-    return X, y, groupspd
+    if returnid:
+        return X, y, groupspd, idpd
+    else:
+        return X, y, groupspd
+

@@ -18,6 +18,11 @@ def accuracy(tp,tn,fp,fn):
         return -1000
     return (tp+tn)/(tp+tn+fp+fn)
 
+def balanced_accuracy(tp,tn,fp,fn):
+    if tp+tn+fp+fn == 0:
+        return -1000
+    return (tp+tn)/(tp+tn+fp+fn)
+
 def f1(tp,fp,fn):
     if recall(tp,fn)+precision(tp,fp) == 0:
         return -1000
@@ -70,6 +75,7 @@ def calc_all_hybrids(rec_1, rec_0, debug=True):
     nh2 = hybridrecall(2, 1, rec_1, rec_0, 'NH')
     nh5 = hybridrecall(5, 1, rec_1, rec_0, 'NH')
     nh10 = hybridrecall(10, 1, rec_1, rec_0, 'NH')
+    ba = hybridrecall(1, 1, rec_1, rec_0, 'NH')
 
     if debug:
         print("hybrid1 : %.2f" % hybrid1)
@@ -78,7 +84,7 @@ def calc_all_hybrids(rec_1, rec_0, debug=True):
         print("NH 2 : %.2f" % nh2)
         print("NH 5 : %.2f" % nh5)
         print("NH 10 : %.2f" % nh10)
-    return hybrid1, hybrid2, hybrid5, nh2, nh5, nh10
+    return hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, ba
 
 def cmvals(y_true, y_pred):
     cm = confusion_matrix(y_true, y_pred)
@@ -159,9 +165,9 @@ def calc_metrics(y, y_scores, y_pred, numaucthres=200, debug=True, calc_hybrids 
     if calc_hybrids:
         if debug:
             print("calulating hybrids...")
-            hybrid1, hybrid2, hybrid5, nh2, nh5, nh10 = calc_all_hybrids(rec_1, rec_0, debug)
+            hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, ba = calc_all_hybrids(rec_1, rec_0, debug)
         if calc_hybrids:
-            return auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, tn, fp, fn, tp
+            return auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, ba, tn, fp, fn, tp
     else:
         return auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, tn, fp, fn, tp
 
@@ -182,9 +188,9 @@ def metrics_dict(auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, tn, fp, fn,
     }
     return dictmetrics
 
-def metrics_dict_full(auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, tn, fp, fn, tp, hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, metricset):
+def metrics_dict_full(auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, tn, fp, fn, tp, hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, ba, metricset):
     fulldict = {**metrics_dict(auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, tn, fp, fn, tp, metricset),
-                **metrics_dict_hybrid(hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, metricset)}
+                **metrics_dict_hybrid(hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, ba, metricset)}
     return fulldict
 
 def metrics_dict_plus_distrib(auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, tn, fp, fn, tp, fn01, fn02, fn001, fn002, metricset):
@@ -192,7 +198,7 @@ def metrics_dict_plus_distrib(auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0
                 **metrics_dict_distrib(fn01, fn02, fn001, fn002, metricset)}
     return fulldict
 
-def metrics_dict_hybrid(hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, mset):
+def metrics_dict_hybrid(hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, ba, mset):
     hydriddict= {}
     hydriddict['hybrid1 %s' % mset] = hybrid1
     hydriddict['hybrid2 %s' % mset] = hybrid2
@@ -200,6 +206,7 @@ def metrics_dict_hybrid(hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, mset):
     hydriddict['NH2 %s' % mset] = nh2
     hydriddict['NH5 %s' % mset] = nh5
     hydriddict['NH10 %s' % mset] = nh10
+    hydriddict['BA %s' % mset] = ba
     return hydriddict
 
 def metrics_dict_distrib(fn01, fn02, fn001, fn002, mset):
@@ -260,10 +267,10 @@ def calc_metrics_custom(tn, fp, fn, tp, y_scores=None, y=None, numaucthres=200, 
     if calc_hybrids:
         if debug:
             print("calulating hybrids ...")
-        hybrid1, hybrid2, hybrid5, nh2, nh5, nh10 = calc_all_hybrids(rec_1, rec_0, debug)
+        hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, ba = calc_all_hybrids(rec_1, rec_0, debug)
 
     if calc_hybrids:
-        return auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, tn, fp, fn, tp
+        return auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, ba, tn, fp, fn, tp
     else:
         return auc, acc, prec_1, prec_0, rec_1, rec_0, f1_1, f1_0, tn, fp, fn, tp
 
@@ -285,9 +292,9 @@ def metrics_aggr(metrics, mean_metrics, hybrid_on_aggr=True, y_scores=None, y=No
             recall0s.append(m)
     if hybrid_on_aggr:
         for i in range(0,len(recall1s)):
-            hybrid1, hybrid2, hybrid5, nh2, nh5, nh10 = calc_all_hybrids(mean_metrics[recall1s[i]], mean_metrics[recall0s[i]])
+            hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, ba = calc_all_hybrids(mean_metrics[recall1s[i]], mean_metrics[recall0s[i]])
             mset = re.search('(?<=recall 1 ).*$',recall1s[i]).group(0)
-            hybrid_metrics_dict = metrics_dict_hybrid(hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, mset)
+            hybrid_metrics_dict = metrics_dict_hybrid(hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, ba, mset)
             mean_metrics = {**mean_metrics, **hybrid_metrics_dict}
     if y_scores is not None and y is not None and valst is not None:
         metrics_dict_dist = metrics_dict_distrib(*calc_all_model_distrib(y_scores, y), valst)

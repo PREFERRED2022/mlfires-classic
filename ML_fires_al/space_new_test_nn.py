@@ -98,16 +98,17 @@ def create_space():
         ]
     '''
     calc_train_metrics = True
-    opt_targets = ['auc', 'f1-score 1', 'hybrid1', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
+    #opt_targets = ['auc', 'f1-score 1', 'hybrid1', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
+    opt_targets = ['hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
     #opt_targets = ['NH5']
-    aucthress=0
+    aucthress=2
     debug = True
     #modeltype = 'sk'
     modeltype = 'tf'
     class0_headrows = 0
     filespec = "ns_ncv_do_%s"%tyear
-    writescore = False
-    resdir = '/mnt/nvme2tb/ffp/results/newdefCV/'
+    writescore = True
+    resdir = '/mnt/nvme2tb/ffp/results/bestmodels'
     cvrespattern = '*NN_ns*mean*'
     #cvrespattern=None
     #filters = ["df_flt['params'].str.contains(\"'dropout': None\")"] # no dropout

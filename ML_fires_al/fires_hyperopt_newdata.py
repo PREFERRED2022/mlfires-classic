@@ -148,9 +148,9 @@ runmode ='val.'
 opt_targets = ['%s %s'%(ot,runmode) for ot in opt_targets]
 allowgrowthgpus()
 for opt_target in opt_targets:
-    hpresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='mean', resultsfolder=resultsfolder)
-    allresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='all', resultsfolder=resultsfolder)
-    scoreresfile = cv_common.get_filename(opt_target, modeltype, desc, aggr='scores', resultsfolder=resultsfolder)
+    hpresfile = cv_common.get_filename(opt_target, modeltype, desc, ftype='mean', folder=resultsfolder)
+    allresfile = cv_common.get_filename(opt_target, modeltype, desc, ftype='all', folder=resultsfolder)
+    scoreresfile = cv_common.get_filename(opt_target, modeltype, desc, ftype='scores', folder=resultsfolder)
     trials = Trials()
 
     # prepear validate function

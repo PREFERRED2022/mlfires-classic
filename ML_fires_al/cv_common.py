@@ -24,12 +24,15 @@ def writemetrics(metrics, mean_metrics, hpresfile, allresfile):
             dw.writerow(m)
 
 def write_score(fname, dates_pd, y_val, y_scores, id_pd=None):
+    if type(y_val) == np.ndarray:
+        y_val = pd.Series(y_val).rename('y', inplace=True)
     if not os.path.exists(fname):
         if id_pd is None:
             #pdscores = pd.Series(y_val).rename('fire').to_frame()
             pdscores = y_val
         else:
             pdscores = pd.concat([id_pd, dates_pd, y_val], axis=1)
+            pdscores['firedate']=pdscores['firedate'].astype('str')
             pdscores['id'].apply(np.int64)
     else:
         pdscores = pd.read_csv(fname, dtype={'id': str, 'firedate': str})
@@ -58,14 +61,15 @@ def updateYrows(Xval, Yval, Xhash, Yall):
     for idx, h in np.ndenumerate(updhashes):
         Yall[Xhash[h]] = Yval[idx[0]]
 
-def get_filename(opt_target, modeltype, desc, aggr='mean', ext='.csv', resultsfolder='.'):
-    base_name = os.path.join('hypres_'+ modeltype \
-                             + '_' + desc + '_'+ aggr+'_'+\
+def get_filename(opt_target, modeltype, desc, ftype='mean', ext='.csv', folder='.'):
+    if not os.path.isdir(folder): os.makedirs(folder)
+    base_name = os.path.join('hypres_' + modeltype \
+                             + '_' + desc + '_' + ftype + '_' +\
                              "".join([ch for ch in opt_target if re.match(r'\w', ch)]) + '_')
     cnt = 1
-    while os.path.exists(os.path.join(resultsfolder, '%s%d.csv' % (base_name, cnt))):
+    while os.path.exists(os.path.join(folder, '%s%d.csv' % (base_name, cnt))):
         cnt += 1
-    fname = '%s%d%s' % (os.path.join(resultsfolder, base_name), cnt, ext)
+    fname = '%s%d%s' % (os.path.join(folder, base_name), cnt, ext)
     return fname
 
 def get_hyperopt_algo(hypalgoparam):

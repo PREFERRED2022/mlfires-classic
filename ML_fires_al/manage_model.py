@@ -1,5 +1,5 @@
 from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
-from xgboost import XGBClassifier
+from xgboost import XGBClassifier, Booster
 from keras import Sequential
 from keras.layers import Dense, Dropout
 from keras.models import load_model
@@ -10,7 +10,7 @@ from keras.callbacks import EarlyStopping, TensorBoard
 from MLscores import calc_metrics, metrics_dict, cmvals, recall, hybridrecall
 import keras.backend as K
 import tensorflow as tf
-import os
+import pickle
 
 
 def limitgpumem(MBs):
@@ -81,11 +81,38 @@ def create_and_fit(modeltype, params, X_train, y_train, X_val=None, y_val=None):
     model, res = fit_model(modeltype, model, params, X_train, y_train, X_val, y_val)
     return model,res
 
-def create_model(modeltype, params, X_train, initgpu=True):
+def create_model(modeltype, params, X_train):
     if modeltype == 'tf':
         model = create_NN_model(params, X_train)
     elif modeltype == 'sk':
         model = create_sklearn_model(params, X_train)
+    elif modeltype == 'ensemble':
+        model = create_ensemble_model(params, X_train)
+    return model
+
+def create_ensemble_model(params, X_train):
+    pass
+
+
+def save_model(fname, model, modeltype, params):
+    if modeltype == 'tf':
+        model.save_weights(fname, save_format="tf")
+    elif modeltype == 'sk':
+        if params['algo']!='XGB':
+            pickle.dump(model, open(fname, "wb"))
+        else:
+            model.save_model(fname)
+
+def load_model(fname, modeltype, params, X_train):
+    if modeltype == 'tf':
+        model=create_model(modeltype, params, X_train)
+        model.load_weights(fname)
+    elif modeltype == 'sk':
+        if params['algo']!='XGB':
+            model= pickle.load(open(fname, "rb"))
+        else:
+            model = Booster()
+            model.load_model(fname)
     return model
 
 def fit_model(modeltype, model, params, X_train, y_train, X_val=None, y_val=None):
@@ -100,7 +127,6 @@ def fit_model(modeltype, model, params, X_train, y_train, X_val=None, y_val=None
     elif modeltype == 'sk':
         res = model.fit(X_train, y_train)
     return model, res
-
 
 def recall_loss(y_true, y_pred):
     # recall of class 1

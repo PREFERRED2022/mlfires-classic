@@ -5,7 +5,7 @@ import time
 import space_new_test
 import re
 from manage_model import run_predict_q, run_predict_and_metrics_q, create_and_fit_q, run_predict, \
-    run_predict_and_metrics, fit_model, create_model, allowgrowthgpus
+    run_predict_and_metrics, fit_model, create_model, allowgrowthgpus, save_model
 import fileutils
 from MLscores import calc_metrics_custom, cmvals, metrics_aggr, metrics_aggr2, \
     metrics_dict, calc_all_model_distrib, metrics_dict_distrib
@@ -14,6 +14,7 @@ from check_and_prepare_dataset import load_dataset
 import cv_common
 import best_models
 import multiprocessing as mp
+import pandas as pd
 
 def load_files(cvset, settype, setdir):
     setfiles = []
@@ -107,7 +108,7 @@ def training(cvset, calc_test, modeltype, numaucthres, optimize_target, numtrain
     return traincolumns, bestmodel, bestmetrics, bestepochs
 
 
-def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyperallfile, scoresfile, modelid,
+def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyperallfile, scoresfile, modelfile, modelid,
               numaucthres, iternum, calib, params):
     if len(cvsets) == 0:
         print('No cross validation files')
@@ -123,6 +124,7 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             prevcv=cvset
             traincolumns, model, metrics_dict_train, es_epochs = \
                    training(cvset, calc_test, modeltype, numaucthres, optimize_target, iternum, params)
+            save_model(modelfile, model, modeltype, params)
 
         start_cv = time.time()
         tn = 0; fp = 0; fn = 0; tp = 0;
@@ -134,8 +136,9 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         for cvfile in cvfiles:
             start_predict_file = time.time()
             print('Test/Validation File: %s' % cvfile)
-            X_pd, y_pd, groups_pd = load_dataset(cvfile, params['feature_drop'], \
-                                                 debug=debug, calib=calib)
+
+            X_pd, y_pd, groups_pd, pdid = load_dataset(cvfile, params['feature_drop'], \
+                                                 debug=debug, returnid=True, calib=calib)
             X_pd = X_pd.reindex(sorted(X_pd.columns), axis=1)
             valcolumns = X_pd.columns
             if debug:
@@ -153,7 +156,10 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
             X_val = X_pd.values
             _y_val = y_pd.values
             _y_val = _y_val[:, 0]
-            X_pd = None; y_pd = None; groups_pd = None
+            if writescores:
+                _groups_pd = groups_pd
+                _pdid = pdid
+            X_pd = None; y_pd = None; groups_pd = None; pdid=None
             if debug:
                 print("Running prediction...")
             _y_scores, _y_pred = run_predict(model, modeltype, X_val)
@@ -163,10 +169,18 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
                     y_scores = _y_scores
                     y_pred = _y_pred
                     y_val = _y_val
+                    if writescores:
+                        all_pdid = _pdid
+                        all_groups_pd = _groups_pd
                 else:
                     y_scores = np.concatenate((y_scores, _y_scores))
                     y_pred = np.concatenate((y_pred, _y_pred))
                     y_val = np.concatenate((y_val, _y_val))
+                    if writescores:
+                        all_groups_pd = pd.concat([all_groups_pd, _groups_pd])
+                        all_groups_pd=all_groups_pd.reset_index(drop=True)
+                        all_pdid = pd.concat([all_pdid, _pdid])
+                        all_pdid=all_pdid.reset_index(drop=True)
             if debug:
                 print("confusion matrix retrieval...")
             _tn, _fp, _fn, _tp = cmvals(_y_val, _y_pred)
@@ -202,7 +216,9 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         metrics.append(metrics_dict_fold)
         if writescores and numaucthres>0:
             sfile_suffix=''.join([ch for ch in '%s'%cvset['crossval'] if re.match(r'\w', ch)])
-            cv_common.write_score(scoresfile+'_'+sfile_suffix+'.csv', None, None, y_val, y_scores[:,1])
+            cv_common.write_score(scoresfile+'_'+sfile_suffix+'.csv', all_groups_pd,
+                                  y_val, y_scores[:,1],all_pdid)
+            print("Write scores to %s" % scoresfile+'_'+sfile_suffix+'.csv')
     # final line in fold metrics
     metrics_dict_all = metrics_aggr2(metrics, msetval)
     metrics_dict_all[runmode + ' set'] = 'all set'
@@ -221,6 +237,8 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
           (metrics_dict_all['recall 1 %s' % msetval], metrics_dict_all['recall 0 %s' % msetval]))
     print('Mean %s : %s' % (optimize_target, mean_metrics[optimize_target]))
     metrics.append(metrics_dict_all) # append after mean metrics for writing
+    print("write mean metrics to %s"%hyperresfile)
+    print("and all datasets to %s"% hyperallfile)
     cv_common.writemetrics(metrics, mean_metrics, hyperresfile, hyperallfile)
 
     return {
@@ -236,6 +254,18 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         #    {'time_module': pickle.dumps(time.time)}
     }
 
+def get_modelext(modeltype, params, modelid, runid):
+   if modeltype == 'tf':
+        ext='.cpkt'
+        ftype='weights_'+'id_'+str(modelid)+'_r_'+str(i)
+   elif modeltype == 'sk':
+      ftype = params['algo'] + 'model_' + 'id_' + str(modelid) + '_r_' + str(runid)
+      if params['algo']!='XGB':
+          ext = '.pickle'
+      else:
+          ext = '.json'
+   return ftype, ext
+
 testsets, space, testmodels, testfpattern, filters, nbest, changeparams, max_trials, calc_test, recmetrics, trainsetdir, testsetdir, \
 numaucthres, modeltype, filedesc, runmode, writescores, resdir, iternum, calib, debug = space_new_test.create_space()
 
@@ -244,21 +274,26 @@ numaucthres, modeltype, filedesc, runmode, writescores, resdir, iternum, calib, 
 #)
 opt_targets = ['%s %s'%(ot,runmode) for ot in recmetrics]
 if testfpattern is not None:
+    os.path.join(os.path.dirname(resdir),'bestmodels')
     testmodels = best_models.retrieve_best_models(resdir, testfpattern, recmetrics, 'val.', 'test', filters, nbest)
 opt_targets = testmodels.keys()
-hyperresfile = cv_common.get_filename(runmode, modeltype, filedesc, aggr='mean', resultsfolder=resdir)
-hyperallfile = cv_common.get_filename(runmode, modeltype, filedesc, aggr='all', resultsfolder=resdir)
+hyperresfile = cv_common.get_filename(runmode, modeltype, filedesc, ftype='mean', folder=os.path.join(resdir,runmode))
+hyperallfile = cv_common.get_filename(runmode, modeltype, filedesc, ftype='all', folder=os.path.join(resdir,runmode))
+modelfolder = os.path.join(os.path.dirname(os.path.dirname(hyperresfile)), 'models')
+if not os.path.isdir(modelfolder): os.makedirs(modelfolder)
 runtimes=1
 for opt_target in opt_targets:
-    scoresfile = cv_common.get_filename(opt_target, modeltype, filedesc, aggr='scores', ext='',
-                                        resultsfolder=resdir)
+    scoresfile = cv_common.get_filename(opt_target, modeltype, filedesc, ftype='scores', ext='',
+                                        folder=os.path.join(resdir,runmode))
     print("Output files : %s, %s"%(hyperresfile,hyperallfile))
     cnt=0
     for modelparams in testmodels[opt_target]:
         cnt+=1
-        modelid = list(range(0,cnt)) if 'trial' not in modelparams.keys() else modelparams['trial']
+        modelid = cnt if 'trial' not in modelparams.keys() else modelparams['trial']
         if changeparams is not None:
             for cp in changeparams: modelparams['params'][cp]=changeparams[cp]
         for i in range(runtimes):
-            evalmodel(testsets, opt_target, calc_test, modeltype, hyperresfile, hyperallfile, \
-                      scoresfile, modelid, numaucthres, iternum, calib, modelparams['params'])
+            ftype,ext = get_modelext(modeltype, modelparams, modelid, i)
+            modelfile = cv_common.get_filename(opt_target, modeltype, filedesc, ftype=ftype, ext=ext, folder=modelfolder)
+            evalmodel(testsets, opt_target, calc_test, modeltype, hyperresfile, hyperallfile, scoresfile, modelfile,\
+                       modelid, numaucthres, iternum, calib, modelparams['params'])

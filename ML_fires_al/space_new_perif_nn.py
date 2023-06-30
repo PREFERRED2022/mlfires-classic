@@ -22,9 +22,21 @@ def create_space():
     '''
     testspace = {
     'auc %s' % runmode:
-    [{'params':{'ES_mindelta': 0.002, 'ES_monitor': 'val_loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 2, 1: 3}, 'dropout': None, 'feature_drop': ('month', 'weekday', 'dom_dir', 'dir_max', 'pop', 'corine_gr1', 'corine_gr2', 'corine_gr3', 'corine_gr4', 'corine_gr5', 'corine_gr6', 'corine_gr7', 'corine_gr8', 'corine_gr9'), 'max_epochs': 2000, 'metric': 'accuracy', 'n_internal_layers': (0, {'layer_1_0_nodes': 700.0}), \
-    'optimizer': {'adam_params': None, 'name': 'Adam'}}}
-     ]
+    [{'params':{'ES_mindelta': 0.002, 'ES_monitor': 'val_loss', 'ES_patience': 10, 'batch_size': 512,
+                'class_weights': {0: 2, 1: 3}, 'dropout': None,
+                'feature_drop': ('month', 'weekday', 'dom_dir', 'dir_max', 'pop'),
+                'max_epochs': 2000, 'metric': 'accuracy',
+                'n_internal_layers': (0, {'layer_1_0_nodes': 700.0}), \
+                'optimizer': {'adam_params': None, 'name': 'Adam'}}}
+     ],
+    #'hybrid2 %s' % runmode:
+    # [{'params':{'ES_mindelta': 0.002, 'ES_monitor': 'val_loss', 'ES_patience': 10, 'batch_size': 512,
+    #   'class_weights': {0: 1, 1: 5}, 'dropout': None,
+    #   'feature_drop': ('month', 'weekday', 'dom_dir', 'dir_max', ),
+    #   'max_epochs': 2000, 'metric': 'accuracy',
+    #   'n_internal_layers': (0, {'layer_1_0_nodes': 700.0}),
+    #   'optimizer': {'adam_params': None, 'name': 'Adam'}}}
+    #  ]
     }
 
 
@@ -106,21 +118,21 @@ def create_space():
     calc_train_metrics = True
     opt_targets = ['auc', 'f1-score 1', 'hybrid1', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
     #opt_targets = ['NH5']
-    aucthress=0
+    aucthress=20
     debug = True
     #modeltype = 'sk'
     modeltype = 'tf'
     class0_headrows = 0
     filespec = "perif"
     writescore = True
-    resdir = '/mnt/nvme2tb/perifereia/results'
+    resdir = '/mnt/nvme2tb/perifereia/results/'
     cvrespattern = '*NN_ns*mean*'
     cvrespattern = None
     #cvrespattern=None
     #filters = ["df_flt['params'].str.contains(\"'dropout': None\")"] # no dropout
     filters = ["~df_flt['params'].str.contains(\"'dropout': None\")"] # with dropout
     #calib = {'min_temp':-0.15, 'dom_vel': -0.40, 'mean_temp': 0.2, 'mean_dew_temp': 0.2, 'min_dew_temp':0.2 , 'rain_7days': -0.999}
-    iternum=1
+    iternum=3
     calib = {}
     #changeparams={'feature_drop': ('month', 'weekday', 'dom_dir', 'dir_max')+tuple(['corine_%d'%i for i in range(1,10)])}
     changeparams = {'feature_drop': ('month', 'weekday', 'dom_dir', 'dir_max', \
