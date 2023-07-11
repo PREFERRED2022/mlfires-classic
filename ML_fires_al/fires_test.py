@@ -5,7 +5,7 @@ import time
 import space_new_test
 import re
 from manage_model import run_predict_q, run_predict_and_metrics_q, create_and_fit_q, run_predict, \
-    run_predict_and_metrics, fit_model, create_model, allowgrowthgpus, save_model
+    run_predict_and_metrics, fit_model, create_model, allowgrowthgpus, mm_save_model, mm_save_weights
 import fileutils
 from MLscores import calc_metrics_custom, cmvals, metrics_aggr, metrics_aggr2, \
     metrics_dict, calc_all_model_distrib, metrics_dict_distrib
@@ -15,6 +15,7 @@ import cv_common
 import best_models
 import multiprocessing as mp
 import pandas as pd
+from fileutils import del_file_or_folder
 
 def load_files(cvset, settype, setdir):
     setfiles = []
@@ -47,7 +48,7 @@ def runmlprocess(target, args, varnum=0):
     res=tuple(res)
     return res
 
-def training(cvset, calc_test, modeltype, numaucthres, optimize_target, numtrains, params):
+def training(cvset, calc_test, modeltype, numaucthres, optimize_target, numtrains, params, modelfile, weightfile):
     trfiles = load_files(cvset, 'training', trainsetdir)
     if len(trfiles) == 0:
         print("No training dataset(s) found")
@@ -68,6 +69,7 @@ def training(cvset, calc_test, modeltype, numaucthres, optimize_target, numtrain
         start_fit = time.time()
         print("Fitting model ...")
 
+        model = None
         model = create_model(modeltype, params, X_train)
         model, res = fit_model(modeltype, model, params, X_train, y_train, X_train, y_train)
 
@@ -99,6 +101,11 @@ def training(cvset, calc_test, modeltype, numaucthres, optimize_target, numtrain
         trtarget = optimize_target.replace('test','train')
         if prevmax is None or all_metrics[trtarget] > prevmax:
             bestmodel = model
+            del_file_or_folder(modelfile)
+            mm_save_model(modelfile, bestmodel, modeltype, params)
+            if weightfile:
+                del_file_or_folder(weightfile)
+                mm_save_weights(weightfile, bestmodel)
             bestmetrics = metrics_dict_train
             bestepochs = es_epochs
             bestiter=i
@@ -108,8 +115,8 @@ def training(cvset, calc_test, modeltype, numaucthres, optimize_target, numtrain
     return traincolumns, bestmodel, bestmetrics, bestepochs
 
 
-def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyperallfile, scoresfile, modelfile, modelid,
-              numaucthres, iternum, calib, params):
+def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyperallfile, scoresfile, modelfile,
+              weightfile, modelid, numaucthres, iternum, calib, params):
     if len(cvsets) == 0:
         print('No cross validation files')
         sys.exit()
@@ -123,8 +130,11 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
         if prevcv is None or prevcv['training']!=cvset['training']:
             prevcv=cvset
             traincolumns, model, metrics_dict_train, es_epochs = \
-                   training(cvset, calc_test, modeltype, numaucthres, optimize_target, iternum, params)
-            save_model(modelfile, model, modeltype, params)
+                   training(cvset, calc_test, modeltype, numaucthres, optimize_target, iternum, params,
+                            modelfile, weightfile)
+            #mm_save_model(modelfile, model, modeltype, params)
+            #if weightfile:
+            #    mm_save_weights(weightfile, model)
 
         start_cv = time.time()
         tn = 0; fp = 0; fn = 0; tp = 0;
@@ -256,6 +266,9 @@ def evalmodel(cvsets, optimize_target, calc_test, modeltype, hyperresfile, hyper
 
 def get_modelext(modeltype, params, modelid, runid):
    if modeltype == 'tf':
+        ext='.h5'
+        ftype = 'model_' + 'id_' + str(modelid) + '_r_' + str(i)
+   elif modeltype == 'tfw':
         ext='.cpkt'
         ftype='weights_'+'id_'+str(modelid)+'_r_'+str(i)
    elif modeltype == 'sk':
@@ -279,8 +292,10 @@ if testfpattern is not None:
 opt_targets = testmodels.keys()
 hyperresfile = cv_common.get_filename(runmode, modeltype, filedesc, ftype='mean', folder=os.path.join(resdir,runmode))
 hyperallfile = cv_common.get_filename(runmode, modeltype, filedesc, ftype='all', folder=os.path.join(resdir,runmode))
-modelfolder = os.path.join(os.path.dirname(os.path.dirname(hyperresfile)), 'models')
+modelfolder = os.path.join(os.path.dirname(os.path.dirname(hyperresfile)), 'entiremodels')
+weightsfolder = os.path.join(os.path.dirname(os.path.dirname(hyperresfile)), 'weights')
 if not os.path.isdir(modelfolder): os.makedirs(modelfolder)
+if not os.path.isdir(weightsfolder): os.makedirs(weightsfolder)
 runtimes=1
 for opt_target in opt_targets:
     scoresfile = cv_common.get_filename(opt_target, modeltype, filedesc, ftype='scores', ext='',
@@ -295,5 +310,10 @@ for opt_target in opt_targets:
         for i in range(runtimes):
             ftype,ext = get_modelext(modeltype, modelparams, modelid, i)
             modelfile = cv_common.get_filename(opt_target, modeltype, filedesc, ftype=ftype, ext=ext, folder=modelfolder)
+            weightfile=None
+            if modeltype=='tf':
+                ftype, ext = get_modelext('tfw', modelparams, modelid, i)
+                weightfile = cv_common.get_filename(opt_target, modeltype, filedesc, ftype=ftype, ext=ext,
+                                                   folder=weightsfolder)
             evalmodel(testsets, opt_target, calc_test, modeltype, hyperresfile, hyperallfile, scoresfile, modelfile,\
-                       modelid, numaucthres, iternum, calib, modelparams['params'])
+                       weightfile, modelid, numaucthres, iternum, calib, modelparams['params'])

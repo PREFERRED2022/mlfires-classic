@@ -93,20 +93,26 @@ def create_model(modeltype, params, X_train):
 def create_ensemble_model(params, X_train):
     pass
 
-
-def save_model(fname, model, modeltype, params):
+def mm_save_model(fname, model, modeltype, params):
     if modeltype == 'tf':
-        model.save_weights(fname, save_format="tf")
+        model.save(fname)
     elif modeltype == 'sk':
         if params['algo']!='XGB':
             pickle.dump(model, open(fname, "wb"))
         else:
             model.save_model(fname)
 
-def load_model(fname, modeltype, params, X_train):
+def mm_save_weights(fname, model):
+     model.save_weights(fname)
+
+def mm_load_weights(fname, model):
+     model.load_weights(fname)
+
+def mm_load_model(fname, modeltype, params, X_train):
     if modeltype == 'tf':
-        model=create_model(modeltype, params, X_train)
-        model.load_weights(fname)
+        #model=create_model(modeltype, params, X_train)
+        #model.load_weights(fname)
+        model = load_model(fname)
     elif modeltype == 'sk':
         if params['algo']!='XGB':
             model= pickle.load(open(fname, "rb"))

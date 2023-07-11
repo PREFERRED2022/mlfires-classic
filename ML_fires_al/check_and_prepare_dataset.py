@@ -60,7 +60,8 @@ def prepare_dataset(df, X_columns, y_columns, firedate_col, ohecols,calib=None, 
         if "id" in df.columns:
             idpd = df["id"]
         else:
-            idpd = df.index.to_series()
+            df["id"] = df["xpos"]*10000
+            #idpd = df.index.to_series()
         df = None
         return X, y, groupspd, idpd
     else:

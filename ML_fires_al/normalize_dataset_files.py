@@ -50,7 +50,7 @@ def par_files(func, days, pthreads, args):
             new_process(func, procs, tuple([d]+args))
     return proctimetotal
 
-def normalizefile(csvfile, dropfilters=None, fillnafilters=None, renames=None, horizfilters=None, addcols=None):
+def normalizefile(csvfile, dropfilters=None, fillnafilters=None, renames=None, horizfilters=None, addcols=None, applyid=True):
     f=csvfile
     fnorm = os.path.join(os.path.dirname(f), os.path.basename(f).split('.')[0] + '_norm.csv')
     if f[-8:]=='norm.csv' or os.path.isfile(fnorm):
@@ -80,7 +80,12 @@ def normalizefile(csvfile, dropfilters=None, fillnafilters=None, renames=None, h
     if addcols is not None:
         for addc in addcols:
             df[addc]=0
-    normdf = normdataset.normalize_dataset(df,aggrfile='/mnt/nvme2tb/ffp/datasets/norm_values_ref_perif.json', check=False)
+    if applyid:
+        df['xposst'] = (df['x'] * 10000).apply('{:06.0f}'.format)
+        df['yposst'] = (df['y'] * 10000).apply('{:06.0f}'.format)
+        df['id'] = df['xposst']+df['yposst']
+        df.drop(columns=['xposst', 'yposst'],inplace=True)
+    normdf = normdataset.normalize_dataset(df,aggrfile='/mnt/nvme2tb/ffp/datasets/norm_values_ref_final.json', check=False)
     if 'firedate' not in normdf.columns:
         normdf['firedate']=os.path.basename(f)[0:8]
     normdf.to_csv(fnorm,index=False)
@@ -91,14 +96,23 @@ start=time.time()
 print("Starting Normalization")
 #dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/2019/', '*_df_sterea.csv')
 dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/2019/', '*_df.csv')
-dayfiles=walkmonthdays('/mnt/nvme2tb/perifereia/', '2022*.csv')
-#proctime=par_files(normalizefile, dayfiles, mp.cpu_count() - 2, [[r'corine_(\d+)', 'x\.1', 'y\.1']])
+#dayfiles=walkmonthdays('/mnt/nvme2tb/perifereia/', '2022*.csv')
+proctime=par_files(normalizefile, dayfiles, mp.cpu_count() - 2,
+                   #args list
+                   [
+                       #dropfilters
+                       ['x\.1', 'y\.1'],
+                       #fillnafilters
+                       [r'corine_(\d+)']
+                   ])
 dur=time.time()-start
 print("Done in %d min and %d secs"%(int(dur/60), dur%60))
+
+#normalizefile('/mnt/nvme2tb/ffp/datasets/traindataset_new_attica.csv', [r'corine_(\d+)', 'x\.1', 'y\.1'])
 
 
 #normalizefile('/mnt/nvme2tb/ffp/datasets/traindataset_new_attica.csv', [r'corine_(\d+)', 'x\.1', 'y\.1'])
 #normalizefile('/mnt/nvme2tb/ffp/datasets/traindataset_new_sterea.csv', [r'corine_(\d+)', 'x\.1', 'y\.1'])
 
 #normalizefile('/mnt/nvme2tb/ffp/datasets/train/train_sample_1_1_nof_att.csv', [r'corine_(\d+)', 'x\.1', 'y\.1'])
-normalizefile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_attica.csv', None, [r'corine_(\d+)'])
+#normalizefile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_attica.csv', None, [r'corine_(\d+)'])

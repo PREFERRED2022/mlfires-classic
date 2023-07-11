@@ -99,20 +99,22 @@ def create_space():
     '''
     calc_train_metrics = True
     #opt_targets = ['auc', 'f1-score 1', 'hybrid1', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
-    opt_targets = ['hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
+    #opt_targets = ['hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
+    #opt_targets = ['NH2', 'NH5', 'hybrid5', 'NH10', 'hybrid2',]
+    opt_targets = ['hybrid5', 'NH10', 'hybrid2']
     #opt_targets = ['NH5']
     aucthress=2
     debug = True
     #modeltype = 'sk'
     modeltype = 'tf'
     class0_headrows = 0
-    filespec = "ns_ncv_do_%s"%tyear
+    filespec = "ns_ncv_%s"%tyear
     writescore = True
     resdir = '/mnt/nvme2tb/ffp/results/bestmodels'
     cvrespattern = '*NN_ns*mean*'
     #cvrespattern=None
-    #filters = ["df_flt['params'].str.contains(\"'dropout': None\")"] # no dropout
-    filters = ["~df_flt['params'].str.contains(\"'dropout': None\")"] # with dropout
+    filters = ["df_flt['params'].str.contains(\"'dropout': None\")"] # no dropout
+    #filters = ["~df_flt['params'].str.contains(\"'dropout': None\")"] # with dropout
     #calib = {'min_temp':-0.15, 'dom_vel': -0.40, 'mean_temp': 0.2, 'mean_dew_temp': 0.2, 'min_dew_temp':0.2 , 'rain_7days': -0.999}
     iternum=5
     calib = {}

@@ -5,6 +5,7 @@ Created on 16 Nov 2017
 '''
 import os
 import fnmatch
+import shutil
 
 def find_files(directory, pattern, listtype="walk"):
     if listtype == "list":
@@ -40,3 +41,9 @@ def removeEmptyFolders(path):
                         pass
             except:
                 pass
+
+def del_file_or_folder(f):
+    if os.path.isfile(f):
+        os.remove(f)
+    elif os.path.isdir(f):
+        shutil.rmtree(f)
