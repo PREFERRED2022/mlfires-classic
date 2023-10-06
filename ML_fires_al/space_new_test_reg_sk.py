@@ -5,7 +5,7 @@ def create_space():
     #testsetdir = '/work2/pa21/sgirtsou/production'
     #testsetdir = '/users/pa21/sgirtsou/production/2020'
     tyear = '2019'
-    testsetdir = '/mnt/nvme2tb/ffp/datasets/test/2019/greece/'
+    testsetdir = '/mnt/nvme2tb/ffp/datasets/test/2019/'
     #runmode = 'val.'
     runmode = 'test'
 
@@ -44,60 +44,49 @@ def create_space():
                 {'training': ['fires_new_norm.csv'], \
                  'crossval': ['%s09*_attica_norm.csv' % tyear, '%s09*_sterea_norm.csv' % tyear]},
                ]
-    
+    '''
     testsets = [
-        {'training': ['train_new_sample_1_2_norm.csv'], \
+        {'training': ['train_new_sample_1_2_greece_norm.csv'], \
          'crossval': ['%s06*_attica_norm.csv' % tyear, '%s06*_sterea_norm.csv' % tyear]},
-        {'training': ['train_new_sample_1_2_norm.csv'], \
+        {'training': ['train_new_sample_1_2_greece_norm.csv'], \
          'crossval': ['%s07*_attica_norm.csv' % tyear, '%s07*_sterea_norm.csv' % tyear]},
-        {'training': ['train_new_sample_1_2_norm.csv'], \
+        {'training': ['train_new_sample_1_2_greece_norm.csv'], \
          'crossval': ['%s08*_attica_norm.csv' % tyear, '%s08*_sterea_norm.csv' % tyear]},
-        {'training': ['train_new_sample_1_2_norm.csv'], \
+        {'training': ['train_new_sample_1_2_greece_norm.csv'], \
          'crossval': ['%s09*_attica_norm.csv' % tyear, '%s09*_sterea_norm.csv' % tyear]},
     ]
-    '''
+
     '''
     testsets = [
-        {'training': ['train_new_sample_1_2_norm.csv'], \
+        {'training': ['train_new_sample_1_2_greece_norm.csv'], \
          'crossval': ['%s06*_attica_norm.csv' % tyear]},
-        {'training': ['train_new_sample_1_2_norm.csv'], \
+        {'training': ['train_new_sample_1_2_greece_norm.csv'], \
          'crossval': ['%s07*_attica_norm.csv' % tyear]},
-        {'training': ['train_new_sample_1_2_norm.csv'], \
+        {'training': ['train_new_sample_1_2_greece_norm.csv'], \
          'crossval': ['%s08*_attica_norm.csv' % tyear]},
-        {'training': ['train_new_sample_1_2_norm.csv'], \
+        {'training': ['train_new_sample_1_2_greece_norm.csv'], \
          'crossval': ['%s09*_attica_norm.csv' % tyear]},
     ]
     '''
-
-    testsets = [
-                {'training': ['train_new_sample_1_2_greece_norm.csv'], \
-                 'crossval': ['%s06*df_greece_norm.csv' % tyear]},
-                {'training': ['train_new_sample_1_2_greece_norm.csv'], \
-                 'crossval': ['%s07*df_greece_norm.csv' % tyear]},
-                {'training': ['train_new_sample_1_2_greece_norm.csv'], \
-                 'crossval': ['%s08*df_greece_norm.csv' % tyear]},
-                {'training': ['train_new_sample_1_2_greece_norm.csv'], \
-                 'crossval': ['%s09*df_greece_norm.csv' % tyear]},
-        ]
 
     calc_train_metrics = True
     opt_targets = ['BA','auc', 'f1-score 1', 'hybrid1', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
     #opt_targets = ['f1-score 1']
     #opt_targets = ['auc', 'hybrid2', 'hybrid5', 'NH2', 'NH5', 'NH10']
     aucthress=0
-    debug = False
+    debug = True
     modeltype = 'sk'
     #modeltype = 'tf'
     class0_headrows = 0
-    filespec = "ns_gr_%s_%s"%(tyear,algo)
+    filespec = "ns_atster_%s_XT"%tyear
     writescore = False
     resdir = '/mnt/nvme2tb/ffp/results/best2/'
     #resdir = '/work2/pa21/sgirtsou/production/results/newcv/nn/'
     #cvrespattern = '*_dropfeat_*_mean*'
     #cvrespattern = '*_dropfeat_1M_*_mean*'
     #cvrespattern = '*RF*mean*'
-    cvrespattern = '*%s*mean*'%algo
-    #cvrespattern = '*XT*mean*'
+    #cvrespattern = '*XGB*mean*'
+    cvrespattern = '*XT*mean*'
     #filters = ["df_flt['params'].str.contains(\"'dropout': None\")"]
     #filters = ["~df_flt['params'].str.contains(\"'dropout': None\")"]
     filters=[]

@@ -53,20 +53,20 @@ def create_space():
              'batch_size': hp.choice('batch_size', [512]),
              }
 
-    max_trials = 200
+    max_trials = 1000
     #testsets = {'balanced':'/home/aapos/Documents/newcrossval/datasets/randomnofire/old_random_new_features_norm.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
-    testsets = {'balanced':'/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_norm.csv', \
+    testsets = {'balanced':'/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_greece_norm.csv', \
                 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
     calc_train_metrics = True
     #opt_targets = ['auc val.']
     #opt_targets = ['NH2', 'NH5', 'hybrid2', 'hybrid5', 'NH10', 'auc', 'hybrid1', 'f1-score 1']
-    opt_targets = ['hybrid2']
+    opt_targets = ['NH2']
     modeltype = 'tf'
     #modeltype = 'sk'
-    description = 'NN_ns'
+    description = 'NN_gr'
     nfolds = 5
     writescores = False
-    resultsfolder = '/mnt/nvme2tb/ffp/results/newdefCV'
+    resultsfolder = '/mnt/nvme2tb/ffp/results/best2'
     #hypalgo = 'random'
     hypalgo = 'tpe'
     gpumb=0

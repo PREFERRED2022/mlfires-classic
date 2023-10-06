@@ -20,7 +20,7 @@ def create_space():
               'class_weights':hp.choice('class_weight',[{0:1,1:1}, {0:1,1:10}, {0:1,1:100},{0:1,1:500}, {0:1,1:1000}])
             }
     
-    '''
+    
     space = { 'algo': hp.choice('algo', ['XT']),
         'n_estimators': hp.choice('n_estimators',[10, 20, 40, 60, 80, 100, 200, 400, 800]),
         'criterion': hp.choice('criterion',['gini', 'entropy']),
@@ -48,20 +48,22 @@ def create_space():
              'feature_drop': hp.choice('feature_drop',[dropfeat1,dropfeat2,dropfeat3,dropfeat4]),
              }
 
-    '''
+
     max_trials = 500
     #testsets = {'balanced':'/home/aapos/Documents/newcrossval/datasets/randomnofire/old_random_new_features_norm.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
-    testsets = {'balanced':'/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_norm.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
+    #testsets = {'balanced':'/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_norm.csv', 'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
+    testsets = {'balanced':'/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_greece_norm.csv', \
+                'imbalanced':'dataset_1_10_corine_level2_onehotenc.csv'}
     calc_train_metrics = True
     #opt_targets = ['hybrid2 val', 'hybrid5 val', 'f1-score 1 val.', 'auc val.', 'recall 1 val.']
     #opt_targets = ['auc val.']
-    opt_targets = ['hybrid1','hybrid2', 'hybrid5', 'NH2', 'NH5','NH10', 'auc', 'f1-score 1']
+    opt_targets = ['BA','hybrid1','hybrid2', 'hybrid5', 'NH2', 'NH5','NH10', 'auc', 'f1-score 1']
     #opt_targets = ['hybrid1']
     modeltype = 'sk'
-    description = 'XT_ns'
+    description = 'XGB_gr'
     nfolds = 5
     writescores = False
-    resultsfolder = '/mnt/nvme2tb/ffp/results/newdefCV'
+    resultsfolder = '/mnt/nvme2tb/ffp/results/best2'
     #hypalgo = 'random'
     hypalgo = 'tpe'
     gpuMBs = 10

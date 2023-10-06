@@ -210,14 +210,16 @@ def load_dataset(trfiles, featuredrop=[], class0nrows=0, debug=True, returnid=Fa
     X, y, groupspd, idpd = prepare_dataset(df, X_columns, y_columns, firedate_col, ohecols, calib, returnid)
 
     #columns ignored from loade dataset after processing
-    print("Ignored columns from csv %s"%([c for c in df.columns if c not in X.columns]))
+    if debug:
+        print("Ignored columns from csv %s"%([c for c in df.columns if c not in X.columns]))
 
     X_columns = X.columns
 
     #drop feature columns defined by hyperparamaters
     if len(featuredrop) > 0:
         X = X.drop(columns=[c for c in X.columns if any([fd in c for fd in featuredrop])])
-    print("Dropped columns %s"%(list(set(X_columns)-set(X.columns))))
+    if debug:
+        print("Dropped columns %s"%(list(set(X_columns)-set(X.columns))))
     #if debug:
     #    print("X helth check %s"%X.describe())
     #    print("y helth check %s"%y.describe())

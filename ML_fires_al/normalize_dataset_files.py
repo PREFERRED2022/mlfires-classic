@@ -10,7 +10,7 @@ import fileutils
 '''
 walk folders to find all dataset files
 '''
-def walkmonthdays(sfolder, pattern):
+def walkmonthdays(sfolder, pattern, walktype='walk'):
     dayfiles = []
     for dayf in fileutils.find_files(sfolder, pattern, listtype="walk"):
         dayfiles += [dayf]
@@ -94,10 +94,13 @@ def normalizefile(csvfile, dropfilters=None, fillnafilters=None, renames=None, h
 
 start=time.time()
 print("Starting Normalization")
-#dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/2019/', '*_df_sterea.csv')
-dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/2019/', '*_df.csv')
+
+dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/2020/attster', '*_df_attster.csv')
+#dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/2019/greece', '*_df_greece.csv','list')
 #dayfiles=walkmonthdays('/mnt/nvme2tb/perifereia/', '2022*.csv')
-proctime=par_files(normalizefile, dayfiles, mp.cpu_count() - 2,
+
+
+proctime=par_files(normalizefile, sorted(dayfiles, reverse=True), mp.cpu_count() - 2,
                    #args list
                    [
                        #dropfilters
@@ -108,6 +111,7 @@ proctime=par_files(normalizefile, dayfiles, mp.cpu_count() - 2,
 dur=time.time()-start
 print("Done in %d min and %d secs"%(int(dur/60), dur%60))
 
+'''
 #normalizefile('/mnt/nvme2tb/ffp/datasets/traindataset_new_attica.csv', [r'corine_(\d+)', 'x\.1', 'y\.1'])
 
 
@@ -116,3 +120,6 @@ print("Done in %d min and %d secs"%(int(dur/60), dur%60))
 
 #normalizefile('/mnt/nvme2tb/ffp/datasets/train/train_sample_1_1_nof_att.csv', [r'corine_(\d+)', 'x\.1', 'y\.1'])
 #normalizefile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_attica.csv', None, [r'corine_(\d+)'])
+normalizefile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_greece.csv', ['x\.1', 'y\.1'], [r'corine_(\d+)'])
+'''
+#normalizefile('/mnt/nvme2tb/ffp/datasets/test/2020/20200601_df.csv', [r'corine_(\d+)', 'x\.1', 'y\.1'])

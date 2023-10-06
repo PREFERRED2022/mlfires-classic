@@ -23,31 +23,39 @@ def normalize_dataset(df, norm_type = None, aggrfile = None, check=True):
     X = DataFrame()
     aggrs = None
     if aggrfile and os.path.exists(aggrfile):
+        if check: print("Aggregation file : %s"%aggrfile)
         with open(aggrfile) as aggrf:
             aggrs = json.loads(aggrf.read())
+            if check: print("Aggregation Variables : %s" % aggrs.keys())
     else:
         if check: print("No aggregation file")
     for c in df.columns:
-        dfcfloat = df[c].astype('float32')
         if not 'bin' in c:
-            if check: print("Normalize column:%s" % c)
-            if not aggrs is None:
-                if not c in aggrs:
-                    if check: print("Failed to find aggregations for %s" % c)
-                    X[c] = df[c]
-                    continue
-                dfmax = aggrs[c]['max'] if 'max' in aggrs[c] else None
-                dfmin = aggrs[c]['min'] if 'min' in aggrs[c] else None
-                dfmean = aggrs[c]['mean'] if 'mean' in aggrs[c] else None
-                dfstd = aggrs[c]['std'] if 'std' in aggrs[c] else None
-            else:
-                dfmax = dfcfloat.max()
-                dfmin = dfcfloat.min()
-                dfmean = dfcfloat.mean()
-                dfstd = dfcfloat.std()
-            X[c] = dfcfloat.apply(lambda x: normalized_values(x, dfmax, dfmin, dfmean, dfstd, norm_type))#, axis=1)
-            if check:
-                dataset_sanity_check(X[[c]])
+            try:
+                if check: print("Normalize column:%s" % c)
+                if not aggrs is None:
+                    if not c in aggrs:
+                        if check: print("Failed to find aggregations for %s" % c)
+                        X[c] = df[c]
+                        continue
+                    dfcfloat = df[c].astype('float32')
+                    dfmax = aggrs[c]['max'] if 'max' in aggrs[c] else None
+                    dfmin = aggrs[c]['min'] if 'min' in aggrs[c] else None
+                    dfmean = aggrs[c]['mean'] if 'mean' in aggrs[c] else None
+                    dfstd = aggrs[c]['std'] if 'std' in aggrs[c] else None
+                else:
+                    dfcfloat = df[c].astype('float32')
+                    dfmax = dfcfloat.max()
+                    dfmin = dfcfloat.min()
+                    dfmean = dfcfloat.mean()
+                    dfstd = dfcfloat.std()
+                X[c] = dfcfloat.apply(lambda x: normalized_values(x, dfmax, dfmin, dfmean, dfstd, norm_type))#, axis=1)
+                if check:
+                    dataset_sanity_check(X[[c]])
+            except:
+                print('fail to normalize %s'%c)
+                print('min %s, max %s, mean %s, std %s' % (dfmin, dfmax, dfmean, dfmax))
+                raise
         else:
             X[c] = df[c]
     return X

@@ -24,7 +24,7 @@ periphereies
 '''
 walk folders to find all dataset files
 '''
-def walkmonthdays(sfolder, pattern):
+def walkmonthdays(sfolder, pattern, walktype='walk'):
     dayfiles = []
     for dayf in fileutils.find_files(sfolder, pattern, listtype="walk"):
         dayfiles += [dayf]
@@ -80,21 +80,29 @@ def cropfile(f, cropfolder, gdfperif, suffix):
 
 start=time.time()
 print("Start Cropping")
-cropfolder='/mnt/nvme2tb/ffp/datasets/train'
+cropfolder='/mnt/nvme2tb/ffp/datasets/test/2020/attster'
+if not os.path.isdir(cropfolder): os.makedirs(cropfolder)
 gdfperif=gpd.read_file(r'/mnt/nvme2tb/ffp/datasets/test/2019/perif/periphereies.shp',encoding='Windows-1253')
 gdfperif=gdfperif.to_crs(4326)
 
+'''
 id_perif=7
 #cropfile('/mnt/nvme2tb/ffp/datasets/traindataset_new.csv', cropfolder, gdfperif.iloc[[id_perif]], '_sterea')
 #cropfile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_fna.csv', cropfolder, gdfperif.iloc[[id_perif]], '_sterea')
 #cropfile('/mnt/nvme2tb/ffp/datasets/test/2019/20190930_df.csv', cropfolder, gdfperif.iloc[[id_perif]], '_sterea')
 cropfile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2.csv', cropfolder, gdfperif.iloc[[id_perif]], '_sterea')
-
+'''
+'''
 id_perif=12
 #cropfile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_fna.csv', cropfolder, gdfperif.iloc[[id_perif]], '_attica')
 cropfile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2.csv', cropfolder, gdfperif.iloc[[id_perif]], '_attica')
+'''
 
-#dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/', '*_df.csv')
-#proctime=par_files(cropfile, dayfiles, mp.cpu_count()-2, [cropfolder, gdfperif.iloc[[id_perif]], '_sterea'])
-#dur=time.time()-start
-#print("Done in %d min and %d secs"%(int(dur/60), dur%60))
+id_perif=7
+dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/2020/', '*_df.csv','list')
+proctime=par_files(cropfile, sorted(dayfiles, reverse=True), mp.cpu_count()-2, [cropfolder, gdfperif.iloc[[7,12]], '_attster'])
+dur=time.time()-start
+print("Done in %d min and %d secs"%(int(dur/60), dur%60))
+
+#cropfile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2.csv', '/mnt/nvme2tb/ffp/datasets/train/', gdfperif, '_greece')
+

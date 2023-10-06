@@ -23,7 +23,7 @@ def writemetrics(metrics, mean_metrics, hpresfile, allresfile):
         for m in metrics:
             dw.writerow(m)
 
-def write_score(fname, dates_pd, y_val, y_scores, id_pd=None):
+def write_score(fname, dates_pd, y_val, y_scores, id_pd=None, model_id=None):
     if type(y_val) == np.ndarray:
         y_val = pd.Series(y_val).rename('y', inplace=True)
     if not os.path.exists(fname):
@@ -36,7 +36,10 @@ def write_score(fname, dates_pd, y_val, y_scores, id_pd=None):
             pdscores['id'].apply(np.int64)
     else:
         pdscores = pd.read_csv(fname, dtype={'id': str, 'firedate': str})
-    col = str(len(pdscores.columns)) if id_pd is None else str(len(pdscores.columns)-2)
+    if model_id is None:
+        col = str(len(pdscores.columns)) if id_pd is None else str(len(pdscores.columns)-2)
+    else:
+        col = model_id
     y_sc_pd = pd.Series(y_scores)
     y_sc_pd.rename(col, inplace=True)
     score_pd = pd.concat([pdscores, y_sc_pd], axis=1)
