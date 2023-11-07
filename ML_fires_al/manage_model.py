@@ -108,7 +108,7 @@ def mm_save_weights(fname, model):
 def mm_load_weights(fname, model):
      model.load_weights(fname)
 
-def mm_load_model(fname, modeltype, params, X_train):
+def mm_load_model(fname, modeltype, params):
     if modeltype == 'tf':
         #model=create_model(modeltype, params, X_train)
         #model.load_weights(fname)

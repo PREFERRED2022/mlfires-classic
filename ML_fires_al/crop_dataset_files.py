@@ -66,10 +66,11 @@ def par_files(func, days, pthreads, args):
 
 def cropfile(f, cropfolder, gdfperif, suffix):
     fcrop = os.path.join(cropfolder, os.path.basename(f).split('.')[0] + suffix + '.csv')
-    if os.path.isfile(fcrop):
-        return
+    #if os.path.isfile(fcrop):
+    #    return
     print('Start processing file %s'%f)
     df=pd.read_csv(f)
+    if 'crs' in df.columns: df.drop(columns=['crs'], inplace=True)
     geom = gpd.points_from_xy(df['x'], df['y'])
     gdf = gpd.GeoDataFrame(df, geometry=geom)
     gdf = gdf.set_crs(4326)
@@ -93,16 +94,21 @@ id_perif=7
 cropfile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2.csv', cropfolder, gdfperif.iloc[[id_perif]], '_sterea')
 '''
 '''
+kkk
 id_perif=12
 #cropfile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_fna.csv', cropfolder, gdfperif.iloc[[id_perif]], '_attica')
 cropfile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2.csv', cropfolder, gdfperif.iloc[[id_perif]], '_attica')
 '''
 
+'''
 id_perif=7
 dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/2020/', '*_df.csv','list')
 proctime=par_files(cropfile, sorted(dayfiles, reverse=True), mp.cpu_count()-2, [cropfolder, gdfperif.iloc[[7,12]], '_attster'])
 dur=time.time()-start
 print("Done in %d min and %d secs"%(int(dur/60), dur%60))
+'''
 
-#cropfile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2.csv', '/mnt/nvme2tb/ffp/datasets/train/', gdfperif, '_greece')
+#cropfile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2.csv', '/mnt/nvme2tb/ffp/datasets/train/', gdfperif, '_greecell')
+
+cropfile('/mnt/nvme2tb/ffp/datasets/prod/20230825/20230825.csv','/mnt/nvme2tb/ffp/datasets/prod/20230825/', gdfperif, '_greece')
 

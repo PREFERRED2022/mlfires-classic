@@ -99,7 +99,7 @@ dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/2020/attster', '*_df_atts
 #dayfiles=walkmonthdays('/mnt/nvme2tb/ffp/datasets/test/2019/greece', '*_df_greece.csv','list')
 #dayfiles=walkmonthdays('/mnt/nvme2tb/perifereia/', '2022*.csv')
 
-
+'''
 proctime=par_files(normalizefile, sorted(dayfiles, reverse=True), mp.cpu_count() - 2,
                    #args list
                    [
@@ -110,7 +110,7 @@ proctime=par_files(normalizefile, sorted(dayfiles, reverse=True), mp.cpu_count()
                    ])
 dur=time.time()-start
 print("Done in %d min and %d secs"%(int(dur/60), dur%60))
-
+'''
 '''
 #normalizefile('/mnt/nvme2tb/ffp/datasets/traindataset_new_attica.csv', [r'corine_(\d+)', 'x\.1', 'y\.1'])
 
@@ -122,4 +122,4 @@ print("Done in %d min and %d secs"%(int(dur/60), dur%60))
 #normalizefile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_attica.csv', None, [r'corine_(\d+)'])
 normalizefile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2_greece.csv', ['x\.1', 'y\.1'], [r'corine_(\d+)'])
 '''
-#normalizefile('/mnt/nvme2tb/ffp/datasets/test/2020/20200601_df.csv', [r'corine_(\d+)', 'x\.1', 'y\.1'])
+normalizefile('/mnt/nvme2tb/ffp/datasets/prod/20230825/20230825_greece.csv', ['x\.1', 'y\.1'], [r'corine_(\d+)'])
