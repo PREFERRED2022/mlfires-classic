@@ -110,5 +110,5 @@ print("Done in %d min and %d secs"%(int(dur/60), dur%60))
 
 #cropfile('/mnt/nvme2tb/ffp/datasets/train/train_new_sample_1_2.csv', '/mnt/nvme2tb/ffp/datasets/train/', gdfperif, '_greecell')
 
-cropfile('/mnt/nvme2tb/ffp/datasets/prod/20230825/20230825.csv','/mnt/nvme2tb/ffp/datasets/prod/20230825/', gdfperif, '_greece')
+cropfile('/mnt/nvme2tb/ffp/datasets/prod/20230828/20230828_norm.csv','/mnt/nvme2tb/ffp/datasets/prod/20230828/', gdfperif, '_greece')
 
