@@ -5,7 +5,7 @@ import time
 import cl_space_new_test
 import re
 from manage_model import run_predict_q, run_predict_and_metrics_q, create_and_fit_q, run_predict, \
-    run_predict_and_metrics, fit_model, create_model, allowgrowthgpus, mm_save_model, mm_save_weights
+    run_predict_and_metrics, fit_model, create_model, allowgrowthgpus, mm_save_model, mm_save_weights, mm_load_model
 import fileutils
 from MLscores import calc_metrics_custom, cmvals, metrics_aggr, metrics_aggr2, \
     metrics_dict, calc_all_model_distrib, metrics_dict_distrib
@@ -48,7 +48,7 @@ def runmlprocess(target, args, varnum=0):
     res=tuple(res)
     return res
 
-def training(env, cvset, optimize_target, params, modelfile, weightfile):
+def training(env, cvset, optimize_target, params, modelfile):
     trfiles = load_files(cvset, 'training', env.trainsetdir)
     if len(trfiles) == 0:
         print("No training dataset(s) found")
@@ -103,9 +103,6 @@ def training(env, cvset, optimize_target, params, modelfile, weightfile):
             bestmodel = model
             del_file_or_folder(modelfile)
             mm_save_model(modelfile, bestmodel, env.modeltype, params)
-            if weightfile:
-                del_file_or_folder(weightfile)
-                mm_save_weights(weightfile, bestmodel)
             bestmetrics = metrics_dict_train
             bestepochs = es_epochs
             bestiter=i
@@ -116,7 +113,7 @@ def training(env, cvset, optimize_target, params, modelfile, weightfile):
 
 
 def evalmodel(env, optimize_target, hyperresfile, hyperallfile, scoresfile, modelfile,
-              weightfile, modelid, params):
+              modelid, params):
 
     if len(env.testsets) == 0:
         print('No cross validation files')
@@ -128,13 +125,16 @@ def evalmodel(env, optimize_target, hyperresfile, hyperallfile, scoresfile, mode
     prevcv=None
     for tset in env.testsets:
         print('%s Set: %s' % (env.runmode,tset))
-        if prevcv is None or prevcv['training']!=tset['training']:
+        if (prevcv is None or prevcv['training']!=tset['training']) and not os.path.exists(modelfile):
             prevcv=tset
             traincolumns, model, metrics_dict_train, es_epochs = \
-                   training(env, tset, optimize_target, params, modelfile, weightfile)
-            #mm_save_model(modelfile, model, modeltype, params)
-            #if weightfile:
-            #    mm_save_weights(weightfile, model)
+                   training(env, tset, optimize_target, params, modelfile)
+        # load already saved model
+        if os.path.exists(modelfile):
+            model=mm_load_model(modelfile, env.modeltype, params)
+            metrics_dict_train={}
+            traincolumns=None
+            es_epochs=0
 
         start_cv = time.time()
         tn = 0; fp = 0; fn = 0; tp = 0;
@@ -301,7 +301,6 @@ def main(args):
     # space configuration
     env = cl_space_new_test.space(recmetrics=recmetrics, algo=algo, writescore=writescore, region=region)
 
-
     if env.testfpattern is not None:
         testmodels = best_models.retrieve_best_models(env.resdir, env.testfpattern, env.recmetrics, 'val.', 'test', env.filters, env.nbest)
     opt_targets = testmodels.keys()
@@ -323,16 +322,13 @@ def main(args):
             if env.changeparams is not None:
                 for cp in env.changeparams: modelparams['params'][cp]=env.changeparams[cp]
             for i in range(runtimes):
-                ftype,ext = get_modelext(env.modeltype, modelparams['params'], modelid, i)
-                modelfile = cv_common.get_filename(opt_target, env.modeltype, env.filespec, ftype=ftype, ext=ext, folder=modelfolder)
-                weightfile=None
-                if env.modeltype=='tf':
-                    ftype, ext = get_modelext('tfw', modelparams, modelid, i)
-                    weightfile = cv_common.get_filename(opt_target, env.modeltype, env.filespec, ftype=ftype, ext=ext,
-                                                       folder=weightsfolder)
+                if env.modelfile is None:
+                    ftype, ext = get_modelext(env.modeltype, modelparams['params'], modelid, i)
+                    modelfile = cv_common.get_filename(opt_target, env.modeltype, env.filespec, ftype=ftype, ext=ext, folder=modelfolder)
+                else: modelfile=env.modelfile
                 modelidfull = str(modelid) + '_'+ str(i)
                 evalmodel(env, opt_target, hyperresfile, hyperallfile, scoresfile, modelfile,\
-                           weightfile, modelidfull,  modelparams['params'])
+                          modelidfull,  modelparams['params'])
 
 
 if __name__ == '__main__':

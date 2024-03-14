@@ -2,6 +2,7 @@ import pandas as pd
 import fileutils
 
 def retrieve_best_models(dir, filepattern, metrics, valst, testst, filters = [], modelcount=1):
+    print(dir, filepattern)
     best_models={}
     setfiles = [f for f in fileutils.find_files(dir, filepattern, listtype="walk")]
     df = None

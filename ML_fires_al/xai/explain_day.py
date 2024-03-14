@@ -24,6 +24,7 @@ from crop_dataset_files_op177 import cropfile
 from functools import partial
 import dice_ml
 from dice_ml import Dice
+from datetime import datetime
 
 def applyid(df):
     df['xposst'] = (df['x'] * 10000).apply('{:06.0f}'.format)
@@ -89,7 +90,7 @@ def create_json_xai(xaimethod, unnormdf, xyid, invrendict, tup):
     if tup[0] == 'ypos': scol = 'y'
 
     unnormval = xyrow[scol].item()
-    jsonst = '{%s : {%s : %.2f, unnorm: %.2f}}' % (tup[0], xaimethod, tup[1], unnormval)
+    jsonst = '{"feature":"%s", "%s" : %.2f, "value": %.2f}' % (tup[0], xaimethod, tup[1], unnormval)
     return jsonst
 
 
@@ -156,28 +157,56 @@ def xai_xy_ds(imp_values, columns, coarsefile):
 def fshap1(model, X):
     return model.predict(X, verbose=0)
 
-def getunnorm(date, dfxai):
+def getunnorm(date):
     csvunnorm='/mnt/nvme2tb/ffp/datasets/prod/%s/%s.csv'%(date,date)
     dfunorm=pd.read_csv(csvunnorm)
     dfunormid=applyid(dfunorm)
-    dfxaisortedid=applyid(dfxai)
-    dfxaiunnorm=pd.merge(dfunormid, dfxai, on='id', suffixes=('', '_y'))
+    return dfunormid
 
-def explain_day(date):
-    xaifolder = '/mnt/nvme2tb/ffp/datasets/xai/%s' % date
-    coarsefile = os.path.join(xaifolder, '%s_xai_inp.csv' % date)
-    dfcoarsenorm, modparams = xai_ds_load(coarsefile)
-    X = dfcoarsenorm.iloc[:, :-1]
-    model = xai_model_load(modparams)
-    fshap1p=partial(fshap1,model)
-    explainer1 = shap.KernelExplainer(fshap1p, shap.kmeans(X, 20))
-    shap_values = explainer1.shap_values(X, nsamples=150)
+def explain_day(date, ext=''):
+    xaifolder = '/mnt/nvme2tb/ffp/datasets/xai/%s'%date
+    prodfolder = '/mnt/nvme2tb/ffp/datasets/prod/%s'%date
+    coarsefile = os.path.join(xaifolder, '%s_xai_%sinp.csv'%(date,ext))
+    xaifile = os.path.join(xaifolder, '%s_xai_%sallfeat.csv'%(date,ext))
+    predfile = os.path.join(prodfolder, '%s_pred_greece.csv'%date)
 
-    # get df for explainability values
-    dfxai = xai_xy_ds(shap_values[1], X.columns, coarsefile)
-    dfxaisorted = sorted_imp(dfxai, 5, 'shap', dfxaiunnorm, sorttype='both')
-    dfxaisorted = pd.concat([dfypred, dfxaisorted], axis=1)
 
-for d in range(26, 29):
-    date='202308'+str(d)
-    explain_day(date)
+    #ypred = model.predict(X)
+    #dfypred = pd.Series(ypred[:, 1]).rename('ypred')
+    if not os.path.exists(xaifile):
+        dfcoarsenorm, modparams = xai_ds_load(coarsefile)
+        X = dfcoarsenorm.iloc[:, :-1]
+        model = xai_model_load(modparams)
+        fshap1p=partial(fshap1,model)
+        explainer1 = shap.KernelExplainer(fshap1p, shap.kmeans(X, 20))
+        shap_values = explainer1.shap_values(X, nsamples=150)
+        # get df for explainability values
+        dfxai = xai_xy_ds(shap_values[1], X.columns, coarsefile)
+        dfxai.to_csv(xaifile, index=False)
+    else:
+        print('XAI csv file %s exists. Producing only sorted features and shp file'%xaifile)
+        dfxai=pd.read_csv(xaifile, dtype={'id': str})
+    dfunormid = getunnorm(date)
+    dfxaisorted = sorted_imp(dfxai, 5, 'shap', dfunormid, sorttype='both')
+    #dfxaisorted = pd.concat([dfypred, dfxaisorted], axis=1)
+    dfxaisorted['stdtime'] = datetime.strptime(date, "%Y%m%d").strftime("%Y-%m-%d")
+    dfxaisorted = applyid(dfxaisorted)
+    dfpred = pd.read_csv(predfile, dtype={'id': str, 'risk': np.int16})
+    dfxaisorted = pd.merge(dfpred, dfxaisorted, on='id', suffixes=('', '_xai')).\
+        drop(columns=['y_xai', 'x_xai', 'ypred0']).rename(columns={'ypred1': 'ypred'})
+    xaisortedfile=os.path.join(xaifolder, '%s_shap_%sxai.shp'%(date,ext))
+    print('Convert csv to shp points %s'%xaisortedfile)
+    gdf = gpd.GeoDataFrame(dfxaisorted, geometry=gpd.points_from_xy(dfxaisorted['x'], dfxaisorted['y'], z=None, crs=4326))
+    #gdf = gpd.GeoDataFrame(dfxai, geometry=gpd.points_from_xy(dfxai['x'], dfxai['y'], z=None, crs=4326))
+    gdf.drop(columns=['x', 'y'], inplace=True)
+    gdf.to_file(xaisortedfile)
+
+
+def main():
+    args = sys.argv[1:]
+    if len(args)==1:
+        date=args[0]
+        explain_day(date, 'ext_')
+
+if __name__ == "__main__":
+    main()

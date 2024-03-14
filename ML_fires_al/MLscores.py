@@ -84,7 +84,7 @@ def calc_all_hybrids(rec_1, rec_0, debug=True):
         print("NH 2 : %.2f" % nh2)
         print("NH 5 : %.2f" % nh5)
         print("NH 10 : %.2f" % nh10)
-        print("BA 10 : %.2f" % ba)
+        print("BA : %.2f" % ba)
     return hybrid1, hybrid2, hybrid5, nh2, nh5, nh10, ba
 
 def cmvals(y_true, y_pred):

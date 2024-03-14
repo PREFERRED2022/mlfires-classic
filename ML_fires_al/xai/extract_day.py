@@ -61,5 +61,6 @@ def extract_day(date):
 
 
 for d in range(25,29):
+    print('Explaining day %s' % d)
     date='202308'+str(d)
     extract_day(date)
