@@ -1,12 +1,6 @@
 logs/
 .idea/
-ML_fires_al/.ipynb_checkpoints/
 **/*pyc
 **/*zip
 **/*csv
-!ML_fires_al/data/*csv
-.\\l*
 temp
-ML_fires_al/results/
-ML_fires_al/models/
-ML_fires_al/stats/
