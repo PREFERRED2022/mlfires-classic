@@ -1,6 +1,0 @@
-{
-  "dataset":"/home/aapostolakis/Documents/ffpdata/newcrossval/datasets/randomnofire/oldrandomnewfeat.csv",
-  "drop":  "False",
-  "params" : "{'ES_mindelta': 0.001, 'ES_monitor': 'loss', 'ES_patience': 10, 'batch_size': 512, 'class_weights': {0: 1, 1: 10}, 'dropout': 0.1, 'feature_drop': ('dir_max', 'dom_dir', 'month', 'wkd'),'max_epochs': 2000, 'metric': 'accuracy', 'n_internal_layers': (0, {'layer_1_0_nodes': 70}), 'optimizer': {'adam_params': None, 'name': 'Adam'}}",
-  "epochs" : 250
-}
